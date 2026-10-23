@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftar & Buat Ruang Keluarga — famespace</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#2F5233',
+              dark: '#1E3821',
+              light: '#3F6B44',
+              soft: '#EAF0EB'
+            },
+            cream: '#FBF8EF',
+            ink: '#121614',
+            mustard: '#F2C94C',
+            coral: '#E07A5F',
+            sage: '#87A987',
+            sky: '#81B0C4'
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          boxShadow: {
+            brutal: '4px 4px 0px 0px #121614',
+            'brutal-lg': '6px 6px 0px 0px #121614',
+            'brutal-sm': '2px 2px 0px 0px #121614'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #FBF8EF;
+      color: #121614;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-image: radial-gradient(#121614 0.75px, transparent 0.75px);
+      background-size: 20px 20px;
+    }
+    .brutal-border {
+      border: 2.5px solid #121614;
+    }
+    .brutal-btn {
+      border: 2.5px solid #121614;
+      box-shadow: 4px 4px 0px 0px #121614;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .brutal-btn:hover {
+      transform: translate(-1.5px, -1.5px);
+      box-shadow: 6px 6px 0px 0px #121614;
+    }
+    .brutal-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px 0px #121614;
+    }
+    .brutal-card {
+      border: 2.5px solid #121614;
+      box-shadow: 6px 6px 0px 0px #121614;
+      animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .brutal-input {
+      border: 2.5px solid #121614;
+      box-shadow: 2px 2px 0px 0px #121614;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    .brutal-input:focus {
+      background-color: #FFFFFF;
+      box-shadow: 4px 4px 0px 0px #2F5233;
+      transform: translate(-1px, -1px);
+    }
+    .step-active {
+      background-color: #F2C94C;
+      color: #121614;
+      box-shadow: 3px 3px 0px #121614;
+      transform: scale(1.05);
+      transition: all 0.2s ease;
+    }
+    .step-completed {
+      background-color: #2F5233;
+      color: #FFFFFF;
+      transition: all 0.2s ease;
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.96) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .step-fade-in {
+      animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 sm:p-6 antialiased selection:bg-mustard selection:text-ink">
+
+  <!-- TOP HEADER -->
+  <header class="max-w-2xl mx-auto w-full flex items-center justify-between py-4">
+    <a href="index.html" class="flex items-center gap-2 group">
+      <div class="w-9 h-9 bg-brand text-white brutal-border flex items-center justify-center font-black text-xl font-display group-hover:rotate-6 transition-transform">
+        f
+      </div>
+      <span class="font-display font-black text-xl tracking-tight text-ink">famespace<span class="text-brand">.</span></span>
+    </a>
+    <div class="text-xs font-bold text-ink/80 flex items-center gap-2">
+      <span>Sudah punya akun?</span>
+      <a href="login.html" class="px-2.5 py-1 bg-white brutal-border font-black hover:bg-mustard">
+        Masuk &rarr;
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN WIZARD CONTAINER -->
+  <main class="max-w-2xl mx-auto w-full my-auto py-6">
+    <div class="bg-white brutal-card p-6 sm:p-8">
+
+      <!-- TOP TOGGLE: BUAT KELUARGA BARU vs GABUNG DENGAN KODE -->
+      <div class="grid grid-cols-2 gap-2 p-1.5 bg-cream brutal-border mb-8">
+        <button 
+          id="tab-btn-create" 
+          onclick="switchFlow('create')" 
+          class="py-2.5 text-xs sm:text-sm font-black font-display text-center transition-all bg-brand text-white brutal-border"
+        >
+          🌿 Buat Ruang Keluarga Baru
+        </button>
+        <button 
+          id="tab-btn-join" 
+          onclick="switchFlow('join')" 
+          class="py-2.5 text-xs sm:text-sm font-bold font-display text-center transition-all bg-white text-ink hover:bg-mustard"
+        >
+          🎟️ Punya Kode Undangan
+        </button>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- FLOW A: BUAT RUANG KELUARGA BARU (3 STEPS) -->
+      <!-- ============================================== -->
+      <div id="flow-create" class="space-y-6">
+        
+        <!-- STEP INDICATOR -->
+        <div class="flex items-center justify-between pb-4 border-b-2 border-ink">
+          <div class="flex items-center gap-2">
+            <div id="badge-step-1" class="w-7 h-7 brutal-border step-active flex items-center justify-center font-mono font-black text-xs">
+              1
+            </div>
+            <span class="text-xs font-bold font-mono uppercase hidden sm:inline">Ruang Keluarga</span>
+          </div>
+
+          <div class="h-0.5 flex-1 mx-3 bg-ink/20"></div>
+
+          <div class="flex items-center gap-2">
+            <div id="badge-step-2" class="w-7 h-7 brutal-border bg-white text-ink flex items-center justify-center font-mono font-bold text-xs">
+              2
+            </div>
+            <span class="text-xs font-bold font-mono uppercase text-ink/60 hidden sm:inline">Profil Admin</span>
+          </div>
+
+          <div class="h-0.5 flex-1 mx-3 bg-ink/20"></div>
+
+          <div class="flex items-center gap-2">
+            <div id="badge-step-3" class="w-7 h-7 brutal-border bg-white text-ink flex items-center justify-center font-mono font-bold text-xs">
+              3
+            </div>
+            <span class="text-xs font-bold font-mono uppercase text-ink/60 hidden sm:inline">Undang Anggota</span>
+          </div>
+        </div>
+
+        <!-- ================= STEP 1: NAMA KELUARGA & TARGET ================= -->
+        <div id="step-content-1" class="space-y-5">
+          <div>
+            <span class="text-[11px] font-mono font-bold text-brand uppercase tracking-wider">Langkah 1 dari 3</span>
+            <h2 class="text-2xl font-black font-display text-ink mt-0.5">Beri Nama Ruang Keluarga Anda</h2>
+            <p class="text-xs font-medium text-ink/70">Ruang bersama ini akan dikelola dan dihuni oleh seluruh anggota keluarga.</p>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label for="family_name" class="block text-xs font-black font-mono uppercase text-ink mb-1">Nama Ruang Keluarga</label>
+              <input 
+                type="text" 
+                id="family_name" 
+                value="Keluarga Santoso Pratama" 
+                placeholder="misal: Keluarga Santoso / The Smiths"
+                class="w-full px-3 py-2.5 bg-cream brutal-input text-sm font-bold text-ink"
+              >
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="budget_monthly" class="block text-xs font-black font-mono uppercase text-ink mb-1">Target Kas Bulanan (Rp)</label>
+                <input 
+                  type="text" 
+                  id="budget_monthly" 
+                  value="12.500.000" 
+                  placeholder="Rp 10.000.000"
+                  class="w-full px-3 py-2.5 bg-cream brutal-input text-sm font-mono font-bold text-ink"
+                >
+              </div>
+              <div>
+                <label for="currency" class="block text-xs font-black font-mono uppercase text-ink mb-1">Mata Uang Utama</label>
+                <select id="currency" class="w-full px-3 py-2.5 bg-cream brutal-input text-sm font-bold text-ink">
+                  <option selected>IDR (Rupiah - Rp)</option>
+                  <option>USD ($)</option>
+                  <option>SGD (S$)</option>
+                  <option>MYR (RM)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- FAMILY RULE BADGE -->
+            <div class="p-3 bg-brand-soft brutal-border space-y-2">
+              <span class="text-[10px] font-mono font-bold uppercase text-brand-dark px-1.5 py-0.5 bg-white brutal-border">
+                💡 Aturan Otomatis Rumah Tangga
+              </span>
+              <div class="space-y-1.5 text-xs font-semibold">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked class="w-4 h-4 brutal-border accent-brand">
+                  <span>Kirim pengingat tagihan bulanan otomatis (Listrik/PAM/WiFi)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked class="w-4 h-4 brutal-border accent-brand">
+                  <span>Aktifkan poin reward untuk setiap tugas chores yang tuntas</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <button 
+              type="button" 
+              onclick="goToStep(2)" 
+              class="w-full py-3.5 bg-brand text-white font-black text-sm uppercase tracking-wider brutal-btn flex items-center justify-center gap-2"
+            >
+              <span>Lanjut: Profil & Akun Admin</span> &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= STEP 2: PROFIL & PERAN ADMIN ================= -->
+        <div id="step-content-2" class="space-y-5 hidden">
+          <div>
+            <span class="text-[11px] font-mono font-bold text-brand uppercase tracking-wider">Langkah 2 dari 3</span>
+            <h2 class="text-2xl font-black font-display text-ink mt-0.5">Siapa nama Anda dan peran di rumah?</h2>
+            <p class="text-xs font-medium text-ink/70">Akun ini akan menjadi Admin Ruang Keluarga pertama.</p>
+          </div>
+
+          <!-- ROLE SELECTOR -->
+          <div>
+            <label class="block text-xs font-black font-mono uppercase text-ink mb-2">
+              Pilih Peran Anda di Rumah:
+            </label>
+            <div class="grid grid-cols-3 gap-2">
+              <label class="cursor-pointer">
+                <input type="radio" name="role" value="Ayah" class="peer hidden" checked>
+                <div class="p-3 text-center bg-white brutal-border peer-checked:bg-mustard peer-checked:shadow-brutal-sm font-bold text-xs">
+                  <div class="text-2xl mb-1">👨</div>
+                  <span>Ayah / Kepala</span>
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="role" value="Ibu" class="peer hidden">
+                <div class="p-3 text-center bg-white brutal-border peer-checked:bg-mustard peer-checked:shadow-brutal-sm font-bold text-xs">
+                  <div class="text-2xl mb-1">👩</div>
+                  <span>Ibu / Manajer</span>
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="role" value="Anak" class="peer hidden">
+                <div class="p-3 text-center bg-white brutal-border peer-checked:bg-mustard peer-checked:shadow-brutal-sm font-bold text-xs">
+                  <div class="text-2xl mb-1">👦</div>
+                  <span>Anak / Lainnya</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- INPUTS -->
+          <div class="space-y-4">
+            <div>
+              <label for="full_name" class="block text-xs font-black font-mono uppercase text-ink mb-1">Nama Lengkap</label>
+              <input 
+                type="text" 
+                id="full_name" 
+                value="Dimas Pratama" 
+                placeholder="misal: Dimas Pratama"
+                class="w-full px-3 py-2.5 bg-cream brutal-input text-sm font-bold text-ink"
+              >
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="reg_email" class="block text-xs font-black font-mono uppercase text-ink mb-1">Email Aktif</label>
+                <input 
+                  type="email" 
+                  id="reg_email" 
+                  value="dimas@keluarga.id" 
+                  placeholder="nama@email.com"
+                  class="w-full px-3 py-2.5 bg-cream brutal-input text-sm font-bold text-ink"
+                >
+              </div>
+              <div>
+                <label for="reg_pass" class="block text-xs font-black font-mono uppercase text-ink mb-1">Kata Sandi</label>
+                <input 
+                  type="password" 
+                  id="reg_pass" 
+                  value="keluargabahagia2026" 
+                  placeholder="Minimal 8 karakter"
+                  class="w-full px-3 py-2.5 bg-cream brutal-input text-sm font-bold text-ink"
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button 
+              type="button" 
+              onclick="goToStep(1)" 
+              class="w-1/3 py-3.5 bg-white text-ink font-bold text-xs uppercase tracking-wider brutal-btn"
+            >
+              &larr; Kembali
+            </button>
+            <button 
+              type="button" 
+              onclick="goToStep(3)" 
+              class="w-2/3 py-3.5 bg-brand text-white font-black text-sm uppercase tracking-wider brutal-btn flex items-center justify-center gap-2"
+            >
+              <span>Lanjut: Undang Anggota</span> &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= STEP 3: UNDANG ANGGOTA KELUARGA ================= -->
+        <div id="step-content-3" class="space-y-5 hidden">
+          <div>
+            <span class="text-[11px] font-mono font-bold text-brand uppercase tracking-wider">Langkah 3 dari 3 — Terakhir!</span>
+            <h2 class="text-2xl font-black font-display text-ink mt-0.5">Ajak Pasangan & Anak Bergabung</h2>
+            <p class="text-xs font-medium text-ink/70">Kirim link atau undang via email langsung agar bisa sinkron bersama.</p>
+          </div>
+
+          <!-- SHARE LINK BOX -->
+          <div class="p-4 bg-mustard/30 brutal-border space-y-3">
+            <label class="block text-xs font-black font-mono uppercase text-ink">
+              🔗 Link Undangan Khusus Keluarga Anda:
+            </label>
+            <div class="flex items-center gap-2">
+              <input 
+                type="text" 
+                id="invite-link-input"
+                readonly 
+                value="https://famespace.id/join/FAM-7729" 
+                class="w-full px-3 py-2 bg-white brutal-border font-mono text-xs font-bold text-brand"
+              >
+              <button 
+                type="button" 
+                onclick="copyInviteLink()" 
+                id="copy-btn"
+                class="px-3 py-2 bg-white hover:bg-mustard brutal-btn text-xs font-black whitespace-nowrap"
+              >
+                Salin Link
+              </button>
+            </div>
+            <div class="flex items-center gap-2 text-[11px] font-bold text-ink/80">
+              <span>Atau bagikan kode 6 digit:</span>
+              <span class="px-2 py-0.5 bg-white brutal-border font-mono font-black text-brand text-xs">FAM-7729</span>
+            </div>
+          </div>
+
+          <!-- INVITE BY EMAIL -->
+          <div class="space-y-3">
+            <label class="block text-xs font-black font-mono uppercase text-ink">
+              Kirim Undangan Langsung ke Email Pasangan / Anak:
+            </label>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 bg-cream brutal-border flex items-center justify-center text-sm font-bold">👩</span>
+                <input 
+                  type="email" 
+                  value="maya.istri@gmail.com" 
+                  placeholder="Email Pasangan / Istri"
+                  class="flex-1 px-3 py-2 bg-cream brutal-input text-xs font-bold text-ink"
+                >
+                <span class="px-2 py-1 bg-sage brutal-border text-[10px] font-bold">Co-Admin</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 bg-cream brutal-border flex items-center justify-center text-sm font-bold">👦</span>
+                <input 
+                  type="email" 
+                  value="budi.anak@gmail.com" 
+                  placeholder="Email Anak (opsional)"
+                  class="flex-1 px-3 py-2 bg-cream brutal-input text-xs font-bold text-ink"
+                >
+                <span class="px-2 py-1 bg-sky brutal-border text-[10px] font-bold">Anggota</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-ink/60 font-medium">
+              * Anggota keluarga bisa ditambahkan kapan saja nanti lewat Dashboard.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3 pt-3">
+            <button 
+              type="button" 
+              onclick="goToStep(2)" 
+              class="w-1/3 py-3.5 bg-white text-ink font-bold text-xs uppercase tracking-wider brutal-btn"
+            >
+              &larr; Kembali
+            </button>
+            <a 
+              href="dashboard.html" 
+              class="w-2/3 py-3.5 bg-brand text-white font-black text-sm uppercase tracking-wider brutal-btn text-center flex items-center justify-center gap-2"
+            >
+              <span>🎉 Selesai & Buka Dashboard</span> &rarr;
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- FLOW B: GABUNG DENGAN KODE UNDANGAN -->
+      <!-- ============================================== -->
+      <div id="flow-join" class="space-y-5 hidden">
+        <div>
+          <span class="text-[11px] font-mono font-bold text-brand uppercase tracking-wider">Gabung Ruang Keluarga</span>
+          <h2 class="text-2xl font-black font-display text-ink mt-0.5">Masukkan Kode Undangan 6-Digit</h2>
+          <p class="text-xs font-medium text-ink/70">Kode didapat dari kepala keluarga yang telah membuat famespace sebelumnya.</p>
+        </div>
+
+        <div class="p-4 bg-mustard/20 brutal-border space-y-2">
+          <label for="join_code" class="block text-xs font-black font-mono uppercase text-ink">
+            Kode Keluarga (Family Code):
+          </label>
+          <input 
+            type="text" 
+            id="join_code" 
+            value="FAM-7729" 
+            maxlength="8"
+            placeholder="misal: FAM-7729"
+            class="w-full px-4 py-3 bg-white brutal-input text-center text-xl font-black font-mono tracking-widest text-brand uppercase"
+          >
+          <div class="text-[11px] text-center font-bold text-brand flex items-center justify-center gap-1">
+            <span>✓ Kode valid:</span>
+            <strong>Keluarga Santoso Pratama</strong>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label for="join_name" class="block text-xs font-black font-mono uppercase text-ink mb-1">Nama Lengkap Anda</label>
+            <input 
+              type="text" 
+              id="join_name" 
+              value="Maya Indriani" 
+              placeholder="misal: Maya Indriani"
+              class="w-full px-3 py-2.5 bg-cream brutal-input text-sm font-bold text-ink"
+            >
+          </div>
+
+          <div>
+            <label for="join_role" class="block text-xs font-black font-mono uppercase text-ink mb-1">Peran Anda di Keluarga Ini</label>
+            <select id="join_role" class="w-full px-3 py-2.5 bg-cream brutal-input text-sm font-bold text-ink">
+              <option selected>Ibu / Istri (Co-Admin)</option>
+              <option>Anak (Member)</option>
+              <option>Kakek / Nenek</option>
+              <option>Asisten Rumah Tangga</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="join_email" class="block text-xs font-black font-mono uppercase text-ink mb-1">Email</label>
+              <input 
+                type="email" 
+                id="join_email" 
+                value="maya@keluarga.id" 
+                class="w-full px-3 py-2.5 bg-cream brutal-input text-sm font-bold text-ink"
+              >
+            </div>
+            <div>
+              <label for="join_pass" class="block text-xs font-black font-mono uppercase text-ink mb-1">Kata Sandi Baru</label>
+              <input 
+                type="password" 
+                id="join_pass" 
+                value="keluargabaru123" 
+                class="w-full px-3 py-2.5 bg-cream brutal-input text-sm font-bold text-ink"
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <a 
+            href="dashboard.html" 
+            class="w-full py-3.5 bg-brand text-white font-black text-sm uppercase tracking-wider brutal-btn text-center block"
+          >
+            Gabung ke Ruang Keluarga Ini &rarr;
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER NOTICE -->
+  <footer class="max-w-2xl mx-auto w-full text-center py-4 text-xs font-mono font-bold text-ink/60">
+    famespace &bull; Preview Desain Neobrutalism Hijau Warm
+  </footer>
+
+  <script>
+    function switchFlow(flow) {
+      const btnCreate = document.getElementById('tab-btn-create');
+      const btnJoin = document.getElementById('tab-btn-join');
+      const flowCreate = document.getElementById('flow-create');
+      const flowJoin = document.getElementById('flow-join');
+
+      if (flow === 'create') {
+        btnCreate.className = 'py-2.5 text-xs sm:text-sm font-black font-display text-center transition-all bg-brand text-white brutal-border';
+        btnJoin.className = 'py-2.5 text-xs sm:text-sm font-bold font-display text-center transition-all bg-white text-ink hover:bg-mustard';
+        flowCreate.classList.remove('hidden');
+        flowJoin.classList.add('hidden');
+      } else {
+        btnJoin.className = 'py-2.5 text-xs sm:text-sm font-black font-display text-center transition-all bg-brand text-white brutal-border';
+        btnCreate.className = 'py-2.5 text-xs sm:text-sm font-bold font-display text-center transition-all bg-white text-ink hover:bg-mustard';
+        flowJoin.classList.remove('hidden');
+        flowCreate.classList.add('hidden');
+      }
+    }
+
+    // ponytail: canvas confetti for onboarding milestone
+    function fireConfetti() {
+      const canvas = document.createElement('canvas');
+      canvas.style.position = 'fixed';
+      canvas.style.inset = '0';
+      canvas.style.width = '100vw';
+      canvas.style.height = '100vh';
+      canvas.style.pointerEvents = 'none';
+      canvas.style.zIndex = '9999';
+      document.body.appendChild(canvas);
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const colors = ['#F2C94C', '#2F5233', '#E07A5F', '#81B0C4', '#121614', '#87A987'];
+      const pieces = Array.from({ length: 45 }, () => ({
+        x: window.innerWidth / 2,
+        y: window.innerHeight * 0.4,
+        vx: (Math.random() - 0.5) * 14,
+        vy: (Math.random() - 0.7) * 14,
+        size: Math.random() * 8 + 4,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rot: Math.random() * 360,
+        vrot: (Math.random() - 0.5) * 12
+      }));
+
+      let frame = 0;
+      function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.4;
+          p.rot += p.vrot;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rot * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+        });
+        frame++;
+        if (frame < 55) requestAnimationFrame(loop);
+        else canvas.remove();
+      }
+      requestAnimationFrame(loop);
+    }
+
+    function goToStep(step) {
+      // Hide all step contents
+      const s1 = document.getElementById('step-content-1');
+      const s2 = document.getElementById('step-content-2');
+      const s3 = document.getElementById('step-content-3');
+
+      [s1, s2, s3].forEach(s => {
+        s.classList.add('hidden');
+        s.classList.remove('step-fade-in');
+      });
+
+      // Reset badges
+      const b1 = document.getElementById('badge-step-1');
+      const b2 = document.getElementById('badge-step-2');
+      const b3 = document.getElementById('badge-step-3');
+
+      [b1, b2, b3].forEach(b => {
+        b.className = 'w-7 h-7 brutal-border bg-white text-ink flex items-center justify-center font-mono font-bold text-xs';
+      });
+
+      if (step === 1) {
+        s1.classList.remove('hidden');
+        void s1.offsetWidth;
+        s1.classList.add('step-fade-in');
+        b1.className = 'w-7 h-7 brutal-border step-active flex items-center justify-center font-mono font-black text-xs';
+      } else if (step === 2) {
+        s2.classList.remove('hidden');
+        void s2.offsetWidth;
+        s2.classList.add('step-fade-in');
+        b1.className = 'w-7 h-7 brutal-border step-completed flex items-center justify-center font-mono font-black text-xs';
+        b2.className = 'w-7 h-7 brutal-border step-active flex items-center justify-center font-mono font-black text-xs';
+      } else if (step === 3) {
+        s3.classList.remove('hidden');
+        void s3.offsetWidth;
+        s3.classList.add('step-fade-in');
+        b1.className = 'w-7 h-7 brutal-border step-completed flex items-center justify-center font-mono font-black text-xs';
+        b2.className = 'w-7 h-7 brutal-border step-completed flex items-center justify-center font-mono font-black text-xs';
+        b3.className = 'w-7 h-7 brutal-border step-active flex items-center justify-center font-mono font-black text-xs';
+        fireConfetti();
+      }
+    }
+
+    function copyInviteLink() {
+      const input = document.getElementById('invite-link-input');
+      navigator.clipboard.writeText(input.value);
+      const btn = document.getElementById('copy-btn');
+      btn.innerText = 'Tersalin! ✓';
+      btn.classList.add('bg-mustard');
+      setTimeout(() => {
+        btn.innerText = 'Salin Link';
+        btn.classList.remove('bg-mustard');
+      }, 2000);
+    }
+  </script>
+
+</body>
+</html>

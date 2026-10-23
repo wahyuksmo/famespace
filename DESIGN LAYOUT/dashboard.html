@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Keluarga — famespace</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+  <!-- FLATPICKR (CUSTOM BRUTALIST DATEPICKER) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#2F5233',
+              dark: '#1E3821',
+              light: '#3F6B44',
+              soft: '#EAF0EB'
+            },
+            cream: '#FBF8EF',
+            ink: '#121614',
+            mustard: '#F2C94C',
+            coral: '#E07A5F',
+            sage: '#87A987',
+            sky: '#81B0C4'
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          boxShadow: {
+            brutal: '4px 4px 0px 0px #121614',
+            'brutal-lg': '6px 6px 0px 0px #121614',
+            'brutal-sm': '2px 2px 0px 0px #121614'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #FBF8EF;
+      color: #121614;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .brutal-border {
+      border: 2.5px solid #121614;
+    }
+    .brutal-btn {
+      border: 2.5px solid #121614;
+      box-shadow: 3px 3px 0px 0px #121614;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .brutal-btn:hover {
+      transform: translate(-1.5px, -1.5px);
+      box-shadow: 5px 5px 0px 0px #121614;
+    }
+    .brutal-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px 0px #121614;
+    }
+    .brutal-card {
+      border: 2.5px solid #121614;
+      box-shadow: 4px 4px 0px 0px #121614;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .brutal-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px 0px #121614;
+    }
+    .nav-item-active {
+      background-color: #F2C94C;
+      color: #121614;
+      border: 2px solid #121614;
+      box-shadow: 3px 3px 0px #121614;
+      font-weight: 800;
+      transform: translate(-1px, -1px);
+    }
+    .nav-item {
+      font-weight: 700;
+      color: #121614;
+      border: 2px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .nav-item:hover {
+      background-color: #FFFFFF;
+      border-color: #121614;
+      transform: translateX(2px);
+    }
+
+    /* Animation effects */
+    @keyframes viewPopIn {
+      0% {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .tab-view {
+      animation: viewPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalBounce {
+      0% {
+        transform: scale(0.92) translateY(8px);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+    }
+    .modal-box {
+      animation: modalBounce 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Neo-brutalist Flatpickr Overrides */
+    .flatpickr-calendar {
+      border: 2.5px solid #121614 !important;
+      box-shadow: 5px 5px 0px 0px #121614 !important;
+      background: #FBF8EF !important;
+      border-radius: 0 !important;
+      font-family: 'Plus Jakarta Sans', sans-serif !important;
+      width: 300px !important;
+      z-index: 99999 !important;
+    }
+    .flatpickr-calendar.arrowTop:before,
+    .flatpickr-calendar.arrowTop:after,
+    .flatpickr-calendar.arrowBottom:before,
+    .flatpickr-calendar.arrowBottom:after {
+      display: none !important;
+    }
+    .flatpickr-months {
+      background: #2F5233 !important;
+      color: #FFFFFF !important;
+      padding: 6px 4px !important;
+      border-bottom: 2.5px solid #121614 !important;
+    }
+    .flatpickr-month,
+    .flatpickr-current-month,
+    .flatpickr-current-month input.cur-year,
+    .flatpickr-current-month .cur-month {
+      color: #FFFFFF !important;
+      font-weight: 800 !important;
+      font-size: 0.9rem !important;
+    }
+    .flatpickr-prev-month svg, .flatpickr-next-month svg {
+      fill: #FFFFFF !important;
+    }
+    .flatpickr-weekdays {
+      background: #F2C94C !important;
+      border-bottom: 2px solid #121614 !important;
+    }
+    span.flatpickr-weekday {
+      color: #121614 !important;
+      font-weight: 800 !important;
+      font-size: 0.75rem !important;
+    }
+    .flatpickr-day {
+      border-radius: 0 !important;
+      font-weight: 700 !important;
+      color: #121614 !important;
+      height: 34px !important;
+      line-height: 34px !important;
+      margin: 1px 0 !important;
+    }
+    .flatpickr-day:hover {
+      background: #F2C94C !important;
+      border-color: #121614 !important;
+      color: #121614 !important;
+    }
+    .flatpickr-day.selected {
+      background: #2F5233 !important;
+      border-color: #121614 !important;
+      color: #FFFFFF !important;
+    }
+    .flatpickr-day.today {
+      border: 2px solid #E07A5F !important;
+    }
+    .flatpickr-time {
+      border-top: 2.5px solid #121614 !important;
+      background: #FBF8EF !important;
+    }
+    .flatpickr-time input {
+      font-weight: 800 !important;
+      font-family: 'JetBrains Mono', monospace !important;
+      color: #121614 !important;
+    }
+  </style>
+</head>
+<body class="h-screen overflow-hidden flex antialiased selection:bg-mustard selection:text-ink">
+
+  <!-- ============================================== -->
+  <!-- SIDEBAR KIRI TETAP (CHUNKY NEOBRUTALIST) -->
+  <!-- ============================================== -->
+  <aside class="w-64 lg:w-72 bg-white brutal-border border-l-0 border-y-0 h-screen sticky top-0 flex flex-col justify-between p-4 flex-shrink-0 z-30">
+    
+    <div class="flex-1 min-h-0 flex flex-col overflow-y-auto pr-1">
+      <!-- LOGO & FAMILY BADGE -->
+      <div class="pb-5 mb-5 border-b-2 border-ink flex-shrink-0">
+        <a href="index.html" class="flex items-center gap-2 group mb-3">
+          <div class="w-9 h-9 bg-brand text-white brutal-border flex items-center justify-center font-black text-xl font-display group-hover:rotate-6 transition-transform">
+            f
+          </div>
+          <div>
+            <span class="font-display font-black text-xl tracking-tight text-ink">famespace<span class="text-brand">.</span></span>
+          </div>
+        </a>
+
+        <!-- CURRENT FAMILY SPACE PILL -->
+        <div class="p-2.5 bg-brand-soft brutal-border">
+          <div class="flex items-center justify-between text-[10px] font-mono font-bold text-brand uppercase">
+            <span>Ruang Aktif</span>
+            <span class="px-1 bg-white brutal-border">FAM-7729</span>
+          </div>
+          <div class="font-extrabold text-xs text-ink mt-0.5 truncate">
+            👨‍👩‍👧‍👦 Kel. Santoso Pratama
+          </div>
+          <div class="text-[10px] font-semibold text-ink/70 mt-0.5">
+            4 Anggota &bull; Paket Pro
+          </div>
+        </div>
+      </div>
+
+      <!-- NAVIGATION MENU -->
+      <nav class="space-y-1.5" id="sidebar-nav">
+        <button onclick="switchTab('overview')" id="nav-overview" class="w-full text-left px-3 py-2.5 rounded-none nav-item-active flex items-center gap-3 text-xs uppercase tracking-wider">
+          <span class="text-base">📊</span>
+          <span>Ringkasan</span>
+        </button>
+
+        <button onclick="switchTab('chores')" id="nav-chores" class="w-full text-left px-3 py-2.5 rounded-none nav-item flex items-center justify-between text-xs uppercase tracking-wider">
+          <div class="flex items-center gap-3">
+            <span class="text-base">🧹</span>
+            <span>Tugas & Chores</span>
+          </div>
+          <span class="px-1.5 py-0.2 bg-coral text-white font-mono text-[10px] brutal-border font-bold">2</span>
+        </button>
+
+        <button onclick="switchTab('finance')" id="nav-finance" class="w-full text-left px-3 py-2.5 rounded-none nav-item flex items-center gap-3 text-xs uppercase tracking-wider">
+          <span class="text-base">💰</span>
+          <span>Kas & Tabungan</span>
+        </button>
+
+        <button onclick="switchTab('timeline')" id="nav-timeline" class="w-full text-left px-3 py-2.5 rounded-none nav-item flex items-center justify-between text-xs uppercase tracking-wider">
+          <div class="flex items-center gap-3">
+            <span class="text-base">🗺️</span>
+            <span>Linimasa & Trip</span>
+          </div>
+          <span id="badge-nav-timeline" class="px-1.5 py-0.5 bg-coral text-white font-mono text-[10px] brutal-border font-bold">🔒 PRO</span>
+        </button>
+
+        <button onclick="switchTab('calendar')" id="nav-calendar" class="w-full text-left px-3 py-2.5 rounded-none nav-item flex items-center justify-between text-xs uppercase tracking-wider">
+          <div class="flex items-center gap-3">
+            <span class="text-base">📅</span>
+            <span>Kalender & Agenda</span>
+          </div>
+          <span id="badge-nav-calendar" class="px-1.5 py-0.5 bg-coral text-white font-mono text-[10px] brutal-border font-bold">🔒 PRO</span>
+        </button>
+
+        <button onclick="switchTab('members')" id="nav-members" class="w-full text-left px-3 py-2.5 rounded-none nav-item flex items-center gap-3 text-xs uppercase tracking-wider">
+          <span class="text-base">👨‍👩‍👧‍👦</span>
+          <span>Anggota Keluarga</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- BOTTOM PROFILE CARD & LOGOUT -->
+    <div class="pt-4 border-t-2 border-ink space-y-2.5 flex-shrink-0">
+      <!-- SUBSCRIPTION STATUS & DEV TOGGLE -->
+      <div class="p-2.5 bg-cream brutal-border space-y-1.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono font-black uppercase text-ink/70">Paket Akun</span>
+          <span id="plan-badge-sidebar" class="px-1.5 py-0.5 text-[9px] font-black font-mono brutal-border bg-coral text-white">FREE</span>
+        </div>
+        <div class="flex items-center justify-between text-[10px] font-bold">
+          <span id="plan-desc-sidebar" class="text-ink/80 font-mono">Rp 20rb/bln</span>
+          <button type="button" onclick="togglePlanDev()" title="Klik untuk beralih mode Free/Pro" class="px-2 py-0.5 bg-white hover:bg-mustard brutal-btn font-mono font-black text-[10px]">
+            ⚡ Tes Toggle
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between p-2 bg-cream brutal-border">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-brand text-white brutal-border font-black text-xs flex items-center justify-center">
+            D
+          </div>
+          <div>
+            <div class="font-black text-xs text-ink leading-tight">Ayah Dimas</div>
+            <div class="text-[10px] font-mono text-brand font-bold">Kepala Keluarga</div>
+          </div>
+        </div>
+        <a href="login.html" title="Keluar" class="w-7 h-7 bg-white brutal-border hover:bg-coral hover:text-white flex items-center justify-center text-xs font-bold transition-colors">
+          🚪
+        </a>
+      </div>
+
+      <div class="flex items-center justify-between text-[11px] font-mono font-bold text-ink/60 px-1">
+        <a href="index.html" class="hover:underline">&larr; Landing Page</a>
+        <span>v1.0-static</span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ============================================== -->
+  <!-- MAIN CONTENT CANVAS -->
+  <!-- ============================================== -->
+  <div id="main-content" class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+
+    <!-- TOP HEADER -->
+    <header class="bg-white brutal-border border-t-0 border-x-0 sticky top-0 z-20 px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl sm:text-2xl font-black font-display text-ink">
+            Halo, Ayah Dimas! 🌿
+          </h1>
+          <span class="px-2 py-0.5 bg-mustard brutal-border text-[10px] font-black uppercase font-mono">
+            Hari ini harmonis
+          </span>
+        </div>
+        <p class="text-xs font-medium text-ink/70">
+          Kamis, 22 Oktober 2026 &bull; Rumah Tangga Santoso Pratama
+        </p>
+      </div>
+
+      <!-- HEADER ACTIONS -->
+      <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+        
+        <!-- FAMILY AVATARS GROUP -->
+        <div class="flex items-center -space-x-2">
+          <div title="Ayah Dimas (Admin)" class="w-8 h-8 rounded-full bg-brand text-white brutal-border flex items-center justify-center text-xs font-black">
+            👨
+          </div>
+          <div title="Ibu Maya (Co-Admin)" class="w-8 h-8 rounded-full bg-mustard text-ink brutal-border flex items-center justify-center text-xs font-black">
+            👩
+          </div>
+          <div title="Budi (Anak)" class="w-8 h-8 rounded-full bg-sky text-ink brutal-border flex items-center justify-center text-xs font-black">
+            👦
+          </div>
+          <div title="Sinta (Anak)" class="w-8 h-8 rounded-full bg-coral text-white brutal-border flex items-center justify-center text-xs font-black">
+            👧
+          </div>
+          <button onclick="switchTab('members')" title="Undang Anggota" class="w-8 h-8 rounded-full bg-white text-ink brutal-border hover:bg-mustard flex items-center justify-center text-xs font-black">
+            +
+          </button>
+        </div>
+
+        <!-- QUICK ACTION BUTTON (OPEN MODAL) -->
+        <button onclick="openModal('task')" class="px-4 py-2 bg-brand text-white brutal-btn font-black text-xs uppercase tracking-wider flex items-center gap-1.5">
+          <span>+ Catat Baru</span>
+        </button>
+
+      </div>
+    </header>
+
+    <!-- CONTENT WRAPPER -->
+    <main class="p-6 max-w-7xl w-full mx-auto space-y-6">
+
+      <!-- ============================================== -->
+      <!-- TAB 1: OVERVIEW / RINGKASAN UTAMA -->
+      <!-- ============================================== -->
+      <div id="view-overview" class="space-y-6">
+        
+        <!-- TOP 4 KPI CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- KPI 1: KAS -->
+          <div class="bg-white brutal-card p-4 hover:translate-y-[-2px] transition-transform">
+            <div class="flex items-center justify-between text-xs font-mono font-bold text-ink/70">
+              <span>SALDO KAS RUMAH</span>
+              <span class="text-base">💰</span>
+            </div>
+            <div class="text-2xl font-black font-mono text-brand mt-1">Rp 14.850.000</div>
+            <div class="flex items-center gap-1.5 text-[11px] font-bold text-brand mt-2">
+              <span>▲ Pengeluaran stabil (hemat 12%)</span>
+            </div>
+          </div>
+
+          <!-- KPI 2: CHORES -->
+          <div class="bg-white brutal-card p-4 hover:translate-y-[-2px] transition-transform">
+            <div class="flex items-center justify-between text-xs font-mono font-bold text-ink/70">
+              <span>CHORES HARI INI</span>
+              <span class="text-base">🧹</span>
+            </div>
+            <div class="text-2xl font-black font-mono text-ink mt-1">4 / 6 <span class="text-sm font-sans font-bold text-ink/60">Tuntas</span></div>
+            <div class="flex items-center gap-1.5 text-[11px] font-bold text-coral mt-2">
+              <span>● Budi masih ada 2 tugas</span>
+            </div>
+          </div>
+
+          <!-- KPI 3: TABUNGAN -->
+          <div class="bg-white brutal-card p-4 hover:translate-y-[-2px] transition-transform">
+            <div class="flex items-center justify-between text-xs font-mono font-bold text-ink/70">
+              <span>LIBURAN AKHIR TAHUN</span>
+              <span class="text-base">🏖️</span>
+            </div>
+            <div class="text-2xl font-black font-mono text-ink mt-1">80% <span class="text-sm font-sans font-bold text-ink/60">Terkumpul</span></div>
+            <div class="w-full bg-cream h-2.5 brutal-border mt-2 overflow-hidden">
+              <div class="bg-brand h-full w-[80%]"></div>
+            </div>
+          </div>
+
+          <!-- KPI 4: AGENDA -->
+          <div class="bg-mustard brutal-card p-4 hover:translate-y-[-2px] transition-transform">
+            <div class="flex items-center justify-between text-xs font-mono font-black text-ink">
+              <span>AGENDA TERDEKAT</span>
+              <span class="text-base">⏰</span>
+            </div>
+            <div class="text-lg font-black font-display text-ink mt-1 leading-snug">Kontrol Gigi Adik</div>
+            <div class="text-xs font-bold text-ink/80 mt-1">
+              🗓️ Besok, 10:00 &bull; RS Hermina
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TWO COLUMN WIDGETS -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- LEFT COLUMN: CHORES + RECENT TRANSACTIONS (7 COLS) -->
+          <div class="lg:col-span-7 space-y-6">
+            
+            <!-- WIDGET CHORES -->
+            <div class="bg-white brutal-card p-5">
+              <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">📋</span>
+                  <h3 class="font-black font-display text-base text-ink uppercase tracking-wide">Tugas Hari Ini</h3>
+                </div>
+                <button onclick="switchTab('chores')" class="text-xs font-black text-brand hover:underline">
+                  Kelola Semua &rarr;
+                </button>
+              </div>
+
+              <!-- CHORES LIST -->
+              <div class="space-y-2.5" id="mini-chores-list">
+                <div class="p-3 bg-cream brutal-border flex items-center justify-between">
+                  <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" checked onchange="toggleTask(this)" class="w-4 h-4 brutal-border accent-brand">
+                    <span class="text-xs font-bold line-through text-ink/50">Cuci piring & bersihkan wastafel</span>
+                  </label>
+                  <span class="px-2 py-0.5 bg-mustard brutal-border text-[10px] font-black">Ibu Maya</span>
+                </div>
+
+                <div class="p-3 bg-cream brutal-border flex items-center justify-between">
+                  <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" checked onchange="toggleTask(this)" class="w-4 h-4 brutal-border accent-brand">
+                    <span class="text-xs font-bold line-through text-ink/50">Beli isi ulang galon & gas Elpiji 3kg</span>
+                  </label>
+                  <span class="px-2 py-0.5 bg-sage brutal-border text-[10px] font-black">Ayah Dimas</span>
+                </div>
+
+                <div class="p-3 bg-white brutal-border flex items-center justify-between shadow-brutal-sm">
+                  <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" onchange="toggleTask(this)" class="w-4 h-4 brutal-border accent-brand">
+                    <span class="text-xs font-bold text-ink">Beri makan kucing & kuras bak air</span>
+                  </label>
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-2 py-0.5 bg-sky brutal-border text-[10px] font-black">Budi</span>
+                    <span class="px-1.5 py-0.5 bg-mustard brutal-border text-[9px] font-bold">+10 Poin</span>
+                  </div>
+                </div>
+
+                <div class="p-3 bg-white brutal-border flex items-center justify-between shadow-brutal-sm">
+                  <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" onchange="toggleTask(this)" class="w-4 h-4 brutal-border accent-brand">
+                    <span class="text-xs font-bold text-ink">Rapikan mainan di ruang keluarga</span>
+                  </label>
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-2 py-0.5 bg-coral text-white brutal-border text-[10px] font-black">Sinta</span>
+                    <span class="px-1.5 py-0.5 bg-mustard brutal-border text-[9px] font-bold">+10 Poin</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- WIDGET TRANSAKSI TERAKHIR -->
+            <div class="bg-white brutal-card p-5">
+              <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">🧾</span>
+                  <h3 class="font-black font-display text-base text-ink uppercase tracking-wide">Pengeluaran & Kas Terbaru</h3>
+                </div>
+                <button onclick="switchTab('finance')" class="text-xs font-black text-brand hover:underline">
+                  Buka Kas &rarr;
+                </button>
+              </div>
+
+              <div class="space-y-2 text-xs font-bold">
+                <div class="flex items-center justify-between p-2.5 bg-cream brutal-border">
+                  <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 bg-white brutal-border flex items-center justify-center">🥦</div>
+                    <div>
+                      <div class="text-ink">Belanja Sayur Mingguan Pasar</div>
+                      <div class="text-[10px] font-normal text-ink/60">Pencatat: Ibu Maya &bull; Hari ini, 07:30</div>
+                    </div>
+                  </div>
+                  <span class="font-mono text-coral font-black">- Rp 175.000</span>
+                </div>
+
+                <div class="flex items-center justify-between p-2.5 bg-cream brutal-border">
+                  <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 bg-white brutal-border flex items-center justify-center">⚡</div>
+                    <div>
+                      <div class="text-ink">Token Listrik PLN 2200VA</div>
+                      <div class="text-[10px] font-normal text-ink/60">Pencatat: Ayah Dimas &bull; Kemarin</div>
+                    </div>
+                  </div>
+                  <span class="font-mono text-coral font-black">- Rp 250.000</span>
+                </div>
+
+                <div class="flex items-center justify-between p-2.5 bg-cream brutal-border">
+                  <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 bg-brand text-white brutal-border flex items-center justify-center">💰</div>
+                    <div>
+                      <div class="text-ink">Top-Up Kas Rumah dari Gaji</div>
+                      <div class="text-[10px] font-normal text-ink/60">Pencatat: Ayah Dimas &bull; 20 Okt</div>
+                    </div>
+                  </div>
+                  <span class="font-mono text-brand font-black">+ Rp 8.000.000</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RIGHT COLUMN: LINIMASA PREVIEW + AGENDA (5 COLS) -->
+          <div class="lg:col-span-5 space-y-6">
+            
+            <!-- WIDGET LINIMASA TERBARU -->
+            <div class="bg-white brutal-card p-5 relative overflow-hidden">
+              <!-- LOCKED OVERLAY FOR FREE TIER -->
+              <div id="overlay-timeline" class="absolute inset-0 bg-cream/92 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center hidden">
+                <span class="text-3xl mb-1">🔒</span>
+                <span class="px-2 py-0.5 bg-coral text-white brutal-border font-mono text-[10px] font-black uppercase mb-1.5">Fitur Pro &bull; Rp 20.000/bln</span>
+                <h4 class="font-black font-display text-base text-ink mb-1">Linimasa & Jejak Trip Terkunci</h4>
+                <p class="text-xs text-ink/70 font-medium mb-3 max-w-xs leading-relaxed">Dokumentasikan foto momen jalan-jalan dan rekap biaya liburan keluarga.</p>
+                <button type="button" onclick="openPaywallModal('timeline')" class="px-4 py-2 bg-mustard hover:bg-brand hover:text-white brutal-btn text-xs font-black uppercase tracking-wider">
+                  Buka Linimasa (Rp 20rb/bln) &rarr;
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">📸</span>
+                  <h3 class="font-black font-display text-base text-ink uppercase tracking-wide">Linimasa Terbaru</h3>
+                </div>
+                <button onclick="switchTab('timeline')" class="text-xs font-black text-brand hover:underline">
+                  Semua Jejak &rarr;
+                </button>
+              </div>
+
+              <!-- CARD TRIP -->
+              <div class="bg-brand-soft brutal-border p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2 py-0.5 bg-brand text-white brutal-border font-mono text-[10px] font-bold">18-20 OKT 2026</span>
+                  <span class="font-mono font-black text-xs text-brand">Total: Rp 1.850.000</span>
+                </div>
+                <h4 class="font-black font-display text-base text-ink">
+                  🌲 Weekend Glamping & Kebun Strawberry Ciwidey
+                </h4>
+                <p class="text-xs text-ink/80 font-medium leading-relaxed">
+                  "Jalan-jalan bareng anak-anak. Udaranya sejuk, makan jagung bakar, dan bawa pulang 2 keranjang strawberry segar!"
+                </p>
+                <div class="grid grid-cols-3 gap-2 pt-1">
+                  <div class="h-16 bg-cream brutal-border flex flex-col items-center justify-center text-[11px] font-bold text-ink/70">
+                    <span>🏕️ Tenda</span>
+                    <span class="text-[9px] font-mono">Rp 1.000.000</span>
+                  </div>
+                  <div class="h-16 bg-cream brutal-border flex flex-col items-center justify-center text-[11px] font-bold text-ink/70">
+                    <span>⛽ Bensin</span>
+                    <span class="text-[9px] font-mono">Rp 350.000</span>
+                  </div>
+                  <div class="h-16 bg-cream brutal-border flex flex-col items-center justify-center text-[11px] font-bold text-ink/70">
+                    <span>🍓 Tiket</span>
+                    <span class="text-[9px] font-mono">Rp 500.000</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- WIDGET KALENDER PENGINGAT -->
+            <div class="bg-white brutal-card p-5 relative overflow-hidden">
+              <!-- LOCKED OVERLAY FOR FREE TIER -->
+              <div id="overlay-calendar" class="absolute inset-0 bg-cream/92 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center hidden">
+                <span class="text-3xl mb-1">🔒</span>
+                <span class="px-2 py-0.5 bg-coral text-white brutal-border font-mono text-[10px] font-black uppercase mb-1.5">Fitur Pro &bull; Rp 20.000/bln</span>
+                <h4 class="font-black font-display text-base text-ink mb-1">Kalender & Agenda Terkunci</h4>
+                <p class="text-xs text-ink/70 font-medium mb-3 max-w-xs leading-relaxed">Jadwal dokter anak, reminder arisan, & alarm kegiatan keluarga otomatis.</p>
+                <button type="button" onclick="openPaywallModal('calendar')" class="px-4 py-2 bg-mustard hover:bg-brand hover:text-white brutal-btn text-xs font-black uppercase tracking-wider">
+                  Buka Kalender (Rp 20rb/bln) &rarr;
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">🗓️</span>
+                  <h3 class="font-black font-display text-base text-ink uppercase tracking-wide">Agenda & Reminder</h3>
+                </div>
+                <button onclick="switchTab('calendar')" class="text-xs font-black text-brand hover:underline">
+                  Buka Kalender &rarr;
+                </button>
+              </div>
+
+              <div class="space-y-2.5 text-xs font-bold">
+                <div class="p-3 bg-mustard/30 brutal-border flex items-start justify-between">
+                  <div>
+                    <div class="font-black text-ink">Kontrol Gigi Adik Sinta</div>
+                    <div class="text-[11px] font-medium text-ink/70 mt-0.5">RS Hermina &bull; Drg. Anita</div>
+                  </div>
+                  <span class="px-2 py-0.5 bg-mustard brutal-border text-[10px] font-mono font-bold">Besok 10:00</span>
+                </div>
+
+                <div class="p-3 bg-cream brutal-border flex items-start justify-between">
+                  <div>
+                    <div class="font-black text-ink">Jatuh Tempo WiFi Indihome</div>
+                    <div class="text-[11px] font-medium text-ink/70 mt-0.5">Auto-debit dari Kas Rumah</div>
+                  </div>
+                  <span class="px-2 py-0.5 bg-white brutal-border text-[10px] font-mono font-bold">30 Okt</span>
+                </div>
+
+                <div class="p-3 bg-cream brutal-border flex items-start justify-between">
+                  <div>
+                    <div class="font-black text-ink">Pembagian Rapor Budi</div>
+                    <div class="text-[11px] font-medium text-ink/70 mt-0.5">SD Harapan Bangsa &bull; Ayah & Ibu hadir</div>
+                  </div>
+                  <span class="px-2 py-0.5 bg-white brutal-border text-[10px] font-mono font-bold">05 Nov</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 2: TUGAS & CHORES -->
+      <!-- ============================================== -->
+      <div id="view-chores" class="space-y-6 hidden">
+        
+        <!-- HEADER CHORES -->
+        <div class="bg-white brutal-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 bg-mustard brutal-border font-mono text-xs font-black uppercase">
+                DISTRIBUSI PEKERJAAN RUMAH
+              </span>
+            </div>
+            <h2 class="text-2xl font-black font-display text-ink mt-1">Manajemen Tugas & Chores</h2>
+            <p class="text-xs font-medium text-ink/70">Bagi tugas secara adil antar anggota keluarga. Anak-anak kumpulkan poin reward.</p>
+          </div>
+          <button onclick="openModal('task')" class="px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider">
+            + Tambah Tugas Baru
+          </button>
+        </div>
+
+        <!-- REWARD POIN BANNER FOR KIDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-brand-soft brutal-border p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-sky text-ink brutal-border flex items-center justify-center font-black text-xl">👦</div>
+              <div>
+                <div class="font-black text-xs text-ink">Celengan Poin Budi</div>
+                <div class="text-[11px] text-ink/70">8 tugas tuntas bulan ini</div>
+              </div>
+            </div>
+            <span class="px-3 py-1 bg-mustard brutal-border font-mono font-black text-sm">⭐ 140 Poin</span>
+          </div>
+
+          <div class="bg-brand-soft brutal-border p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-coral text-white brutal-border flex items-center justify-center font-black text-xl">👧</div>
+              <div>
+                <div class="font-black text-xs text-ink">Celengan Poin Sinta</div>
+                <div class="text-[11px] text-ink/70">5 tugas tuntas bulan ini</div>
+              </div>
+            </div>
+            <span class="px-3 py-1 bg-mustard brutal-border font-mono font-black text-sm">⭐ 80 Poin</span>
+          </div>
+        </div>
+
+        <!-- CHORES LIST BY SECTION -->
+        <div class="bg-white brutal-card p-6 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b-2 border-ink">
+            <h3 class="font-black font-display text-base">Checklist Tugas Aktif</h3>
+            <span class="text-xs font-mono font-bold text-ink/70">4/6 Selesai</span>
+          </div>
+
+          <div class="space-y-3">
+            <div class="p-3 bg-cream brutal-border flex items-center justify-between">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked onchange="toggleTask(this)" class="w-5 h-5 brutal-border accent-brand">
+                <div>
+                  <div class="text-xs font-bold line-through text-ink/50">Cuci piring & bersihkan area wastafel</div>
+                  <div class="text-[10px] text-ink/60">Rutin Harian &bull; Siang & Malam</div>
+                </div>
+              </label>
+              <span class="px-2.5 py-1 bg-mustard brutal-border text-xs font-bold">👩 Ibu Maya</span>
+            </div>
+
+            <div class="p-3 bg-cream brutal-border flex items-center justify-between">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked onchange="toggleTask(this)" class="w-5 h-5 brutal-border accent-brand">
+                <div>
+                  <div class="text-xs font-bold line-through text-ink/50">Beli isi ulang galon Aqua & gas Elpiji 3kg</div>
+                  <div class="text-[10px] text-ink/60">Toko Madura Depan Komplek</div>
+                </div>
+              </label>
+              <span class="px-2.5 py-1 bg-sage brutal-border text-xs font-bold">👨 Ayah Dimas</span>
+            </div>
+
+            <div class="p-3 bg-white brutal-border flex items-center justify-between shadow-brutal-sm">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" onchange="toggleTask(this)" class="w-5 h-5 brutal-border accent-brand">
+                <div>
+                  <div class="text-xs font-black text-ink">Beri makan kucing & kuras bak air minumnya</div>
+                  <div class="text-[10px] text-coral font-bold">Belum dikerjakan &bull; Sore ini</div>
+                </div>
+              </label>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 bg-sky brutal-border text-xs font-bold">👦 Budi</span>
+                <span class="px-2 py-0.5 bg-mustard brutal-border text-[10px] font-black">+10 Poin</span>
+              </div>
+            </div>
+
+            <div class="p-3 bg-white brutal-border flex items-center justify-between shadow-brutal-sm">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" onchange="toggleTask(this)" class="w-5 h-5 brutal-border accent-brand">
+                <div>
+                  <div class="text-xs font-black text-ink">Rapikan boneka & buku cerita di ruang bermain</div>
+                  <div class="text-[10px] text-coral font-bold">Belum dikerjakan &bull; Sebelum jam 20:00</div>
+                </div>
+              </label>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 bg-coral text-white brutal-border text-xs font-bold">👧 Sinta</span>
+                <span class="px-2 py-0.5 bg-mustard brutal-border text-[10px] font-black">+10 Poin</span>
+              </div>
+            </div>
+
+            <div class="p-3 bg-cream brutal-border flex items-center justify-between">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked onchange="toggleTask(this)" class="w-5 h-5 brutal-border accent-brand">
+                <div>
+                  <div class="text-xs font-bold line-through text-ink/50">Buang sampah utama ke tempat penampungan depan</div>
+                  <div class="text-[10px] text-ink/60">Selesai jam 06:45 pagi</div>
+                </div>
+              </label>
+              <span class="px-2.5 py-1 bg-sky brutal-border text-xs font-bold">👦 Budi</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 3: KAS & TABUNGAN KELUARGA -->
+      <!-- ============================================== -->
+      <div id="view-finance" class="space-y-6 hidden">
+        
+        <!-- HEADER KAS -->
+        <div class="bg-white brutal-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="px-2.5 py-0.5 bg-brand text-white brutal-border font-mono text-xs font-black uppercase">
+              TRANSPARANSI FINANSIAL RUMAH TANGGA
+            </span>
+            <h2 class="text-2xl font-black font-display text-ink mt-1">Kas & Tabungan Bersama</h2>
+            <p class="text-xs font-medium text-ink/70">Catat pemasukan, pengeluaran dapur, dan pantau celengan impian keluarga.</p>
+          </div>
+          <button onclick="openModal('expense')" class="px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider">
+            + Catat Pengeluaran / Kas
+          </button>
+        </div>
+
+        <!-- 3 SUMMARY STATS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-brand-soft brutal-card p-5">
+            <div class="text-xs font-mono font-bold text-ink/70 uppercase">Total Saldo Kas Tersedia</div>
+            <div class="text-3xl font-black font-mono text-brand mt-1">Rp 14.850.000</div>
+            <div class="text-xs font-bold text-ink/70 mt-1">Di rekening bersama BCA & Dompet Tunai</div>
+          </div>
+
+          <div class="bg-white brutal-card p-5">
+            <div class="text-xs font-mono font-bold text-ink/70 uppercase">Pemasukan Bulan Ini (Okt)</div>
+            <div class="text-3xl font-black font-mono text-brand mt-1">+ Rp 22.000.000</div>
+            <div class="text-xs font-bold text-brand mt-1">✓ Gaji Ayah & Usaha Online Ibu</div>
+          </div>
+
+          <div class="bg-white brutal-card p-5">
+            <div class="text-xs font-mono font-bold text-ink/70 uppercase">Pengeluaran Bulan Ini (Okt)</div>
+            <div class="text-3xl font-black font-mono text-coral mt-1">- Rp 7.150.000</div>
+            <div class="text-xs font-bold text-ink/70 mt-1">32.5% dari batas pagu bulanan</div>
+          </div>
+        </div>
+
+        <!-- CELENGAN & TARGET TABUNGAN BERSAMA -->
+        <div class="bg-white brutal-card p-6">
+          <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4">
+            <h3 class="font-black font-display text-base">Celengan & Target Tabungan Bersama</h3>
+            <span class="text-xs font-mono font-bold text-brand">3 Target Aktif</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- TARGET 1 -->
+            <div class="p-4 bg-cream brutal-border space-y-2">
+              <div class="flex justify-between items-start">
+                <span class="text-2xl">🏖️</span>
+                <span class="px-2 py-0.5 bg-mustard brutal-border text-[10px] font-black font-mono">80% TERCAPAI</span>
+              </div>
+              <div class="font-black text-sm">Liburan Akhir Tahun ke Bali</div>
+              <div class="text-xs font-mono font-bold text-brand">Rp 12.000.000 / Rp 15.000.000</div>
+              <div class="w-full bg-white h-3 brutal-border overflow-hidden">
+                <div class="bg-brand h-full w-[80%]"></div>
+              </div>
+              <div class="text-[10px] text-ink/60 font-medium">Sisa Rp 3.000.000 lagi sebelum Des 2026</div>
+            </div>
+
+            <!-- TARGET 2 -->
+            <div class="p-4 bg-cream brutal-border space-y-2">
+              <div class="flex justify-between items-start">
+                <span class="text-2xl">🛡️</span>
+                <span class="px-2 py-0.5 bg-sage brutal-border text-[10px] font-black font-mono">60% TERCAPAI</span>
+              </div>
+              <div class="font-black text-sm">Dana Darurat 6 Bulan</div>
+              <div class="text-xs font-mono font-bold text-brand">Rp 30.000.000 / Rp 50.000.000</div>
+              <div class="w-full bg-white h-3 brutal-border overflow-hidden">
+                <div class="bg-brand h-full w-[60%]"></div>
+              </div>
+              <div class="text-[10px] text-ink/60 font-medium">Tabungan rutin Rp 2jt tiap gajian</div>
+            </div>
+
+            <!-- TARGET 3 -->
+            <div class="p-4 bg-cream brutal-border space-y-2">
+              <div class="flex justify-between items-start">
+                <span class="text-2xl">🐐</span>
+                <span class="px-2 py-0.5 bg-sky brutal-border text-[10px] font-black font-mono">64% TERCAPAI</span>
+              </div>
+              <div class="font-black text-sm">Tabungan Qurban 2027</div>
+              <div class="text-xs font-mono font-bold text-brand">Rp 4.500.000 / Rp 7.000.000</div>
+              <div class="w-full bg-white h-3 brutal-border overflow-hidden">
+                <div class="bg-brand h-full w-[64%]"></div>
+              </div>
+              <div class="text-[10px] text-ink/60 font-medium">Target 1 ekor sapi patungan</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIWAYAT TRANSAKSI TERAKHIR TABEL -->
+        <div class="bg-white brutal-card p-6">
+          <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4">
+            <h3 class="font-black font-display text-base">Buku Kas: Catatan Transaksi Oktober 2026</h3>
+            <button class="px-2.5 py-1 bg-cream brutal-border text-xs font-bold hover:bg-mustard">
+              Export CSV / Cetak
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs font-semibold">
+              <thead class="bg-cream brutal-border uppercase font-mono text-[11px] text-ink">
+                <tr>
+                  <th class="p-2.5">Tanggal</th>
+                  <th class="p-2.5">Kategori</th>
+                  <th class="p-2.5">Keterangan</th>
+                  <th class="p-2.5">Pencatat</th>
+                  <th class="p-2.5 text-right">Nominal</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y-2 divide-ink/10">
+                <tr>
+                  <td class="p-2.5 font-mono">22 Okt 2026</td>
+                  <td class="p-2.5"><span class="px-1.5 py-0.5 bg-sage brutal-border text-[10px]">Dapur & Pangan</span></td>
+                  <td class="p-2.5 font-bold">Belanja Sayur Mingguan Pasar</td>
+                  <td class="p-2.5">Ibu Maya</td>
+                  <td class="p-2.5 text-right font-mono text-coral font-bold">- Rp 175.000</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-mono">21 Okt 2026</td>
+                  <td class="p-2.5"><span class="px-1.5 py-0.5 bg-mustard brutal-border text-[10px]">Utilitas</span></td>
+                  <td class="p-2.5 font-bold">Token Listrik PLN 2200VA</td>
+                  <td class="p-2.5">Ayah Dimas</td>
+                  <td class="p-2.5 text-right font-mono text-coral font-bold">- Rp 250.000</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-mono">20 Okt 2026</td>
+                  <td class="p-2.5"><span class="px-1.5 py-0.5 bg-brand text-white brutal-border text-[10px]">Pemasukan</span></td>
+                  <td class="p-2.5 font-bold">Alokasi Kas Rumah Tangga (Gaji)</td>
+                  <td class="p-2.5">Ayah Dimas</td>
+                  <td class="p-2.5 text-right font-mono text-brand font-bold">+ Rp 8.000.000</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-mono">18 Okt 2026</td>
+                  <td class="p-2.5"><span class="px-1.5 py-0.5 bg-coral text-white brutal-border text-[10px]">Liburan / Trip</span></td>
+                  <td class="p-2.5 font-bold">Trip Glamping Ciwidey (Tiket + Tenda)</td>
+                  <td class="p-2.5">Ayah Dimas</td>
+                  <td class="p-2.5 text-right font-mono text-coral font-bold">- Rp 1.850.000</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-mono">15 Okt 2026</td>
+                  <td class="p-2.5"><span class="px-1.5 py-0.5 bg-sky brutal-border text-[10px]">Pendidikan</span></td>
+                  <td class="p-2.5 font-bold">SPP Sekolah Budi & Sinta</td>
+                  <td class="p-2.5">Ibu Maya</td>
+                  <td class="p-2.5 text-right font-mono text-coral font-bold">- Rp 1.600.000</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- PAGINATION TABLE -->
+          <!-- ponytail: UI paginasi statis. Tambah handler dataset/state saat integrasi data dinamis -->
+          <div class="pt-4 border-t-2 border-ink mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div class="text-[11px] font-mono text-ink/70">
+              Menampilkan <span class="font-bold text-ink">1-5</span> dari <span class="font-bold text-ink">24</span> transaksi
+            </div>
+
+            <div class="flex items-center gap-1.5 font-mono">
+              <button disabled class="px-2.5 py-1 bg-cream/50 brutal-border text-ink/40 cursor-not-allowed font-bold">
+                &larr; Prev
+              </button>
+              <button class="px-2.5 py-1 bg-mustard brutal-border font-black text-ink shadow-[2px_2px_0px_#121614]">
+                1
+              </button>
+              <button class="px-2.5 py-1 bg-white hover:bg-cream brutal-border font-bold text-ink transition-colors">
+                2
+              </button>
+              <button class="px-2.5 py-1 bg-white hover:bg-cream brutal-border font-bold text-ink transition-colors">
+                3
+              </button>
+              <span class="px-1 text-ink/60 font-bold">...</span>
+              <button class="px-2.5 py-1 bg-white hover:bg-cream brutal-border font-bold text-ink transition-colors">
+                5
+              </button>
+              <button class="px-2.5 py-1 bg-cream hover:bg-mustard brutal-btn font-bold text-ink">
+                Next &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 4: LINIMASA & TRIP (JEJAK & PENGELUARAN) -->
+      <!-- ============================================== -->
+      <div id="view-timeline" class="space-y-6 hidden">
+        
+        <!-- HEADER LINIMASA -->
+        <div class="bg-white brutal-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="px-2.5 py-0.5 bg-coral text-white brutal-border font-mono text-xs font-black uppercase">
+              JEJAK & KENANGAN AKTIVITAS KELUARGA
+            </span>
+            <h2 class="text-2xl font-black font-display text-ink mt-1">Linimasa & Pengeluaran Trip</h2>
+            <p class="text-xs font-medium text-ink/70">Kemana aja, ngapain aja, dan berapa pengeluarannya — semua terdokumentasi rapi.</p>
+          </div>
+          <button onclick="openModal('trip')" class="px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider">
+            + Tambah Momen / Trip Baru
+          </button>
+        </div>
+
+        <!-- TIMELINE FEED -->
+        <div class="space-y-6">
+          
+          <!-- ENTRY 1 -->
+          <div class="bg-white brutal-card p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-ink gap-2">
+              <div class="flex items-center gap-3">
+                <span class="w-10 h-10 bg-brand text-white brutal-border flex items-center justify-center text-xl">🏕️</span>
+                <div>
+                  <h3 class="text-lg font-black font-display text-ink">Weekend Glamping & Petik Strawberry Ciwidey</h3>
+                  <div class="text-xs font-medium text-ink/70">Ciwidey, Bandung Selatan &bull; 18 - 20 Oktober 2026 (3 Hari)</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="font-mono text-xs font-bold text-ink/70">TOTAL BIAYA TRIP:</div>
+                <div class="text-xl font-black font-mono text-coral">Rp 1.850.000</div>
+              </div>
+            </div>
+
+            <p class="text-xs font-semibold text-ink leading-relaxed">
+              "Liburan singkat buat refreshing anak-anak sehabis ujian tengah semester. Budi senang banget bisa petik buah strawberry sendiri sampai penuh 2 keranjang. Malam hari bakar sosis di depan tenda sambil cerita-cerita seru."
+            </p>
+
+            <!-- BREAKDOWN BIAYA -->
+            <div class="p-3 bg-cream brutal-border space-y-2">
+              <span class="text-[10px] font-mono font-bold uppercase text-ink/70">Rincian Pengeluaran Trip Ini:</span>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold">
+                <div class="bg-white p-2 brutal-border">
+                  <div class="text-[10px] text-ink/60">Tenda Glamping</div>
+                  <div class="font-mono text-brand">Rp 1.000.000</div>
+                </div>
+                <div class="bg-white p-2 brutal-border">
+                  <div class="text-[10px] text-ink/60">Bensin & Tol PP</div>
+                  <div class="font-mono text-brand">Rp 350.000</div>
+                </div>
+                <div class="bg-white p-2 brutal-border">
+                  <div class="text-[10px] text-ink/60">Tiket & Strawberry</div>
+                  <div class="font-mono text-brand">Rp 220.000</div>
+                </div>
+                <div class="bg-white p-2 brutal-border">
+                  <div class="text-[10px] text-ink/60">Makan & Jajanan</div>
+                  <div class="font-mono text-brand">Rp 280.000</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- FOTO KENANGAN PLACEHOLDERS -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+              <div class="h-28 bg-sage/40 brutal-border flex flex-col items-center justify-center p-2 text-center">
+                <span class="text-2xl mb-1">📸</span>
+                <span class="text-[10px] font-bold">Foto di Depan Tenda</span>
+              </div>
+              <div class="h-28 bg-mustard/40 brutal-border flex flex-col items-center justify-center p-2 text-center">
+                <span class="text-2xl mb-1">🍓</span>
+                <span class="text-[10px] font-bold">Budi Petik Buah</span>
+              </div>
+              <div class="h-28 bg-sky/40 brutal-border flex flex-col items-center justify-center p-2 text-center">
+                <span class="text-2xl mb-1">🔥</span>
+                <span class="text-[10px] font-bold">Api Unggun Malam</span>
+              </div>
+              <div class="h-28 bg-coral/40 brutal-border flex flex-col items-center justify-center p-2 text-center">
+                <span class="text-2xl mb-1">🌅</span>
+                <span class="text-[10px] font-bold">Sunrise Perkebunan Teh</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ENTRY 2 -->
+          <div class="bg-white brutal-card p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-ink gap-2">
+              <div class="flex items-center gap-3">
+                <span class="w-10 h-10 bg-mustard text-ink brutal-border flex items-center justify-center text-xl">🍿</span>
+                <div>
+                  <h3 class="text-lg font-black font-display text-ink">Nonton Bioskop & Makan Siang Bareng Kakek Nenek</h3>
+                  <div class="text-xs font-medium text-ink/70">Paris Van Java Mall &bull; 12 Oktober 2026</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="font-mono text-xs font-bold text-ink/70">TOTAL BIAYA TRIP:</div>
+                <div class="text-xl font-black font-mono text-coral">Rp 640.000</div>
+              </div>
+            </div>
+
+            <p class="text-xs font-semibold text-ink leading-relaxed">
+              "Kakek Nenek datang dari Jogja. Kita ajak nonton film animasi keluarga dan makan bakso favorit di foodcourt. Sinta senang digendong kakek keliling mall."
+            </p>
+
+            <div class="p-3 bg-cream brutal-border space-y-1 text-xs font-bold">
+              <div class="flex justify-between">
+                <span>Tiket 6 Orang + Popcorn Kombo:</span>
+                <span class="font-mono text-brand">Rp 360.000</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Makan Siang & Es Campur:</span>
+                <span class="font-mono text-brand">Rp 280.000</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 5: KALENDER & AGENDA REMINDER -->
+      <!-- ============================================== -->
+      <div id="view-calendar" class="space-y-6 hidden">
+        
+        <!-- HEADER KALENDER -->
+        <div class="bg-white brutal-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="px-2.5 py-0.5 bg-sky text-ink brutal-border font-mono text-xs font-black uppercase">
+              PENGINGAT TERPUSAT KELUARGA
+            </span>
+            <h2 class="text-2xl font-black font-display text-ink mt-1">Kalender Bersama & Agenda</h2>
+            <p class="text-xs font-medium text-ink/70">Jadwal kontrol dokter, servis kendaraan, pembagian rapor, dan hari ulang tahun.</p>
+          </div>
+          <button onclick="openModal('event')" class="px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider">
+            + Tambah Agenda Baru
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- CALENDAR GRID (8 COLS) -->
+          <div class="lg:col-span-8 bg-white brutal-card p-6">
+            <div class="flex items-center justify-between pb-4 border-b-2 border-ink mb-4">
+              <div class="font-black font-display text-xl">Oktober 2026</div>
+              <div class="flex items-center gap-2">
+                <button class="px-2.5 py-1 bg-cream brutal-border text-xs font-bold hover:bg-mustard">&larr; Bulan Lalu</button>
+                <button class="px-2.5 py-1 bg-brand text-white brutal-border text-xs font-bold">Bulan Ini</button>
+                <button class="px-2.5 py-1 bg-cream brutal-border text-xs font-bold hover:bg-mustard">Bulan Depan &rarr;</button>
+              </div>
+            </div>
+
+            <!-- DAYS HEADER -->
+            <div class="grid grid-cols-7 gap-1 text-center font-mono text-xs font-black uppercase py-2 bg-cream brutal-border mb-2">
+              <span class="text-coral">Min</span>
+              <span>Sen</span>
+              <span>Sel</span>
+              <span>Rab</span>
+              <span>Kam</span>
+              <span>Jum</span>
+              <span>Sab</span>
+            </div>
+
+            <!-- CALENDAR DAYS TILES (STATIC MOCKUP) -->
+            <div class="grid grid-cols-7 gap-1 text-xs font-bold">
+              <!-- Row 1 -->
+              <div class="h-20 bg-cream/40 p-1.5 brutal-border text-ink/40">27</div>
+              <div class="h-20 bg-cream/40 p-1.5 brutal-border text-ink/40">28</div>
+              <div class="h-20 bg-cream/40 p-1.5 brutal-border text-ink/40">29</div>
+              <div class="h-20 bg-cream/40 p-1.5 brutal-border text-ink/40">30</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">1</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">2</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">3</div>
+
+              <!-- Row 2 -->
+              <div class="h-20 bg-white p-1.5 brutal-border text-coral">4</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">5</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">6</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">7</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">8</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">9</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">10</div>
+
+              <!-- Row 3 -->
+              <div class="h-20 bg-white p-1.5 brutal-border text-coral">11</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">
+                <div>12</div>
+                <div class="p-0.5 bg-mustard brutal-border text-[9px] font-mono font-bold truncate">🍿 Nonton Bioskop</div>
+              </div>
+              <div class="h-20 bg-white p-1.5 brutal-border">13</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">14</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">15</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">16</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">17</div>
+
+              <!-- Row 4 -->
+              <div class="h-20 bg-white p-1.5 brutal-border text-coral">
+                <div>18</div>
+                <div class="p-0.5 bg-brand text-white brutal-border text-[9px] font-mono font-bold truncate">🏕️ Ciwidey</div>
+              </div>
+              <div class="h-20 bg-white p-1.5 brutal-border">19</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">20</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">21</div>
+              <div class="h-20 bg-mustard/20 p-1.5 brutal-border border-2 border-brand">
+                <div class="flex items-center justify-between">
+                  <span class="font-black text-brand">22</span>
+                  <span class="text-[9px] bg-brand text-white px-1">Hari Ini</span>
+                </div>
+              </div>
+              <div class="h-20 bg-white p-1.5 brutal-border">
+                <div>23</div>
+                <div class="p-0.5 bg-coral text-white brutal-border text-[9px] font-mono font-bold truncate">🦷 Gigi Adik</div>
+              </div>
+              <div class="h-20 bg-white p-1.5 brutal-border">24</div>
+
+              <!-- Row 5 -->
+              <div class="h-20 bg-white p-1.5 brutal-border text-coral">25</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">26</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">27</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">28</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">29</div>
+              <div class="h-20 bg-white p-1.5 brutal-border">
+                <div>30</div>
+                <div class="p-0.5 bg-sky brutal-border text-[9px] font-mono font-bold truncate">⚡ Bayar PLN</div>
+              </div>
+              <div class="h-20 bg-white p-1.5 brutal-border">31</div>
+            </div>
+          </div>
+
+          <!-- AGENDA LIST SIDEBAR (4 COLS) -->
+          <div class="lg:col-span-4 space-y-4">
+            <div class="bg-white brutal-card p-5">
+              <h3 class="font-black font-display text-base pb-3 border-b-2 border-ink mb-4">Pengingat Terjadwal</h3>
+              
+              <div class="space-y-3 text-xs font-bold">
+                <div class="p-3 bg-mustard/30 brutal-border space-y-1">
+                  <div class="flex justify-between text-[11px] font-mono">
+                    <span class="text-brand font-black">BESOK &bull; 10:00</span>
+                    <span class="px-1.5 bg-white brutal-border">Kesehatan</span>
+                  </div>
+                  <div class="text-sm font-black text-ink">Kontrol Gigi Adik Sinta</div>
+                  <div class="text-[11px] font-normal text-ink/70">Klinik Gigi Hermina, Drg. Anita</div>
+                </div>
+
+                <div class="p-3 bg-cream brutal-border space-y-1">
+                  <div class="flex justify-between text-[11px] font-mono">
+                    <span class="text-coral font-black">30 OKT 2026</span>
+                    <span class="px-1.5 bg-white brutal-border">Tagihan</span>
+                  </div>
+                  <div class="text-sm font-black text-ink">Jatuh Tempo Listrik & WiFi</div>
+                  <div class="text-[11px] font-normal text-ink/70">Pastikan saldo kas siap didebit</div>
+                </div>
+
+                <div class="p-3 bg-cream brutal-border space-y-1">
+                  <div class="flex justify-between text-[11px] font-mono">
+                    <span class="text-brand font-black">05 NOV 2026</span>
+                    <span class="px-1.5 bg-white brutal-border">Sekolah</span>
+                  </div>
+                  <div class="text-sm font-black text-ink">Pembagian Rapor Budi</div>
+                  <div class="text-[11px] font-normal text-ink/70">SD Harapan Bangsa &bull; Ayah / Ibu</div>
+                </div>
+
+                <div class="p-3 bg-cream brutal-border space-y-1">
+                  <div class="flex justify-between text-[11px] font-mono">
+                    <span class="text-brand font-black">25 NOV 2026</span>
+                    <span class="px-1.5 bg-mustard brutal-border">Ulang Tahun</span>
+                  </div>
+                  <div class="text-sm font-black text-ink">🎂 Ulang Tahun Ibu Maya</div>
+                  <div class="text-[11px] font-normal text-ink/70">Rencana kejutan kue & kado bersama anak</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 6: ANGGOTA KELUARGA & KODE UNDANGAN -->
+      <!-- ============================================== -->
+      <div id="view-members" class="space-y-6 hidden">
+        
+        <!-- HEADER ANGGOTA -->
+        <div class="bg-white brutal-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="px-2.5 py-0.5 bg-mustard brutal-border font-mono text-xs font-black uppercase">
+              STRUKTUR KELUARGA SANTOSO PRATAMA
+            </span>
+            <h2 class="text-2xl font-black font-display text-ink mt-1">Anggota & Peran Keluarga</h2>
+            <p class="text-xs font-medium text-ink/70">Atur hak akses pengelolaan kas, checklist tugas, dan undang anggota baru.</p>
+          </div>
+          <button onclick="copyDashboardInvite()" id="btn-copy-dash" class="px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+            <span>🔗 Salin Link Undangan</span>
+          </button>
+        </div>
+
+        <!-- SHARE KODE BOX -->
+        <div class="p-4 bg-mustard/30 brutal-card flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <div class="text-xs font-mono font-bold uppercase text-ink">Kode Rahasia Ruang Keluarga:</div>
+            <div class="text-2xl font-black font-mono tracking-widest text-brand mt-0.5">FAM-7729</div>
+            <div class="text-xs font-semibold text-ink/70">Bagikan kode ini ke keluarga yang ingin join via halaman Registrasi.</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="https://wa.me/?text=Halo!%20Ayo%20gabung%20ke%20ruang%20keluarga%20kita%20di%20famespace:%20https://famespace.id/join/FAM-7729" target="_blank" class="px-3.5 py-2 bg-brand text-white brutal-btn text-xs font-bold">
+              💬 Kirim via WhatsApp
+            </a>
+          </div>
+        </div>
+
+        <!-- MEMBER CARDS GRID -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- MEMBER 1: AYAH -->
+          <div class="bg-white brutal-card p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="w-12 h-12 bg-brand text-white brutal-border flex items-center justify-center text-2xl font-black">
+                👨
+              </div>
+              <span class="px-2 py-0.5 bg-brand text-white brutal-border font-mono text-[10px] font-bold">ADMIN UTAMA</span>
+            </div>
+            <div>
+              <div class="font-black text-base text-ink">Dimas Pratama</div>
+              <div class="text-xs font-mono font-bold text-brand">Ayah / Kepala Keluarga</div>
+              <div class="text-[11px] text-ink/60 mt-1">dimas@keluarga.id</div>
+            </div>
+            <div class="pt-2 border-t-2 border-ink text-xs font-semibold text-ink/80">
+              Hak Akses: Penuh (Kas, Tugas, Undangan, Kalender)
+            </div>
+          </div>
+
+          <!-- MEMBER 2: IBU -->
+          <div class="bg-white brutal-card p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="w-12 h-12 bg-mustard text-ink brutal-border flex items-center justify-center text-2xl font-black">
+                👩
+              </div>
+              <span class="px-2 py-0.5 bg-mustard brutal-border font-mono text-[10px] font-black">CO-ADMIN</span>
+            </div>
+            <div>
+              <div class="font-black text-base text-ink">Maya Indriani</div>
+              <div class="text-xs font-mono font-bold text-brand">Ibu / Manajer Rumah</div>
+              <div class="text-[11px] text-ink/60 mt-1">maya@keluarga.id</div>
+            </div>
+            <div class="pt-2 border-t-2 border-ink text-xs font-semibold text-ink/80">
+              Hak Akses: Pengelola Kas, Tugas & Kalender
+            </div>
+          </div>
+
+          <!-- MEMBER 3: BUDI -->
+          <div class="bg-white brutal-card p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="w-12 h-12 bg-sky text-ink brutal-border flex items-center justify-center text-2xl font-black">
+                👦
+              </div>
+              <span class="px-2 py-0.5 bg-white brutal-border font-mono text-[10px] font-bold">ANGGOTA</span>
+            </div>
+            <div>
+              <div class="font-black text-base text-ink">Budi Pratama</div>
+              <div class="text-xs font-mono font-bold text-brand">Anak Pertama (10 Tahun)</div>
+              <div class="text-[11px] text-ink/60 mt-1">budi@keluarga.id</div>
+            </div>
+            <div class="pt-2 border-t-2 border-ink flex items-center justify-between text-xs font-black">
+              <span>Poin Chores:</span>
+              <span class="text-brand font-mono">140 Poin</span>
+            </div>
+          </div>
+
+          <!-- MEMBER 4: SINTA -->
+          <div class="bg-white brutal-card p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="w-12 h-12 bg-coral text-white brutal-border flex items-center justify-center text-2xl font-black">
+                👧
+              </div>
+              <span class="px-2 py-0.5 bg-white brutal-border font-mono text-[10px] font-bold">ANGGOTA</span>
+            </div>
+            <div>
+              <div class="font-black text-base text-ink">Sinta Pratama</div>
+              <div class="text-xs font-mono font-bold text-brand">Anak Kedua (6 Tahun)</div>
+              <div class="text-[11px] text-ink/60 mt-1">sinta@keluarga.id</div>
+            </div>
+            <div class="pt-2 border-t-2 border-ink flex items-center justify-between text-xs font-black">
+              <span>Poin Chores:</span>
+              <span class="text-brand font-mono">80 Poin</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: + CATAT BARU (INTERACTIVE POPUP) -->
+  <!-- ============================================== -->
+  <div id="quick-modal" class="fixed inset-0 bg-ink/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white brutal-card max-w-xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 relative modal-box">
+      
+      <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 bg-brand text-white brutal-border flex items-center justify-center font-black text-xs">
+            +
+          </div>
+          <h3 class="font-black font-display text-xl text-ink">Catat Cepat Rumah Tangga</h3>
+        </div>
+        <button type="button" onclick="closeModal()" class="w-8 h-8 bg-cream hover:bg-coral hover:text-white brutal-border font-black flex items-center justify-center transition-colors">
+          ✕
+        </button>
+      </div>
+
+      <!-- TYPE SELECTOR -->
+      <div class="grid grid-cols-4 gap-2 mb-4 text-center font-bold text-xs">
+        <button type="button" onclick="selectModalType('task')" id="mtype-task" class="p-2 bg-mustard brutal-border">
+          🧹 Tugas
+        </button>
+        <button type="button" onclick="selectModalType('expense')" id="mtype-expense" class="p-2 bg-cream brutal-border">
+          💸 Kas
+        </button>
+        <button type="button" onclick="selectModalType('trip')" id="mtype-trip" class="p-2 bg-cream brutal-border">
+          🗺️ Trip
+        </button>
+        <button type="button" onclick="selectModalType('event')" id="mtype-event" class="p-2 bg-cream brutal-border">
+          📅 Agenda
+        </button>
+      </div>
+
+      <!-- FORM FIELDS -->
+      <form onsubmit="handleModalSubmit(event)" class="space-y-3.5">
+        <!-- TITLE INPUT -->
+        <div>
+          <label class="block text-xs font-black font-mono uppercase text-ink mb-1" id="mlabel-title">
+            Nama Tugas Rumah Tangga:
+          </label>
+          <input 
+            type="text" 
+            id="minput-title" 
+            required 
+            placeholder="misal: Belanja beras & minyak goreng"
+            class="w-full px-3 py-2 bg-cream brutal-border text-xs sm:text-sm font-bold text-ink outline-none focus:bg-white"
+          >
+        </div>
+
+        <!-- SEARCHABLE DROPDOWNS: ANGGOTA & KATEGORI -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- SEARCHABLE 1: ANGGOTA -->
+          <div class="relative" id="combobox-assignee-root">
+            <label class="block text-xs font-black font-mono uppercase text-ink mb-1">
+              Ditugaskan / Penginput:
+            </label>
+            <input type="hidden" id="minput-assignee" name="assignee" value="Ayah Dimas">
+            <button 
+              type="button" 
+              id="btn-assignee" 
+              onclick="toggleCombobox('assignee')" 
+              class="w-full px-3 py-2 bg-cream brutal-border text-xs font-bold text-ink flex items-center justify-between text-left hover:bg-white focus:bg-white"
+            >
+              <span id="label-assignee" class="truncate">👨 Ayah Dimas (Kepala)</span>
+              <span class="text-[10px] ml-1.5 text-ink/70">▼</span>
+            </button>
+
+            <!-- POPOVER DROPDOWN -->
+            <div 
+              id="popover-assignee" 
+              class="hidden absolute left-0 right-0 top-full mt-1 bg-cream brutal-border shadow-brutal z-50 p-2 space-y-1.5"
+            >
+              <div class="relative">
+                <input 
+                  type="text" 
+                  id="search-assignee" 
+                  placeholder="Ketik cari anggota..." 
+                  oninput="filterCombobox('assignee', this.value)" 
+                  class="w-full px-2.5 py-1.5 bg-white brutal-border text-xs font-bold text-ink outline-none"
+                  autocomplete="off"
+                >
+                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs pointer-events-none">🔍</span>
+              </div>
+              <div id="list-assignee" class="max-h-36 overflow-y-auto space-y-1 pr-0.5">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SEARCHABLE 2: KATEGORI -->
+          <div class="relative" id="combobox-category-root">
+            <label class="block text-xs font-black font-mono uppercase text-ink mb-1" id="mlabel-category">
+              Kategori / Area:
+            </label>
+            <input type="hidden" id="minput-category" name="category" value="">
+            <button 
+              type="button" 
+              id="btn-category" 
+              onclick="toggleCombobox('category')" 
+              class="w-full px-3 py-2 bg-cream brutal-border text-xs font-bold text-ink flex items-center justify-between text-left hover:bg-white focus:bg-white"
+            >
+              <span id="label-category" class="truncate">Pilih kategori...</span>
+              <span class="text-[10px] ml-1.5 text-ink/70">▼</span>
+            </button>
+
+            <!-- POPOVER DROPDOWN -->
+            <div 
+              id="popover-category" 
+              class="hidden absolute left-0 right-0 top-full mt-1 bg-cream brutal-border shadow-brutal z-50 p-2 space-y-1.5"
+            >
+              <div class="relative">
+                <input 
+                  type="text" 
+                  id="search-category" 
+                  placeholder="Ketik cari kategori..." 
+                  oninput="filterCombobox('category', this.value)" 
+                  class="w-full px-2.5 py-1.5 bg-white brutal-border text-xs font-bold text-ink outline-none"
+                  autocomplete="off"
+                >
+                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs pointer-events-none">🔍</span>
+              </div>
+              <div id="list-category" class="max-h-36 overflow-y-auto space-y-1 pr-0.5">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOMINAL/POIN & CUSTOM DATEPICKER -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-black font-mono uppercase text-ink mb-1" id="mlabel-extra">
+              Nominal / Poin Hadiah (Rp):
+            </label>
+            <input 
+              type="text" 
+              id="minput-extra" 
+              placeholder="misal: Rp 150.000"
+              oninput="handleCurrencyInput(this)"
+              class="w-full px-3 py-2 bg-cream brutal-border text-xs sm:text-sm font-bold font-mono text-ink outline-none focus:bg-white"
+              autocomplete="off"
+            >
+          </div>
+          <div>
+            <label class="block text-xs font-black font-mono uppercase text-ink mb-1" id="mlabel-date">
+              Batas Waktu:
+            </label>
+            <div class="relative">
+              <input 
+                type="text" 
+                id="minput-date" 
+                placeholder="Pilih tanggal..." 
+                readonly 
+                class="w-full px-3 py-2 pr-9 bg-cream brutal-border text-xs font-bold font-mono text-ink outline-none cursor-pointer focus:bg-white"
+              >
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs">📅</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FILE UPLOAD WITH PREVIEW -->
+        <div>
+          <label class="block text-xs font-black font-mono uppercase text-ink mb-1" id="mlabel-upload">
+            Foto Panduan / Struk Nota:
+          </label>
+          <input type="file" id="minput-file" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+          
+          <!-- DROPZONE -->
+          <div 
+            id="upload-dropzone" 
+            onclick="document.getElementById('minput-file').click()"
+            class="border-2 border-dashed border-ink bg-cream/70 hover:bg-mustard/20 p-3 sm:p-4 text-center cursor-pointer transition-colors duration-150 group"
+          >
+            <div class="flex items-center justify-center gap-2.5 pointer-events-none">
+              <span class="text-2xl group-hover:scale-110 transition-transform">📸</span>
+              <div class="text-left">
+                <p class="text-xs font-bold text-ink">
+                  <span class="underline decoration-2 decoration-brand">Pilih file</span> atau seret foto ke sini
+                </p>
+                <p class="text-[10px] text-ink/60 font-mono font-medium">JPG, PNG, WebP (Maks. 5 MB)</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- PREVIEW CARD -->
+          <div id="upload-preview-card" class="hidden p-2.5 bg-cream brutal-border flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img id="upload-preview-img" src="" alt="Preview" class="w-12 h-12 object-cover brutal-border flex-shrink-0 bg-white">
+              <div class="min-w-0 text-left">
+                <p id="upload-file-name" class="text-xs font-black text-ink truncate max-w-[200px] sm:max-w-[280px]">struk-belanja.jpg</p>
+                <p id="upload-file-size" class="text-[10px] font-mono font-bold text-ink/60">0 KB</p>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              onclick="removeUploadedFile(event)" 
+              class="px-2.5 py-1 bg-coral text-white brutal-border text-[11px] font-black hover:bg-ink transition-colors flex-shrink-0"
+            >
+              ✕ Hapus
+            </button>
+          </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="pt-2 flex items-center gap-3">
+          <button type="button" onclick="closeModal()" class="w-1/3 py-2.5 bg-white brutal-btn text-xs font-bold uppercase">
+            Batal
+          </button>
+          <button type="submit" class="w-2/3 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider">
+            Simpan & Terbitkan &rarr;
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: SUBSCRIPTION / PAYWALL (FAMESPACE PRO) -->
+  <!-- ============================================== -->
+  <div id="paywall-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-cream brutal-card max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 relative modal-box">
+      
+      <!-- HEADER -->
+      <div class="flex items-start justify-between pb-3 border-b-2 border-ink mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-mustard text-ink brutal-border flex items-center justify-center font-black text-sm">
+            👑
+          </div>
+          <div>
+            <span class="text-[10px] font-black font-mono uppercase text-brand tracking-widest block">Langganan Famespace</span>
+            <h3 class="font-black font-display text-xl text-ink leading-tight">Upgrade ke Paket Pro</h3>
+          </div>
+        </div>
+        <button type="button" onclick="closePaywallModal()" class="w-8 h-8 bg-white hover:bg-coral hover:text-white brutal-border font-black flex items-center justify-center transition-colors">
+          ✕
+        </button>
+      </div>
+
+      <!-- PRICE CARD -->
+      <div class="bg-brand text-white brutal-border p-4 mb-4 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-mustard block">Harga Spesial Keluarga</span>
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-2xl sm:text-3xl font-black font-display">Rp 20.000</span>
+            <span class="text-xs font-mono text-white/80">/ bulan</span>
+          </div>
+        </div>
+        <span class="px-2.5 py-1 bg-mustard text-ink font-mono text-[11px] font-black brutal-border">
+          1 Ruang Keluarga
+        </span>
+      </div>
+
+      <!-- UNLOCKED PERKS -->
+      <div class="space-y-2 mb-4">
+        <div class="text-xs font-mono font-black uppercase text-ink/70">Fitur yang Terbuka:</div>
+        
+        <div class="p-2.5 bg-white brutal-border flex items-start gap-2.5">
+          <span class="text-base">🗺️</span>
+          <div>
+            <div class="text-xs font-black text-ink">Linimasa & Pengeluaran Trip</div>
+            <div class="text-[11px] text-ink/70 font-medium leading-snug">Dokumentasi kenangan liburan, upload foto momen, dan rekap detail pengeluaran jalan-jalan.</div>
+          </div>
+        </div>
+
+        <div class="p-2.5 bg-white brutal-border flex items-start gap-2.5">
+          <span class="text-base">📅</span>
+          <div>
+            <div class="text-xs font-black text-ink">Kalender & Agenda Pengingat</div>
+            <div class="text-[11px] text-ink/70 font-medium leading-snug">Kalender interaktif keluarga, reminder arisan, jatuh tempo tagihan, dan jadwal dokter anak.</div>
+          </div>
+        </div>
+
+        <div class="p-2.5 bg-white brutal-border flex items-start gap-2.5">
+          <span class="text-base">👨‍👩‍👧‍👦</span>
+          <div>
+            <div class="text-xs font-black text-ink">Semua Anggota Otomatis Aktif</div>
+            <div class="text-[11px] text-ink/70 font-medium leading-snug">Cukup bayar sekali oleh Ayah, seluruh anggota keluarga langsung dapat akses Pro.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAYMENT METHOD SELECTION -->
+      <div class="space-y-2 mb-5">
+        <label class="block text-xs font-black font-mono uppercase text-ink">
+          Pilih Metode Pembayaran (Simulasi):
+        </label>
+        <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+          <button type="button" onclick="selectPayMethod('qris')" id="pay-qris" class="p-2.5 bg-mustard brutal-border text-left flex items-center justify-between">
+            <span>⚡ QRIS Instant</span>
+            <span class="text-[10px] font-mono">Bebas Biaya</span>
+          </button>
+          <button type="button" onclick="selectPayMethod('gopay')" id="pay-gopay" class="p-2.5 bg-white brutal-border text-left flex items-center justify-between">
+            <span>🟢 GoPay / OVO</span>
+            <span class="text-[10px] font-mono">E-Wallet</span>
+          </button>
+          <button type="button" onclick="selectPayMethod('bca')" id="pay-bca" class="p-2.5 bg-white brutal-border text-left flex items-center justify-between">
+            <span>🏦 BCA VA</span>
+            <span class="text-[10px] font-mono">Transfer</span>
+          </button>
+          <button type="button" onclick="selectPayMethod('mandiri')" id="pay-mandiri" class="p-2.5 bg-white brutal-border text-left flex items-center justify-between">
+            <span>💳 Mandiri VA</span>
+            <span class="text-[10px] font-mono">Transfer</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- PAY BUTTON -->
+      <button type="button" id="btn-pay-submit" onclick="simulatePayment()" class="w-full py-3.5 bg-brand text-white hover:bg-mustard hover:text-ink font-black text-sm uppercase tracking-wider brutal-btn flex items-center justify-center gap-2">
+        <span>Bayar Rp 20.000 Sekarang</span>
+        <span>&rarr;</span>
+      </button>
+
+      <p class="text-center text-[10px] font-mono font-medium text-ink/60 mt-3">
+        Simulasi prototipe &bull; Status langsung aktif di browser ini &bull; Bisa batalkan lewat toggle
+      </p>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    let currentPlan = 'pro';
+    let pendingUnlockTab = null;
+    let selectedPayMethod = 'qris';
+
+    function isProUser() {
+      return currentPlan === 'pro';
+    }
+
+    function initSubscription() {
+      currentPlan = 'pro';
+      updateSubscriptionUI();
+    }
+
+    function updateSubscriptionUI() {
+      const pro = isProUser();
+      const planBadge = document.getElementById('plan-badge-sidebar');
+      const planDesc = document.getElementById('plan-desc-sidebar');
+      const badgeTimeline = document.getElementById('badge-nav-timeline');
+      const badgeCalendar = document.getElementById('badge-nav-calendar');
+      const overlayTimeline = document.getElementById('overlay-timeline');
+      const overlayCalendar = document.getElementById('overlay-calendar');
+
+      if (pro) {
+        if (planBadge) {
+          planBadge.innerText = 'PRO 👑';
+          planBadge.className = 'px-1.5 py-0.5 text-[9px] font-black font-mono brutal-border bg-mustard text-ink';
+        }
+        if (planDesc) planDesc.innerText = 'Aktif (Rp 20rb)';
+        if (badgeTimeline) {
+          badgeTimeline.innerText = 'PRO ✓';
+          badgeTimeline.className = 'px-1.5 py-0.5 bg-brand text-white font-mono text-[10px] brutal-border font-bold';
+        }
+        if (badgeCalendar) {
+          badgeCalendar.innerText = 'PRO ✓';
+          badgeCalendar.className = 'px-1.5 py-0.5 bg-brand text-white font-mono text-[10px] brutal-border font-bold';
+        }
+        if (overlayTimeline) overlayTimeline.classList.add('hidden');
+        if (overlayCalendar) overlayCalendar.classList.add('hidden');
+      } else {
+        if (planBadge) {
+          planBadge.innerText = 'FREE';
+          planBadge.className = 'px-1.5 py-0.5 text-[9px] font-black font-mono brutal-border bg-coral text-white';
+        }
+        if (planDesc) planDesc.innerText = 'Rp 20rb/bln';
+        if (badgeTimeline) {
+          badgeTimeline.innerText = '🔒 PRO';
+          badgeTimeline.className = 'px-1.5 py-0.5 bg-coral text-white font-mono text-[10px] brutal-border font-bold';
+        }
+        if (badgeCalendar) {
+          badgeCalendar.innerText = '🔒 PRO';
+          badgeCalendar.className = 'px-1.5 py-0.5 bg-coral text-white font-mono text-[10px] brutal-border font-bold';
+        }
+        if (overlayTimeline) overlayTimeline.classList.remove('hidden');
+        if (overlayCalendar) overlayCalendar.classList.remove('hidden');
+      }
+    }
+
+    function openPaywallModal(targetTab) {
+      pendingUnlockTab = targetTab || null;
+      const modal = document.getElementById('paywall-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+      }
+    }
+
+    function closePaywallModal() {
+      const modal = document.getElementById('paywall-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+      pendingUnlockTab = null;
+    }
+
+    function selectPayMethod(method) {
+      selectedPayMethod = method;
+      ['qris', 'gopay', 'bca', 'mandiri'].forEach(m => {
+        const btn = document.getElementById('pay-' + m);
+        if (btn) {
+          if (m === method) {
+            btn.classList.add('bg-mustard');
+            btn.classList.remove('bg-white');
+          } else {
+            btn.classList.remove('bg-mustard');
+            btn.classList.add('bg-white');
+          }
+        }
+      });
+    }
+
+    function simulatePayment() {
+      const btn = document.getElementById('btn-pay-submit');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Memproses Pembayaran Rp 20.000...';
+      }
+
+      setTimeout(() => {
+        currentPlan = 'pro';
+        updateSubscriptionUI();
+        fireConfetti();
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>Bayar Rp 20.000 Sekarang</span><span>&rarr;</span>';
+        }
+        const target = pendingUnlockTab;
+        closePaywallModal();
+        alert('🎉 Selamat! Langganan Famespace Pro (Rp 20.000/bln) berhasil aktif.\nFitur Linimasa & Trip serta Kalender & Agenda sekarang sudah terbuka penuh!');
+        if (target) {
+          switchTab(target);
+        }
+      }, 700);
+    }
+
+    function togglePlanDev() {
+      const nextPlan = isProUser() ? 'free' : 'pro';
+      currentPlan = nextPlan;
+      updateSubscriptionUI();
+      if (nextPlan === 'pro') {
+        fireConfetti();
+        alert('⚡ Mode berganti ke PRO: Linimasa & Kalender terbuka.');
+      } else {
+        alert('⚡ Mode berganti ke FREE: Linimasa & Kalender terkunci.');
+        const timelineActive = !document.getElementById('view-timeline')?.classList.contains('hidden');
+        const calendarActive = !document.getElementById('view-calendar')?.classList.contains('hidden');
+        if (timelineActive || calendarActive) {
+          switchTab('overview');
+        }
+      }
+    }
+
+    // Tab switching logic with pop-in animation
+    function switchTab(tabId) {
+      if ((tabId === 'timeline' || tabId === 'calendar') && !isProUser()) {
+        openPaywallModal(tabId);
+        return;
+      }
+
+      const views = ['overview', 'chores', 'finance', 'timeline', 'calendar', 'members'];
+      
+      views.forEach(v => {
+        const viewEl = document.getElementById('view-' + v);
+        const navEl = document.getElementById('nav-' + v);
+        if (viewEl) {
+          viewEl.classList.add('hidden');
+          viewEl.classList.remove('tab-view');
+        }
+        if (navEl) {
+          navEl.classList.remove('nav-item-active');
+          navEl.classList.add('nav-item');
+        }
+      });
+
+      const activeView = document.getElementById('view-' + tabId);
+      const activeNav = document.getElementById('nav-' + tabId);
+      if (activeView) {
+        activeView.classList.remove('hidden');
+        void activeView.offsetWidth; // trigger reflow for css animation
+        activeView.classList.add('tab-view');
+      }
+      if (activeNav) {
+        activeNav.classList.remove('nav-item');
+        activeNav.classList.add('nav-item-active');
+      }
+
+      const mainEl = document.getElementById('main-content');
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ponytail: canvas confetti celebration on chore completion
+    function fireConfetti(x, y) {
+      const canvas = document.createElement('canvas');
+      canvas.style.position = 'fixed';
+      canvas.style.inset = '0';
+      canvas.style.width = '100vw';
+      canvas.style.height = '100vh';
+      canvas.style.pointerEvents = 'none';
+      canvas.style.zIndex = '9999';
+      document.body.appendChild(canvas);
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const colors = ['#F2C94C', '#2F5233', '#E07A5F', '#81B0C4', '#121614', '#87A987'];
+      const cx = x || window.innerWidth / 2;
+      const cy = y || window.innerHeight / 2;
+
+      const pieces = Array.from({ length: 35 }, () => ({
+        x: cx,
+        y: cy,
+        vx: (Math.random() - 0.5) * 12,
+        vy: (Math.random() - 0.7) * 12,
+        size: Math.random() * 7 + 4,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rot: Math.random() * 360,
+        vrot: (Math.random() - 0.5) * 12
+      }));
+
+      let frame = 0;
+      function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.4;
+          p.rot += p.vrot;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rot * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+        });
+        frame++;
+        if (frame < 50) requestAnimationFrame(loop);
+        else canvas.remove();
+      }
+      requestAnimationFrame(loop);
+    }
+
+    // Interactive Checkbox for tasks
+    function toggleTask(checkbox) {
+      const parent = checkbox.closest('div');
+      const text = parent.querySelector('span');
+      if (checkbox.checked) {
+        text.classList.add('line-through', 'text-ink/50');
+        const rect = checkbox.getBoundingClientRect();
+        fireConfetti(rect.left + 8, rect.top + 8);
+      } else {
+        text.classList.remove('line-through', 'text-ink/50');
+      }
+    }
+
+    // ==============================================
+    // QUICK MODAL INTERACTIVE LOGIC
+    // ==============================================
+    let currentModalType = 'task';
+    let datePickerInstance = null;
+
+    // Searchable Combobox Data
+    const comboboxData = {
+      assignee: [
+        { value: 'Ayah Dimas', text: '👨 Ayah Dimas (Kepala)' },
+        { value: 'Ibu Maya', text: '👩 Ibu Maya (Co-Admin)' },
+        { value: 'Budi', text: '👦 Budi (Anak)' },
+        { value: 'Sinta', text: '👧 Sinta (Anak)' }
+      ],
+      category: {
+        task: [
+          { value: 'Dapur', text: '🍳 Dapur' },
+          { value: 'Ruang Tamu', text: '🛋️ Ruang Tamu' },
+          { value: 'Kamar Mandi', text: '🚿 Kamar Mandi' },
+          { value: 'Halaman', text: '🌿 Halaman & Kebun' },
+          { value: 'Kamar Tidur', text: '🛏️ Kamar Tidur' },
+          { value: 'Umum', text: '📦 Umum / Lainnya' }
+        ],
+        expense: [
+          { value: 'Belanja Pokok', text: '🛒 Belanja Dapur & Pokok' },
+          { value: 'Tagihan', text: '⚡ Listrik, Air & WiFi' },
+          { value: 'Sekolah Anak', text: '🏫 Uang Sekolah & Les' },
+          { value: 'BBM & Transport', text: '🚗 BBM & Transportasi' },
+          { value: 'Kesehatan', text: '💊 Obat & Apotek' },
+          { value: 'Hiburan', text: '🎬 Hiburan & Kuliner' },
+          { value: 'Lain-lain', text: '📦 Pengeluaran Lain' }
+        ],
+        trip: [
+          { value: 'Wisata Alam', text: '🌲 Wisata Alam & Pantai' },
+          { value: 'Kuliner', text: '🍜 Wisata Kuliner' },
+          { value: 'Staycation', text: '🏨 Staycation Hotel' },
+          { value: 'Mudik', text: '🚗 Silaturahmi / Mudik' },
+          { value: 'Edukasi', text: '🏛️ Museum & Edukasi' }
+        ],
+        event: [
+          { value: 'Keluarga Inti', text: '🏠 Keluarga Inti' },
+          { value: 'Sekolah', text: '🎒 Agenda Sekolah Anak' },
+          { value: 'RT/Komunitas', text: '👥 RT / RW Lingkungan' },
+          { value: 'Keluarga Besar', text: '👨‍👩‍👧‍👦 Pertemuan Keluarga' },
+          { value: 'Kesehatan', text: '🏥 Jadwal Dokter / Imunisasi' }
+        ]
+      }
+    };
+
+    function getActiveCategoryList() {
+      return comboboxData.category[currentModalType] || comboboxData.category.task;
+    }
+
+    function renderComboboxOptions(type, query = '') {
+      const listEl = document.getElementById(`list-${type}`);
+      if (!listEl) return;
+      
+      const items = type === 'assignee' ? comboboxData.assignee : getActiveCategoryList();
+      const lowerQuery = query.toLowerCase().trim();
+      const filtered = items.filter(item => 
+        item.text.toLowerCase().includes(lowerQuery) || 
+        item.value.toLowerCase().includes(lowerQuery)
+      );
+      
+      listEl.innerHTML = '';
+      
+      if (filtered.length === 0) {
+        if (type === 'category' && lowerQuery) {
+          const customBtn = document.createElement('button');
+          customBtn.type = 'button';
+          customBtn.className = 'w-full text-left px-2.5 py-1.5 bg-mustard brutal-border text-xs font-bold text-ink hover:bg-mustard/80 transition-colors';
+          customBtn.innerText = `+ Pakai kategori baru: "${query.trim()}"`;
+          customBtn.onclick = () => selectComboboxOption('category', query.trim(), `🏷️ ${query.trim()}`);
+          listEl.appendChild(customBtn);
+          return;
+        }
+        listEl.innerHTML = '<div class="p-2 text-center text-xs text-ink/60 font-medium">Tidak ada hasil cocok</div>';
+        return;
+      }
+      
+      filtered.forEach(item => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const currentVal = document.getElementById(`minput-${type}`).value;
+        const isSelected = currentVal === item.value;
+        btn.className = `w-full text-left px-2.5 py-1.5 text-xs font-bold transition-colors brutal-border flex items-center justify-between ${isSelected ? 'bg-mustard text-ink' : 'bg-white hover:bg-cream text-ink'}`;
+        btn.innerHTML = `<span>${item.text}</span> ${isSelected ? '<span class="text-xs">✓</span>' : ''}`;
+        btn.onclick = () => selectComboboxOption(type, item.value, item.text);
+        listEl.appendChild(btn);
+      });
+    }
+
+    function toggleCombobox(type) {
+      const popover = document.getElementById(`popover-${type}`);
+      if (!popover) return;
+      const otherType = type === 'assignee' ? 'category' : 'assignee';
+      const otherPopover = document.getElementById(`popover-${otherType}`);
+      if (otherPopover) otherPopover.classList.add('hidden');
+      
+      if (popover.classList.contains('hidden')) {
+        renderComboboxOptions(type);
+        popover.classList.remove('hidden');
+        const searchInput = document.getElementById(`search-${type}`);
+        if (searchInput) {
+          searchInput.value = '';
+          setTimeout(() => searchInput.focus(), 50);
+        }
+      } else {
+        popover.classList.add('hidden');
+      }
+    }
+
+    function filterCombobox(type, val) {
+      renderComboboxOptions(type, val);
+    }
+
+    function selectComboboxOption(type, value, text) {
+      const hiddenInput = document.getElementById(`minput-${type}`);
+      const labelSpan = document.getElementById(`label-${type}`);
+      if (hiddenInput) hiddenInput.value = value;
+      if (labelSpan) labelSpan.innerText = text;
+      const popover = document.getElementById(`popover-${type}`);
+      if (popover) popover.classList.add('hidden');
+    }
+
+    // Close popovers when clicking outside
+    document.addEventListener('click', (e) => {
+      const rootAssignee = document.getElementById('combobox-assignee-root');
+      const rootCategory = document.getElementById('combobox-category-root');
+      if (rootAssignee && !rootAssignee.contains(e.target)) {
+        document.getElementById('popover-assignee')?.classList.add('hidden');
+      }
+      if (rootCategory && !rootCategory.contains(e.target)) {
+        document.getElementById('popover-category')?.classList.add('hidden');
+      }
+    });
+
+    // ----------------------------------------------
+    // CURRENCY FORMATTER (RUPIAH)
+    // ----------------------------------------------
+    function formatRupiah(val) {
+      if (!val) return '';
+      const clean = val.toString().replace(/[^0-9]/g, '');
+      if (!clean) return '';
+      const num = parseInt(clean, 10);
+      if (isNaN(num)) return '';
+      return 'Rp ' + num.toLocaleString('id-ID');
+    }
+
+    function handleCurrencyInput(input) {
+      const clean = input.value.replace(/[^0-9]/g, '');
+      if (!clean) {
+        input.value = '';
+        return;
+      }
+      input.value = 'Rp ' + parseInt(clean, 10).toLocaleString('id-ID');
+    }
+
+    // Custom Datepicker (Flatpickr)
+    function initFlatpickr(enableTime = false) {
+      if (typeof flatpickr === 'undefined') return;
+      if (datePickerInstance) {
+        datePickerInstance.destroy();
+      }
+      datePickerInstance = flatpickr('#minput-date', {
+        locale: 'id',
+        enableTime: enableTime,
+        time_24hr: true,
+        dateFormat: enableTime ? 'd M Y, H:i' : 'd M Y',
+        defaultDate: new Date(),
+        disableMobile: true
+      });
+    }
+
+    // File Upload & Preview Handler
+    function handleFileSelect(e) {
+      const file = e.target.files && e.target.files[0];
+      if (file) previewFile(file);
+    }
+
+    function previewFile(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('upload-preview-img').src = e.target.result;
+        document.getElementById('upload-file-name').innerText = file.name;
+        document.getElementById('upload-file-size').innerText = (file.size / 1024).toFixed(1) + ' KB';
+        document.getElementById('upload-dropzone').classList.add('hidden');
+        document.getElementById('upload-preview-card').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeUploadedFile(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      const fileInput = document.getElementById('minput-file');
+      if (fileInput) fileInput.value = '';
+      const previewImg = document.getElementById('upload-preview-img');
+      if (previewImg) previewImg.src = '';
+      const previewCard = document.getElementById('upload-preview-card');
+      if (previewCard) previewCard.classList.add('hidden');
+      const dropzone = document.getElementById('upload-dropzone');
+      if (dropzone) dropzone.classList.remove('hidden');
+    }
+
+    function initDragAndDrop() {
+      const dropzone = document.getElementById('upload-dropzone');
+      if (!dropzone) return;
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.add('bg-mustard/40');
+        }, false);
+      });
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.remove('bg-mustard/40');
+        }, false);
+      });
+      dropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files && files[0]) {
+          document.getElementById('minput-file').files = files;
+          previewFile(files[0]);
+        }
+      });
+    }
+
+    // Modal controls
+    function openModal(type = 'task') {
+      document.getElementById('quick-modal').classList.remove('hidden');
+      selectModalType(type);
+    }
+
+    function closeModal() {
+      document.getElementById('quick-modal').classList.add('hidden');
+      removeUploadedFile();
+      const form = document.querySelector('#quick-modal form');
+      if (form) form.reset();
+      selectComboboxOption('assignee', 'Ayah Dimas', '👨 Ayah Dimas (Kepala)');
+      document.getElementById('popover-assignee')?.classList.add('hidden');
+      document.getElementById('popover-category')?.classList.add('hidden');
+    }
+
+    function selectModalType(type) {
+      if ((type === 'trip' || type === 'event') && !isProUser()) {
+        closeModal();
+        openPaywallModal(type === 'trip' ? 'timeline' : 'calendar');
+        return;
+      }
+
+      currentModalType = type;
+      const types = ['task', 'expense', 'trip', 'event'];
+      types.forEach(t => {
+        const btn = document.getElementById('mtype-' + t);
+        if (btn) btn.className = 'p-2 bg-cream brutal-border';
+      });
+
+      const activeBtn = document.getElementById('mtype-' + type);
+      if (activeBtn) activeBtn.className = 'p-2 bg-mustard brutal-border';
+
+      const labelTitle = document.getElementById('mlabel-title');
+      const labelExtra = document.getElementById('mlabel-extra');
+      const labelDate = document.getElementById('mlabel-date');
+      const labelUpload = document.getElementById('mlabel-upload');
+      const inputTitle = document.getElementById('minput-title');
+      const inputExtra = document.getElementById('minput-extra');
+
+      // Update default category for tab
+      const catList = getActiveCategoryList();
+      if (catList.length > 0) {
+        selectComboboxOption('category', catList[0].value, catList[0].text);
+      }
+
+      if (type === 'task') {
+        labelTitle.innerText = 'Nama Tugas Rumah Tangga:';
+        inputTitle.placeholder = 'misal: Belanja beras & telur';
+        labelExtra.innerText = 'Nominal / Poin Hadiah (Rp):';
+        inputExtra.placeholder = 'misal: Rp 20.000';
+        inputExtra.value = '';
+        labelDate.innerText = 'Batas Waktu:';
+        labelUpload.innerText = 'Foto Panduan / Tugas (Opsional):';
+        initFlatpickr(false);
+      } else if (type === 'expense') {
+        labelTitle.innerText = 'Keterangan Pengeluaran:';
+        inputTitle.placeholder = 'misal: Beli popok & sabun mandi';
+        labelExtra.innerText = 'Nominal Kas (Rp):';
+        inputExtra.placeholder = 'misal: Rp 150.000';
+        inputExtra.value = '';
+        labelDate.innerText = 'Tanggal Transaksi:';
+        labelUpload.innerText = 'Foto Struk / Bukti Kas (Opsional):';
+        initFlatpickr(false);
+      } else if (type === 'trip') {
+        labelTitle.innerText = 'Nama Liburan / Aktivitas:';
+        inputTitle.placeholder = 'misal: Jalan sore ke Taman Kota';
+        labelExtra.innerText = 'Estimasi Biaya Liburan (Rp):';
+        inputExtra.placeholder = 'misal: Rp 250.000';
+        inputExtra.value = '';
+        labelDate.innerText = 'Tanggal Rencana:';
+        labelUpload.innerText = 'Foto Destinasi / Tiket (Opsional):';
+        initFlatpickr(false);
+      } else if (type === 'event') {
+        labelTitle.innerText = 'Nama Agenda / Acara:';
+        inputTitle.placeholder = 'misal: Arisan RT di rumah Bu RT';
+        labelExtra.innerText = 'Estimasi Biaya Acara (Rp, Opsional):';
+        inputExtra.placeholder = 'misal: Rp 50.000';
+        inputExtra.value = '';
+        labelDate.innerText = 'Tanggal & Jam Pelaksanaan:';
+        labelUpload.innerText = 'Foto Undangan / Lokasi (Opsional):';
+        initFlatpickr(true);
+      }
+    }
+
+    function handleModalSubmit(e) {
+      e.preventDefault();
+      fireConfetti();
+      const title = document.getElementById('minput-title').value;
+      const assignee = document.getElementById('label-assignee').innerText;
+      const category = document.getElementById('label-category').innerText;
+      const extra = document.getElementById('minput-extra').value;
+      const date = document.getElementById('minput-date').value;
+      const hasFile = document.getElementById('minput-file').files.length > 0;
+
+      alert(`✓ Berhasil Disimpan!\n• Jenis: ${currentModalType.toUpperCase()}\n• Judul: ${title}\n• Anggota: ${assignee}\n• Kategori: ${category}\n• Nilai/Nominal: ${extra || '-'}\n• Tanggal: ${date}\n• Lampiran: ${hasFile ? 'Ada foto' : 'Tidak ada'}`);
+      closeModal();
+    }
+
+    function copyDashboardInvite() {
+      navigator.clipboard.writeText('https://famespace.id/join/FAM-7729');
+      const btn = document.getElementById('btn-copy-dash');
+      btn.innerText = 'Tersalin! ✓';
+      btn.classList.remove('bg-brand');
+      btn.classList.add('bg-mustard', 'text-ink');
+      setTimeout(() => {
+        btn.innerText = '🔗 Salin Link Undangan';
+        btn.classList.remove('bg-mustard', 'text-ink');
+        btn.classList.add('bg-brand', 'text-white');
+      }, 2000);
+    }
+
+    // Auto-init on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      initSubscription();
+      initFlatpickr(false);
+      initDragAndDrop();
+      selectComboboxOption('assignee', 'Ayah Dimas', '👨 Ayah Dimas (Kepala)');
+      const catList = getActiveCategoryList();
+      if (catList.length > 0) {
+        selectComboboxOption('category', catList[0].value, catList[0].text);
+      }
+    });
+  </script>
+
+</body>
+</html>

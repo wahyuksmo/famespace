@@ -1,0 +1,667 @@
+<!-- TAB 1: OVERVIEW / RINGKASAN UTAMA (MENDUKUNG PAKET FREE & PRO DENGAN OVERLAY UPGRADE) -->
+<div id="view-overview" class="space-y-3.5 sm:space-y-4">
+
+  <!-- BANNER STATUS PAKET BERLANGGANAN -->
+  @if($isPro)
+    <div class="p-2.5 sm:p-3 bg-accent/25 brutal-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="text-lg sm:text-xl">👑</span>
+        <div class="text-xs font-mono">
+          <span class="font-black text-ink">Paket Famespace Pro Aktif</span>
+          <span class="text-ink/70"> &bull; Fitur Kas, Tugas, Kalender, & Linimasa terbuka penuh</span>
+        </div>
+      </div>
+      <span class="px-2 py-0.5 bg-brand text-white brutal-border font-mono text-[9px] sm:text-[10px] font-black uppercase self-start sm:self-auto">
+        Akses Pro Lengkap
+      </span>
+    </div>
+  @else
+    <div class="p-2.5 sm:p-3 bg-cream brutal-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="text-lg sm:text-xl">⭐</span>
+        <div class="text-xs font-mono">
+          <span class="font-black text-ink">Paket Free</span>
+          <span class="text-ink/70"> &bull; Kas & Tugas aktif tanpa batas. Kalender & Linimasa tersedia di Pro.</span>
+        </div>
+      </div>
+      <button type="button" onclick="openPaywallModal('dashboard-banner')" class="px-2.5 py-1 bg-accent hover:bg-brand hover:text-white brutal-btn font-mono font-black text-xs uppercase tracking-wider self-start sm:self-auto">
+        👑 Upgrade ke Pro (Rp 20rb) &rarr;
+      </button>
+    </div>
+  @endif
+
+  <!-- BARIS 1: 4 KARTU ANGKA UTAMA -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+    
+    <!-- KARTU 1: SALDO KAS -->
+    <div class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform">
+      <div class="flex items-center justify-between text-xs font-mono font-bold text-ink/70">
+        <span>SISA KAS RUMAH</span>
+        <span class="text-xl sm:text-2xl">💰</span>
+      </div>
+      <div class="text-2xl sm:text-3xl font-black font-mono {{ $netBalance >= 0 ? 'text-brand' : 'text-coral' }} truncate my-1.5" title="Rp {{ number_format($netBalance, 0, ',', '.') }}">
+        Rp {{ number_format($netBalance, 0, ',', '.') }}
+      </div>
+      <div class="text-[11px] font-mono text-ink/70 pt-1.5 border-t border-ink/10 flex items-center justify-between">
+        <span>Total Masuk:</span>
+        <span class="text-brand font-black truncate max-w-[120px] text-right" title="Rp {{ number_format($totalIncome, 0, ',', '.') }}">+Rp {{ number_format($totalIncome, 0, ',', '.') }}</span>
+      </div>
+    </div>
+
+    <!-- KARTU 2: TUGAS HARI INI -->
+    <div class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform">
+      <div class="flex items-center justify-between text-xs font-mono font-bold text-ink/70">
+        <span>TUGAS RUMAH</span>
+        <span class="text-xl sm:text-2xl">🧹</span>
+      </div>
+      <div class="text-2xl sm:text-3xl font-black font-mono text-ink my-1.5 flex items-baseline gap-2">
+        <span>{{ $choresCompleted }}/{{ $choresTotal }}</span>
+        <span class="text-xs sm:text-sm font-sans font-bold text-ink/60">Beres ({{ $choreCompletionRate }}%)</span>
+      </div>
+      <div class="pt-1.5 border-t border-ink/10">
+        <div class="w-full bg-cream h-2 brutal-border overflow-hidden">
+          <div class="bg-brand h-full transition-all duration-300" style="width: {{ $choreCompletionRate }}%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KARTU 3: POIN KELUARGA -->
+    <div class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform">
+      <div class="flex items-center justify-between text-xs font-mono font-bold text-ink/70">
+        <span>POIN KELUARGA</span>
+        <span class="text-xl sm:text-2xl">⭐</span>
+      </div>
+      <div class="text-2xl sm:text-3xl font-black font-mono text-ink my-1.5 flex items-baseline gap-1.5 truncate">
+        <span>{{ number_format($members->sum('points')) }}</span>
+        <span class="text-xs font-mono font-bold text-ink/60 uppercase">Poin</span>
+      </div>
+      <div class="text-[11px] font-mono text-ink/70 pt-1.5 border-t border-ink/10 truncate flex items-center justify-between">
+        <span class="flex-shrink-0">Paling rajin:</span>
+        <span class="font-black text-ink truncate ml-1">{{ $members->first() ? $members->first()->name : '-' }}</span>
+      </div>
+    </div>
+
+    <!-- KARTU 4: AGENDA TERDEKAT -->
+    <div class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden {{ $isPro ? 'bg-accent/25' : '' }}">
+      @if($isPro)
+        <div class="flex items-center justify-between text-xs font-mono font-black text-ink">
+          <span>AGENDA TERDEKAT</span>
+          <div class="flex items-center gap-1">
+            <span class="px-1.5 py-0.2 bg-white brutal-border font-mono text-[9px] font-black">👑 PRO</span>
+            <span class="text-xl sm:text-2xl">⏰</span>
+          </div>
+        </div>
+        @if($upcomingEvents->count() > 0)
+          @php $nextEv = $upcomingEvents->first(); @endphp
+          <div class="text-base sm:text-lg font-black font-display text-ink truncate my-1.5 leading-snug" title="{{ $nextEv->title }}">
+            {{ $nextEv->title }}
+          </div>
+          <div class="text-[11px] font-mono font-bold text-ink/80 pt-1.5 border-t border-ink/20 truncate">
+            🗓️ {{ \Carbon\Carbon::parse($nextEv->start_time)->locale('id')->isoFormat('D MMM, HH:mm') }} &bull; {{ $nextEv->location ?? 'Rumah' }}
+          </div>
+        @else
+          <div class="text-base sm:text-lg font-black font-display text-ink/70 my-1.5">
+            Belum ada jadwal
+          </div>
+          <div class="text-[11px] font-mono text-ink/60 pt-1.5 border-t border-ink/20">
+            Semua kegiatan tuntas
+          </div>
+        @endif
+      @else
+        <!-- FREE TIER: OPACITY RENDAH + OVERLAY UPGRADE -->
+        <div class="opacity-30 select-none pointer-events-none">
+          <div class="flex items-center justify-between text-xs font-mono font-bold text-ink/70">
+            <span>AGENDA TERDEKAT</span>
+            <span class="text-xl sm:text-2xl">⏰</span>
+          </div>
+          <div class="text-base sm:text-lg font-black font-display text-ink my-1.5">
+            Kontrol Dokter Anak
+          </div>
+          <div class="text-[11px] font-mono text-ink/60 pt-1.5 border-t border-ink/20">
+            🗓️ Besok, 10:00 &bull; RS Hermina
+          </div>
+        </div>
+
+        <!-- OVERLAY UPGRADE -->
+        <div class="absolute inset-0 bg-cream/80 backdrop-blur-[1px] flex flex-col items-center justify-center p-3 text-center z-10">
+          <span class="text-lg mb-0.5">🔒</span>
+          <span class="text-xs font-black font-display text-ink leading-tight">Agenda Kalender</span>
+          <span class="text-[10px] font-mono text-ink/70 mb-1.5">Terkunci di Paket Free</span>
+          <button type="button" onclick="openPaywallModal('calendar')" class="px-2.5 py-1 bg-accent hover:bg-brand hover:text-white brutal-btn text-[10px] font-mono font-black uppercase tracking-wider">
+            👑 Upgrade Pro &rarr;
+          </button>
+        </div>
+      @endif
+    </div>
+
+  </div>
+
+  <!-- BARIS 2: 3 GRAFIK UTAMA SEJAJAR -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4">
+    
+    <!-- GRAFIK 1: ARUS KAS (6 KOLOM) -->
+    <div class="lg:col-span-6 bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between">
+      <div class="flex items-center justify-between pb-2 border-b-2 border-ink">
+        <div class="flex items-center gap-2">
+          <span class="text-base sm:text-lg">📈</span>
+          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">
+            Uang Masuk & Keluar
+          </h3>
+          <span class="text-[10px] font-mono text-ink/50 hidden sm:inline">(Aktivitas Terakhir)</span>
+        </div>
+        <div class="flex items-center gap-1 font-mono text-xs font-bold">
+          <button type="button" onclick="setCashflowChartType('bar')" id="btn-chart-bar" class="px-2 py-0.5 bg-accent brutal-border text-ink hover:bg-accent text-xs">Bar</button>
+          <button type="button" onclick="setCashflowChartType('line')" id="btn-chart-line" class="px-2 py-0.5 bg-white brutal-border text-ink hover:bg-cream text-xs">Garis</button>
+        </div>
+      </div>
+      <div class="relative h-44 sm:h-48 w-full mt-2">
+        <canvas id="cashflowChart"></canvas>
+      </div>
+    </div>
+
+    <!-- GRAFIK 2: KATEGORI PENGELUARAN (3 KOLOM) -->
+    <div class="lg:col-span-3 bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between">
+      <div class="flex items-center justify-between pb-2 border-b-2 border-ink">
+        <div class="flex items-center gap-1.5">
+          <span class="text-base sm:text-lg">🍩</span>
+          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">
+            Pos Biaya
+          </h3>
+        </div>
+        <span class="text-[10px] font-mono font-bold text-ink/60">Top Pengeluaran</span>
+      </div>
+      <div class="relative h-44 sm:h-48 w-full flex items-center justify-center mt-2">
+        @if($expensesByCategory->count() > 0)
+          <canvas id="categoryDonutChart"></canvas>
+        @else
+          <div class="p-3 text-center text-xs font-mono text-ink/60 bg-cream brutal-border w-full">
+            Belum ada catatan biaya.
+          </div>
+        @endif
+      </div>
+    </div>
+
+    <!-- GRAFIK 3: POIN & TUGAS ANGGOTA (3 KOLOM) -->
+    <div class="lg:col-span-3 bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between">
+      <div class="flex items-center justify-between pb-2 border-b-2 border-ink">
+        <div class="flex items-center gap-1.5">
+          <span class="text-base sm:text-lg">🏆</span>
+          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">
+            Poin Anggota
+          </h3>
+        </div>
+        <div class="flex items-center gap-1 font-mono text-[10px] font-bold text-ink/60">
+          <span>{{ $members->count() > 5 ? 'Top 5' : $members->count() . ' orang' }}</span>
+          @if($members->count() > 5)
+            <a href="{{ route('members.index') }}" class="text-brand font-black hover:underline" title="Lihat semua anggota">&rarr;</a>
+          @endif
+        </div>
+      </div>
+      <div class="relative h-44 sm:h-48 w-full mt-2">
+        <canvas id="memberPointsChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BARIS 3: RINGKASAN DATA RIIL (KOMPAK DENGAN INNER SCROLL) -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-3.5 sm:gap-4">
+    
+    <!-- KOLOM 1: TUGAS HARI INI + DONUT RING -->
+    <div class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between h-full">
+      <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-2.5">
+        <div class="flex items-center gap-1.5">
+          <span class="text-base">📋</span>
+          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">Tugas Rumah</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-mono font-bold text-ink/70">{{ $choresTotal }} tugas</span>
+          <a href="{{ route('chores.index') }}" class="text-[10px] font-mono font-black text-brand hover:underline">Semua &rarr;</a>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- RING DONUT -->
+        <div class="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 flex items-center justify-center">
+          <canvas id="choreRingChart"></canvas>
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span class="text-[11px] sm:text-xs font-mono font-black text-ink">{{ $choreCompletionRate }}%</span>
+          </div>
+        </div>
+
+        <!-- LIST TUGAS COMPACT DENGAN SCROLL CONTAINMENT -->
+        <div class="flex-1 min-w-0 space-y-1.5 max-h-[145px] overflow-y-auto custom-scrollbar pr-1">
+          @forelse($allChores->take(5) as $chore)
+            <div class="p-1.5 sm:p-2 {{ $chore->status === 'completed' ? 'bg-cream' : 'bg-white shadow-brutal-sm' }} brutal-border flex items-center justify-between text-xs gap-2">
+              <div class="truncate text-xs font-bold text-ink {{ $chore->status === 'completed' ? 'line-through text-ink/50' : '' }}" title="{{ $chore->title }}">
+                {{ $chore->title }}
+              </div>
+              <span class="px-1.5 py-0.2 {{ $chore->status === 'completed' ? 'bg-brand text-white' : 'bg-accent text-ink' }} brutal-border text-[9px] font-mono font-black flex-shrink-0 uppercase">
+                {{ $chore->status === 'completed' ? 'Beres' : 'Belum' }}
+              </span>
+            </div>
+          @empty
+            <div class="text-xs font-mono text-ink/50 py-2">Belum ada tugas</div>
+          @endforelse
+        </div>
+      </div>
+    </div>
+
+    <!-- KOLOM 2: CATATAN KAS TERBARU -->
+    <div class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between h-full">
+      <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-2.5">
+        <div class="flex items-center gap-1.5">
+          <span class="text-base">🧾</span>
+          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">Catatan Kas</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-mono font-bold text-ink/70">Terbaru</span>
+          <a href="{{ route('finances.index') }}" class="text-[10px] font-mono font-black text-brand hover:underline">Semua &rarr;</a>
+        </div>
+      </div>
+
+      <div class="space-y-1.5 max-h-[145px] overflow-y-auto custom-scrollbar pr-1">
+        @php $recentTrx = $finance['recent_transactions'] ?? (isset($finance['transactions']) ? $finance['transactions']->take(4) : collect()); @endphp
+        @forelse($recentTrx->take(4) as $trx)
+          <div class="flex items-center justify-between p-1.5 sm:p-2 bg-cream brutal-border text-xs gap-2">
+            <div class="min-w-0 truncate">
+              <div class="text-xs font-bold text-ink truncate" title="{{ $trx->description }}">{{ $trx->description }}</div>
+              <div class="text-[10px] font-mono text-ink/60 truncate">{{ $trx->category ? $trx->category->name : 'Umum' }} &bull; {{ $trx->user ? $trx->user->name : 'Keluarga' }}</div>
+            </div>
+            <span class="font-mono {{ $trx->type === 'income' ? 'text-brand' : 'text-coral' }} font-black text-xs flex-shrink-0">
+              {{ $trx->type === 'income' ? '+' : '-' }}Rp {{ number_format($trx->amount, 0, ',', '.') }}
+            </span>
+          </div>
+        @empty
+          <div class="text-xs font-mono text-ink/50 py-2">Belum ada transaksi</div>
+        @endforelse
+      </div>
+    </div>
+
+    <!-- KOLOM 3: JADWAL & MOMEN TERAKHIR -->
+    <div class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden h-full">
+      <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-2.5">
+        <div class="flex items-center gap-1.5">
+          <span class="text-base">🗓️</span>
+          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">Jadwal & Momen</h3>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="px-1.5 py-0.2 {{ $isPro ? 'bg-accent text-ink' : 'bg-coral text-white' }} brutal-border font-mono text-[9px] font-black uppercase">
+            {{ $isPro ? '👑 Pro' : '🔒 Pro' }}
+          </span>
+          @if($isPro)
+            <a href="{{ route('events.index') }}" class="text-[10px] font-mono font-black text-brand hover:underline">Semua &rarr;</a>
+          @endif
+        </div>
+      </div>
+
+      @if($isPro)
+        <div class="space-y-1.5 max-h-[145px] overflow-y-auto custom-scrollbar pr-1">
+          @if($upcomingEvents->count() > 0)
+            @php $ev = $upcomingEvents->first(); @endphp
+            <div class="p-1.5 sm:p-2 bg-accent/25 brutal-border flex items-center justify-between text-xs gap-2">
+              <div class="min-w-0 truncate">
+                <div class="text-xs font-bold text-ink truncate">{{ $ev->title }}</div>
+                <div class="text-[10px] font-mono text-ink/70">📍 {{ $ev->location ?? 'Rumah' }}</div>
+              </div>
+              <span class="px-1.5 py-0.5 bg-white brutal-border font-mono text-[9px] sm:text-[10px] font-bold flex-shrink-0">
+                {{ \Carbon\Carbon::parse($ev->start_time)->locale('id')->isoFormat('D MMM') }}
+              </span>
+            </div>
+          @endif
+
+          @if($latestMoment)
+            <div class="p-1.5 sm:p-2 bg-cream brutal-border flex items-center gap-2 text-xs">
+              @if($latestMoment->image_path)
+                <img src="{{ asset('storage/' . $latestMoment->image_path) }}" alt="{{ $latestMoment->title }}" class="w-8 h-8 sm:w-9 sm:h-9 object-cover brutal-border flex-shrink-0">
+              @else
+                <span class="text-base">📸</span>
+              @endif
+              <div class="min-w-0 truncate">
+                <div class="text-xs font-bold text-ink truncate">{{ $latestMoment->title }}</div>
+                <div class="text-[10px] font-mono text-ink/60 truncate">{{ \Carbon\Carbon::parse($latestMoment->event_date)->locale('id')->isoFormat('D MMMM Y') }}</div>
+              </div>
+            </div>
+          @else
+            <div class="text-xs font-mono text-ink/50 py-1">Belum ada momen foto</div>
+          @endif
+        </div>
+      @else
+        <!-- FREE TIER: OPACITY RENDAH DENGAN OVERLAY UPGRADE -->
+        <div class="opacity-25 select-none pointer-events-none space-y-1.5">
+          <div class="p-2 bg-cream brutal-border flex items-center justify-between text-xs">
+            <div>
+              <div class="font-bold text-ink">Liburan Pantai Bersama</div>
+              <div class="text-[9px] font-mono text-ink/60">Anyer &bull; 4 Foto</div>
+            </div>
+            <span class="px-1.5 py-0.5 bg-white brutal-border text-[9px] font-mono font-bold">15 Okt</span>
+          </div>
+          <div class="p-2 bg-cream brutal-border flex items-center justify-between text-xs">
+            <div>
+              <div class="font-bold text-ink">Jadwal Imunisasi Anak</div>
+              <div class="text-[9px] font-mono text-ink/60">Puskesmas</div>
+            </div>
+            <span class="px-1.5 py-0.5 bg-white brutal-border text-[9px] font-mono font-bold">28 Okt</span>
+          </div>
+        </div>
+
+        <!-- OVERLAY UPGRADE BUTTON -->
+        <div class="absolute inset-0 bg-cream/80 backdrop-blur-[2px] flex flex-col items-center justify-center p-3 text-center z-10">
+          <span class="text-xl mb-0.5">🔒</span>
+          <span class="px-1.5 py-0.2 bg-coral text-white brutal-border font-mono text-[9px] font-black uppercase mb-0.5">Fitur Pro</span>
+          <h4 class="font-black font-display text-xs sm:text-sm text-ink mb-0.5">Kalender & Linimasa</h4>
+          <p class="text-[10px] text-ink/70 font-medium mb-2 max-w-xs leading-tight">
+            Foto liburan & jadwal agenda otomatis aktif di Pro.
+          </p>
+          <button type="button" onclick="openPaywallModal('timeline')" class="px-2.5 py-1 bg-accent hover:bg-brand hover:text-white brutal-btn text-[10px] font-mono font-black uppercase tracking-wider shadow-brutal-sm">
+            👑 Upgrade Pro (Rp 20rb) &rarr;
+          </button>
+        </div>
+      @endif
+    </div>
+
+  </div>
+
+</div>
+
+</div>
+
+<!-- CHART.JS LOGIC -->
+@push('scripts')
+<script>
+  let cashflowChartInstance = null;
+  let categoryDonutInstance = null;
+  let memberPointsInstance = null;
+  let choreRingInstance = null;
+
+  Chart.defaults.font.family = '"JetBrains Mono", monospace';
+  Chart.defaults.color = '#121614';
+  Chart.defaults.borderColor = 'rgba(18, 22, 20, 0.08)';
+
+  // 1. CASHFLOW CHART
+  const cashflowLabels = @json($cashflowLabels);
+  const cashflowIncome = @json($cashflowIncome);
+  const cashflowExpense = @json($cashflowExpense);
+
+  function initCashflowChart(chartType = 'bar') {
+    const ctx = document.getElementById('cashflowChart');
+    if (!ctx) return;
+
+    if (cashflowChartInstance) {
+      cashflowChartInstance.destroy();
+    }
+
+    cashflowChartInstance = new Chart(ctx, {
+      type: chartType,
+      data: {
+        labels: cashflowLabels,
+        datasets: [
+          {
+            label: 'Masuk',
+            data: cashflowIncome,
+            backgroundColor: '#2F5233',
+            borderColor: '#121614',
+            borderWidth: 2.5,
+            borderRadius: 0,
+            maxBarThickness: 28,
+            fill: chartType === 'line' ? false : undefined,
+            tension: 0.1
+          },
+          {
+            label: 'Keluar',
+            data: cashflowExpense,
+            backgroundColor: '#E07A5F',
+            borderColor: '#121614',
+            borderWidth: 2.5,
+            borderRadius: 0,
+            maxBarThickness: 28,
+            fill: chartType === 'line' ? false : undefined,
+            tension: 0.1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              boxWidth: 10,
+              boxHeight: 10,
+              font: { weight: 'bold', size: 10 },
+              padding: 6
+            }
+          },
+          tooltip: {
+            backgroundColor: '#FBF8EF',
+            titleColor: '#121614',
+            bodyColor: '#121614',
+            borderColor: '#121614',
+            borderWidth: 2,
+            padding: 8,
+            cornerRadius: 0,
+            callbacks: {
+              label: function(context) {
+                const val = context.parsed.y !== undefined ? context.parsed.y : context.parsed;
+                return context.dataset.label + ': Rp ' + Number(val).toLocaleString('id-ID');
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              font: { weight: 'bold', size: 9 },
+              maxTicksLimit: 7,
+              autoSkip: true
+            }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(val) {
+                if (val >= 1000000) return (val / 1000000) + 'jt';
+                if (val >= 1000) return (val / 1000) + 'rb';
+                return val;
+              },
+              font: { weight: 'bold', size: 9 }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function setCashflowChartType(type) {
+    $('#btn-chart-bar').toggleClass('bg-accent', type === 'bar').toggleClass('bg-white', type !== 'bar');
+    $('#btn-chart-line').toggleClass('bg-accent', type === 'line').toggleClass('bg-white', type !== 'line');
+    initCashflowChart(type);
+  }
+
+  // 2. CATEGORY EXPENSES DONUT CHART
+  @php
+    $catNames = $expensesByCategory->pluck('name')->toArray();
+    $catAmounts = $expensesByCategory->pluck('amount')->toArray();
+  @endphp
+  const categoryLabels = @json($catNames);
+  const categoryAmounts = @json($catAmounts);
+
+  function initCategoryDonutChart() {
+    const ctx = document.getElementById('categoryDonutChart');
+    if (!ctx || categoryLabels.length === 0) return;
+
+    if (categoryDonutInstance) {
+      categoryDonutInstance.destroy();
+    }
+
+    const palette = ['#2F5233', '#34D399', '#E07A5F', '#81B0C4', '#87A987', '#121614', '#D4A373'];
+
+    categoryDonutInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: categoryLabels,
+        datasets: [{
+          data: categoryAmounts,
+          backgroundColor: palette.slice(0, categoryLabels.length),
+          borderColor: '#121614',
+          borderWidth: 2.5,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 8,
+              boxHeight: 8,
+              font: { weight: 'bold', size: 9 },
+              padding: 5
+            }
+          },
+          tooltip: {
+            backgroundColor: '#FBF8EF',
+            titleColor: '#121614',
+            bodyColor: '#121614',
+            borderColor: '#121614',
+            borderWidth: 2,
+            padding: 8,
+            cornerRadius: 0,
+            callbacks: {
+              label: function(context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const val = context.raw;
+                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                return `${context.label}: Rp ${Number(val).toLocaleString('id-ID')} (${pct}%)`;
+              }
+            }
+          }
+        },
+        cutout: '62%'
+      }
+    });
+  }
+
+  // 3. MEMBER POINTS & PRODUCTIVITY BAR CHART (TOP 5 LEADERBOARD)
+  @php
+    $topMemberStats = $memberStats->take(5);
+    $memberNames = $topMemberStats->pluck('name')->toArray();
+    $memberPoints = $topMemberStats->pluck('points')->toArray();
+  @endphp
+  const memberNames = @json($memberNames);
+  const memberPoints = @json($memberPoints);
+
+  function initMemberPointsChart() {
+    const ctx = document.getElementById('memberPointsChart');
+    if (!ctx) return;
+
+    if (memberPointsInstance) {
+      memberPointsInstance.destroy();
+    }
+
+    memberPointsInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: memberNames,
+        datasets: [
+          {
+            label: 'Poin',
+            data: memberPoints,
+            backgroundColor: '#34D399',
+            borderColor: '#121614',
+            borderWidth: 2.5,
+            borderRadius: 0,
+            maxBarThickness: 16
+          }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#FBF8EF',
+            titleColor: '#121614',
+            bodyColor: '#121614',
+            borderColor: '#121614',
+            borderWidth: 2,
+            padding: 8,
+            cornerRadius: 0
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: { font: { weight: 'bold', size: 9 } }
+          },
+          y: {
+            ticks: { font: { weight: 'bold', size: 9 } }
+          }
+        }
+      }
+    });
+  }
+
+  // 4. CHORES COMPLETION RING CHART
+  const choresCompletedCount = {{ $choresCompleted }};
+  const choresPendingCount = {{ $choresPending }};
+
+  function initChoreRingChart() {
+    const ctx = document.getElementById('choreRingChart');
+    if (!ctx) return;
+
+    if (choreRingInstance) {
+      choreRingInstance.destroy();
+    }
+
+    const hasData = (choresCompletedCount + choresPendingCount) > 0;
+    const ringData = hasData ? [choresCompletedCount, choresPendingCount] : [0, 1];
+    const ringColors = hasData ? ['#2F5233', '#E07A5F'] : ['#EAF0EB', '#EAF0EB'];
+
+    choreRingInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Beres', 'Belum'],
+        datasets: [{
+          data: ringData,
+          backgroundColor: ringColors,
+          borderColor: '#121614',
+          borderWidth: 2,
+          hoverOffset: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            enabled: hasData,
+            backgroundColor: '#FBF8EF',
+            titleColor: '#121614',
+            bodyColor: '#121614',
+            borderColor: '#121614',
+            borderWidth: 2,
+            padding: 6,
+            cornerRadius: 0
+          }
+        },
+        cutout: '70%'
+      }
+    });
+  }
+
+  $(document).ready(function() {
+    initCashflowChart('bar');
+    initCategoryDonutChart();
+    initMemberPointsChart();
+    initChoreRingChart();
+  });
+</script>
+@endpush
