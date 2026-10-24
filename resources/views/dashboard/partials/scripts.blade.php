@@ -614,8 +614,17 @@
   function handleFileSelect(e) {
     const file = e.target.files && e.target.files[0];
     if (file) {
+      if (e.target.id === 'minput-camera') {
+        const fileInput = document.getElementById('minput-file');
+        if (fileInput) fileInput.value = '';
+      } else if (e.target.id === 'minput-file') {
+        const cameraInput = document.getElementById('minput-camera');
+        if (cameraInput) cameraInput.value = '';
+      }
       const removeReceiptEl = document.getElementById('finance-input-remove-receipt');
       if (removeReceiptEl) removeReceiptEl.value = '0';
+      const removeAttachmentEl = document.getElementById('chore-input-remove-attachment');
+      if (removeAttachmentEl) removeAttachmentEl.value = '0';
       previewFile(file);
     }
   }
@@ -646,6 +655,8 @@
     }
     const fileInput = document.getElementById('minput-file');
     if (fileInput) fileInput.value = '';
+    const cameraInput = document.getElementById('minput-camera');
+    if (cameraInput) cameraInput.value = '';
     const previewImg = document.getElementById('upload-preview-img');
     if (previewImg) previewImg.src = '';
     const previewCard = document.getElementById('upload-preview-card');

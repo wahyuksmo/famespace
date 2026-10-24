@@ -166,25 +166,37 @@
         <label class="block text-xs font-black font-mono uppercase text-ink mb-1" id="mlabel-upload">
           Foto Panduan / Bukti Tugas (Opsional):
         </label>
+        <!-- Input File untuk Galeri/Dokumen -->
         <input type="file" id="minput-file" name="attachment" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+        <!-- Input File khusus Kamera Langsung di Mobile -->
+        <input type="file" id="minput-camera" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(event)">
         <input type="hidden" name="remove_attachment" id="chore-input-remove-attachment" value="0">
         
-        <!-- DROPZONE -->
-        <label 
-          for="minput-file"
+        <!-- DROPZONE / PILIHAN SUMBER FOTO -->
+        <div 
           id="upload-dropzone" 
-          class="block border-2 border-dashed border-ink bg-cream/70 hover:bg-accent/20 p-3 sm:p-4 text-center cursor-pointer transition-colors duration-150 group"
+          class="border-2 border-dashed border-ink bg-cream/70 p-3 sm:p-4 text-center transition-colors duration-150"
         >
-          <div class="flex items-center justify-center gap-2.5 pointer-events-none">
-            <span class="text-2xl group-hover:scale-110 transition-transform">📸</span>
-            <div class="text-left">
-              <p class="text-xs font-bold text-ink">
-                <span class="underline decoration-2 decoration-brand">Pilih galeri / kamera</span> atau seret foto ke sini
-              </p>
-              <p class="text-[10px] text-ink/60 font-mono font-medium">JPG, PNG, WebP</p>
-            </div>
+          <div class="flex items-center justify-center gap-2 mb-2.5">
+            <button 
+              type="button" 
+              onclick="document.getElementById('minput-camera').click()" 
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent hover:bg-accent/80 text-ink brutal-border text-xs font-black shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] cursor-pointer transition-all"
+            >
+              <span>📸</span>
+              <span>Buka Kamera</span>
+            </button>
+            <button 
+              type="button" 
+              onclick="document.getElementById('minput-file').click()" 
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-cream text-ink brutal-border text-xs font-black shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] cursor-pointer transition-all"
+            >
+              <span>🖼️</span>
+              <span>Galeri / File</span>
+            </button>
           </div>
-        </label>
+          <p class="text-[10px] text-ink/60 font-mono font-medium">Atau seret foto ke sini (JPG, PNG, WebP)</p>
+        </div>
 
         <!-- PREVIEW CARD -->
         <div id="upload-preview-card" class="hidden p-2.5 bg-cream brutal-border flex items-center justify-between gap-3">
