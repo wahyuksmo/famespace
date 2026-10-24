@@ -449,10 +449,10 @@ class FinanceController extends Controller
             ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
-                return response()->json(['success' => true, 'message' => 'Kategori berhasil dihapus!']);
+                return response()->json(['success' => true, 'message' => 'Kategori berhasil dihapus! Transaksi dan anggaran dialihkan ke kategori Lain-lain.']);
             }
 
-            return redirect()->route('finances.index')->with('success', 'Kategori berhasil dihapus!');
+            return redirect()->route('finances.index')->with('success', 'Kategori berhasil dihapus! Transaksi dan anggaran dialihkan ke kategori Lain-lain.');
         } catch (Throwable $e) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -560,7 +560,7 @@ class FinanceController extends Controller
         $familyId = Auth::user()->family_id;
 
         try {
-            $this->financeService->deleteGoal($id, $familyId);
+            $this->financeService->deleteGoal($id, $familyId, (int) Auth::id());
 
             broadcast(new FinanceEvent(
                 familyId: (string) $familyId,
@@ -571,10 +571,10 @@ class FinanceController extends Controller
             ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
-                return response()->json(['success' => true, 'message' => 'Target tabungan berhasil dihapus!']);
+                return response()->json(['success' => true, 'message' => 'Target tabungan berhasil dihapus dan saldo tabungan dikembalikan ke kas keluarga!']);
             }
 
-            return redirect()->route('finances.index')->with('success', 'Target tabungan berhasil dihapus!');
+            return redirect()->route('finances.index')->with('success', 'Target tabungan berhasil dihapus dan saldo tabungan dikembalikan ke kas keluarga!');
         } catch (Throwable $e) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -692,12 +692,12 @@ class FinanceController extends Controller
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Batas anggaran kategori berhasil dihapus!',
+                    'message' => 'Batas anggaran kategori berhasil dihapus dan digabungkan ke kategori Lain-lain!',
                 ]);
             }
 
             return redirect()->route('finances.index', ['period' => $period])
-                ->with('success', 'Batas anggaran kategori berhasil dihapus!');
+                ->with('success', 'Batas anggaran kategori berhasil dihapus dan digabungkan ke kategori Lain-lain!');
         } catch (Throwable $e) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 422);

@@ -56,11 +56,23 @@ class AlbumController extends Controller
         $media = $mediaQuery->paginate(24);
         $quota = $family->albumQuotaInfo();
 
+        $mediaItems = $media->getCollection()->map(fn ($m) => [
+            'id' => $m->id,
+            'is_photo' => $m->isPhoto(),
+            'url' => $m->file_url,
+            'caption' => $m->caption,
+            'file_name' => $m->file_name,
+            'uploader' => $m->user?->name ?? 'Anggota',
+            'date' => $m->created_at->translatedFormat('d M Y, H:i'),
+            'size' => $m->formatted_size,
+        ])->values();
+
         return view('modules.album.show', [
             'family' => $family,
             'user' => $user,
             'album' => $album,
             'media' => $media,
+            'mediaItems' => $mediaItems,
             'quota' => $quota,
             'typeFilter' => $typeFilter,
         ]);

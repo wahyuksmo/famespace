@@ -87,10 +87,10 @@
                       >
                         ✏️ Edit
                       </button>
-                      @if(! is_null($cat->family_id))
+                      @if(! is_null($cat->family_id) && strtolower(trim($cat->name)) !== 'lain-lain')
                         <button 
                           type="button" 
-                          onclick="confirmDelete('{{ route('finances.categories.destroy', $cat->id) }}', 'kategori {{ addslashes($cat->name) }}')" 
+                          onclick="confirmDelete('{{ route('finances.categories.destroy', $cat->id) }}', 'kategori {{ addslashes($cat->name) }} (transaksi & anggarannya dialihkan ke Lain-lain)')" 
                           class="px-2 py-0.5 bg-coral hover:bg-ink text-white brutal-border text-[10px] font-bold shadow-brutal-sm"
                           title="Hapus Kategori"
                         >
@@ -168,10 +168,10 @@
                   >
                     ✏️ Edit
                   </button>
-                  @if(! is_null($cat->family_id))
+                  @if(! is_null($cat->family_id) && strtolower(trim($cat->name)) !== 'lain-lain')
                     <button 
                       type="button" 
-                      onclick="confirmDelete('{{ route('finances.categories.destroy', $cat->id) }}', 'kategori {{ addslashes($cat->name) }}')" 
+                      onclick="confirmDelete('{{ route('finances.categories.destroy', $cat->id) }}', 'kategori {{ addslashes($cat->name) }} (transaksi & anggarannya dialihkan ke Lain-lain)')" 
                       class="px-3 py-1.5 bg-coral hover:bg-ink text-white brutal-border text-xs font-bold text-center shadow-brutal-sm"
                     >
                       🗑️ Hapus

@@ -253,10 +253,10 @@
                 >
                   <span>✏️ Atur Anggaran Bulan Ini</span>
                 </button>
-                @if($hasBudget)
+                @if($hasBudget && strtolower(trim($cb['name'])) !== 'lain-lain')
                   <button 
                     type="button" 
-                    onclick="confirmDelete('{{ url('/finances/period-budgets/' . $cb['id']) }}?period={{ urlencode($selectedPeriod ?? now()->format('Y-m')) }}', 'anggaran kategori {{ addslashes($cb['name']) }}')" 
+                    onclick="confirmDelete('{{ url('/finances/period-budgets/' . $cb['id']) }}?period={{ urlencode($selectedPeriod ?? now()->format('Y-m')) }}', 'anggaran kategori {{ addslashes($cb['name']) }} (sisa pagu dialihkan ke Lain-lain)')" 
                     class="px-3 py-2 bg-coral hover:bg-ink text-white brutal-border text-xs font-black uppercase shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
                     title="Hapus Batas Anggaran"
                   >
@@ -375,7 +375,7 @@
               </button>
               <button 
                 type="button" 
-                onclick="confirmDelete('{{ route('finances.goals.destroy', $goal['id']) }}', 'target tabungan {{ addslashes($goal['title']) }}')" 
+                onclick="confirmDelete('{{ route('finances.goals.destroy', $goal['id']) }}', 'target tabungan {{ addslashes($goal['title']) }} (saldo yang sudah disetor akan dikembalikan ke kas)')" 
                 class="px-2 py-1.5 bg-coral hover:bg-ink text-white brutal-border text-xs font-bold transition-all shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
                 title="Hapus Target"
               >
@@ -1503,12 +1503,12 @@
                   ✏️ Atur
                 </button>
             `;
-            if (row.has_budget) {
+            if (row.has_budget && (row.name || '').toLowerCase().trim() !== 'lain-lain') {
               const deleteUrl = `{{ url('/finances/period-budgets') }}/${row.id}?period=${encodeURIComponent(currentPeriod)}`;
               actions += `
                 <button 
                   type="button" 
-                  onclick="confirmDelete('${deleteUrl}', 'anggaran kategori ${nameSafe}')" 
+                  onclick="confirmDelete('${deleteUrl}', 'anggaran kategori ${nameSafe} (nominal dialihkan ke Lain-lain)')" 
                   class="px-2 py-1 bg-coral hover:bg-ink text-white brutal-border text-[10px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
                   title="Hapus Batas Anggaran"
                 >
@@ -1832,10 +1832,10 @@
           >
             <span>✏️ Atur Anggaran Bulan Ini</span>
           </button>
-          ${row.has_budget ? `
+          ${(row.has_budget && (row.name || '').toLowerCase().trim() !== 'lain-lain') ? `
             <button 
               type="button" 
-              onclick="confirmDelete('{{ url('/finances/period-budgets') }}/${row.id}?period=${encodeURIComponent($('#budget-period-select').val() || '{{ now()->format('Y-m') }}')}', 'anggaran kategori ${nameSafe}')" 
+              onclick="confirmDelete('{{ url('/finances/period-budgets') }}/${row.id}?period=${encodeURIComponent($('#budget-period-select').val() || '{{ now()->format('Y-m') }}')}', 'anggaran kategori ${nameSafe} (nominal dialihkan ke Lain-lain)')" 
               class="px-3 py-2 bg-coral hover:bg-ink text-white brutal-border text-xs font-black uppercase shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
               title="Hapus Batas Anggaran"
             >
@@ -1936,10 +1936,11 @@
     const badgeClass = isExpense ? 'bg-coral text-white' : 'bg-brand text-white';
     const catJson = JSON.stringify(row).replace(/"/g, '&quot;');
     const nameEsc = escapeHtml(row.name);
-    const deleteBtn = row.is_custom ? `
+    const isLainLain = (row.name || '').toLowerCase().trim() === 'lain-lain';
+    const deleteBtn = (row.is_custom && !isLainLain) ? `
       <button 
         type="button" 
-        onclick="confirmDelete('${row.destroy_url}', 'kategori ${nameEsc}')" 
+        onclick="confirmDelete('${row.destroy_url}', 'kategori ${nameEsc} (transaksi & anggarannya dialihkan ke Lain-lain)')" 
         class="px-3 py-1.5 bg-coral hover:bg-ink text-white brutal-border text-xs font-bold text-center shadow-brutal-sm"
       >
         🗑️ Hapus
@@ -2380,12 +2381,13 @@
                   ✏️ Edit
                 </button>
             `;
-            if (row.is_custom) {
+            const isLainLain = (row.name || '').toLowerCase().trim() === 'lain-lain';
+            if (row.is_custom && !isLainLain) {
               const nameEsc = escapeHtml(row.name);
               html += `
                 <button 
                   type="button" 
-                  onclick="confirmDelete('${row.destroy_url}', 'kategori ${nameEsc}')" 
+                  onclick="confirmDelete('${row.destroy_url}', 'kategori ${nameEsc} (transaksi & anggarannya dialihkan ke Lain-lain)')" 
                   class="px-2 py-0.5 bg-coral hover:bg-ink text-white brutal-border text-[10px] font-bold shadow-brutal-sm"
                   title="Hapus Kategori"
                 >
@@ -2707,8 +2709,8 @@
     closePeriodBudgetModal();
     const deleteUrl = `{{ url('/finances/period-budgets') }}/${catId}?period=${encodeURIComponent(period)}`;
     if (typeof confirmDelete === 'function') {
-      confirmDelete(deleteUrl, `anggaran ${catName}`);
-    } else if (confirm(`Hapus batasan anggaran untuk ${catName}?`)) {
+      confirmDelete(deleteUrl, `anggaran ${catName} (nominal dialihkan ke Lain-lain)`);
+    } else if (confirm(`Hapus batasan anggaran untuk ${catName}? Nominal akan dialihkan ke Lain-lain.`)) {
       showLoading('Menghapus anggaran...');
       $.ajax({
         url: deleteUrl,

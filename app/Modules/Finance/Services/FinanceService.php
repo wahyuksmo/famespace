@@ -6,11 +6,13 @@ use App\Models\Category;
 use App\Models\CategoryBudget;
 use App\Models\Finance;
 use App\Models\FinanceGoal;
+use App\Models\TimelineMoment;
 use App\Models\Wkcal;
 use App\Modules\Finance\Repositories\FinanceRepository;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -285,13 +287,49 @@ class FinanceService
             throw new Exception('Kategori tidak ditemukan.');
         }
 
-        $this->financeRepo->deleteCategoryBudgetForPeriod($familyId, $categoryId, $period);
-
-        if ($cat->family_id === $familyId && (float) $cat->monthly_budget > 0) {
-            $cat->update(['monthly_budget' => 0]);
+        if (strtolower(trim($cat->name)) === 'lain-lain') {
+            throw new Exception('Batas anggaran kategori "Lain-lain" tidak dapat dihapus.');
         }
 
-        return $cat->name;
+        return DB::transaction(function () use ($familyId, $cat, $categoryId, $period) {
+            $cb = CategoryBudget::where('family_id', $familyId)
+                ->where('category_id', $categoryId)
+                ->where('period', $period)
+                ->first();
+
+            $amountToTransfer = $cb ? (float) $cb->budget_amount : (float) $cat->monthly_budget;
+
+            if ($amountToTransfer > 0) {
+                $fallbackCategory = Category::firstOrCreate([
+                    'family_id' => $familyId,
+                    'name' => 'Lain-lain',
+                    'type' => 'expense',
+                ], [
+                    'icon' => 'tag',
+                    'color' => '#6C757D',
+                    'monthly_budget' => 0,
+                ]);
+
+                $fallbackCb = CategoryBudget::firstOrCreate([
+                    'family_id' => $familyId,
+                    'category_id' => $fallbackCategory->id,
+                    'period' => $period,
+                ], [
+                    'budget_amount' => (float) $fallbackCategory->monthly_budget,
+                    'notes' => 'Gabungan anggaran',
+                ]);
+
+                $fallbackCb->increment('budget_amount', $amountToTransfer);
+            }
+
+            $this->financeRepo->deleteCategoryBudgetForPeriod($familyId, $categoryId, $period);
+
+            if ($cat->family_id === $familyId && (float) $cat->monthly_budget > 0) {
+                $cat->update(['monthly_budget' => 0]);
+            }
+
+            return $cat->name;
+        });
     }
 
     public function saveCategory(string $familyId, array $data, ?int $id = null): Category
@@ -333,7 +371,52 @@ class FinanceService
             throw new Exception('Kategori bawaan sistem tidak dapat dihapus.');
         }
 
-        $this->financeRepo->deleteCategory($category);
+        if (strtolower(trim($category->name)) === 'lain-lain') {
+            throw new Exception('Kategori "Lain-lain" tidak dapat dihapus karena digunakan sebagai kategori cadangan.');
+        }
+
+        DB::transaction(function () use ($category, $familyId) {
+            $fallbackCategory = Category::firstOrCreate([
+                'family_id' => $familyId,
+                'name' => 'Lain-lain',
+                'type' => $category->type,
+            ], [
+                'icon' => 'tag',
+                'color' => '#6C757D',
+                'monthly_budget' => 0,
+            ]);
+
+            Finance::where('family_id', $familyId)
+                ->where('category_id', $category->id)
+                ->update(['category_id' => $fallbackCategory->id]);
+
+            TimelineMoment::where('category_id', $category->id)
+                ->update(['category_id' => $fallbackCategory->id]);
+
+            if ($category->type === 'expense' && (float) $category->monthly_budget > 0) {
+                $fallbackCategory->increment('monthly_budget', (float) $category->monthly_budget);
+            }
+
+            $categoryBudgets = CategoryBudget::where('family_id', $familyId)
+                ->where('category_id', $category->id)
+                ->get();
+
+            foreach ($categoryBudgets as $cb) {
+                $fallbackCb = CategoryBudget::firstOrCreate([
+                    'family_id' => $familyId,
+                    'category_id' => $fallbackCategory->id,
+                    'period' => $cb->period,
+                ], [
+                    'budget_amount' => (float) $fallbackCategory->monthly_budget,
+                    'notes' => 'Gabungan anggaran',
+                ]);
+
+                $fallbackCb->increment('budget_amount', (float) $cb->budget_amount);
+                $cb->delete();
+            }
+
+            $this->financeRepo->deleteCategory($category);
+        });
     }
 
     public function saveGoal(string $familyId, array $data, ?int $id = null): FinanceGoal
@@ -372,14 +455,39 @@ class FinanceService
         return $this->financeRepo->createGoal($payload);
     }
 
-    public function deleteGoal(int $id, string $familyId): void
+    public function deleteGoal(int $id, string $familyId, ?int $userId = null): void
     {
         $goal = $this->financeRepo->findGoalInFamily($id, $familyId);
         if (! $goal) {
             throw new Exception('Target tabungan tidak ditemukan.');
         }
 
-        $this->financeRepo->deleteGoal($goal);
+        DB::transaction(function () use ($goal, $familyId, $userId) {
+            $currentAmount = (float) $goal->current_amount;
+            if ($currentAmount > 0) {
+                $cat = Category::firstOrCreate([
+                    'family_id' => $familyId,
+                    'name' => 'Refund/Cashback',
+                    'type' => 'income',
+                ], [
+                    'icon' => 'piggy-bank',
+                    'color' => '#F59E0B',
+                    'monthly_budget' => 0,
+                ]);
+
+                $this->financeRepo->create([
+                    'family_id' => $familyId,
+                    'user_id' => $userId ?: (int) (Auth::id() ?? 1),
+                    'category_id' => $cat->id,
+                    'type' => 'income',
+                    'amount' => $currentAmount,
+                    'description' => "Pengembalian Saldo Celengan: {$goal->title}",
+                    'transaction_date' => now()->toDateString(),
+                ]);
+            }
+
+            $this->financeRepo->deleteGoal($goal);
+        });
     }
 
     public function depositToGoal(int $goalId, string $familyId, int $userId, float $amount, ?string $note = null): FinanceGoal

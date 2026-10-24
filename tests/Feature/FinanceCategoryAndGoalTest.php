@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\CategoryBudget;
 use App\Models\Family;
 use App\Models\Finance;
 use App\Models\FinanceGoal;
@@ -402,5 +403,120 @@ class FinanceCategoryAndGoalTest extends TestCase
         $reportResp->assertJsonPath('report.pct_saving_of_income', 20);
         $reportResp->assertJsonPath('report.pct_expense_of_income', 40);
         $reportResp->assertJsonPath('report.pct_remaining_of_income', 40);
+    }
+
+    public function test_delete_category_reassigns_transactions_and_budget_to_lain_lain(): void
+    {
+        $customCat = Category::create([
+            'family_id' => $this->family->id,
+            'name' => 'Kategori Khusus Uji',
+            'type' => 'expense',
+            'monthly_budget' => 500000,
+        ]);
+
+        $trx = Finance::create([
+            'family_id' => $this->family->id,
+            'user_id' => $this->user->id,
+            'category_id' => $customCat->id,
+            'type' => 'expense',
+            'amount' => 150000,
+            'description' => 'Beli barang uji',
+            'transaction_date' => now()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($this->user)->deleteJson(route('finances.categories.destroy', $customCat->id));
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $this->assertDatabaseMissing('m_categories', ['id' => $customCat->id]);
+
+        $fallbackCat = Category::where('family_id', $this->family->id)
+            ->where('name', 'Lain-lain')
+            ->where('type', 'expense')
+            ->first();
+
+        $this->assertNotNull($fallbackCat);
+        $this->assertEquals(500000, (float) $fallbackCat->monthly_budget);
+
+        $trx->refresh();
+        $this->assertEquals($fallbackCat->id, $trx->category_id);
+    }
+
+    public function test_cannot_delete_lain_lain_category(): void
+    {
+        $lainLain = Category::firstOrCreate([
+            'family_id' => $this->family->id,
+            'name' => 'Lain-lain',
+            'type' => 'expense',
+        ]);
+
+        $response = $this->actingAs($this->user)->deleteJson(route('finances.categories.destroy', $lainLain->id));
+        $response->assertStatus(422);
+        $response->assertJson(['success' => false]);
+    }
+
+    public function test_delete_period_budget_merges_amount_into_lain_lain(): void
+    {
+        $cat = Category::create([
+            'family_id' => $this->family->id,
+            'name' => 'Hobi & Game',
+            'type' => 'expense',
+            'monthly_budget' => 300000,
+        ]);
+
+        $period = now()->format('Y-m');
+
+        CategoryBudget::create([
+            'family_id' => $this->family->id,
+            'category_id' => $cat->id,
+            'period' => $period,
+            'budget_amount' => 300000,
+        ]);
+
+        $response = $this->actingAs($this->user)->deleteJson(
+            route('finances.period_budgets.destroy', ['category' => $cat->id, 'period' => $period])
+        );
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $fallbackCat = Category::where('family_id', $this->family->id)
+            ->where('name', 'Lain-lain')
+            ->where('type', 'expense')
+            ->first();
+
+        $this->assertNotNull($fallbackCat);
+
+        $fallbackCb = CategoryBudget::where('family_id', $this->family->id)
+            ->where('category_id', $fallbackCat->id)
+            ->where('period', $period)
+            ->first();
+
+        $this->assertNotNull($fallbackCb);
+        $this->assertEquals(300000, (float) $fallbackCb->budget_amount);
+    }
+
+    public function test_delete_goal_with_funds_refunds_money_to_cash_balance(): void
+    {
+        $goal = FinanceGoal::create([
+            'family_id' => $this->family->id,
+            'title' => 'Celengan Liburan',
+            'target_amount' => 1000000,
+            'current_amount' => 450000,
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($this->user)->deleteJson(route('finances.goals.destroy', $goal->id));
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $this->assertDatabaseMissing('t_finance_goals', ['id' => $goal->id]);
+
+        $this->assertDatabaseHas('t_finances', [
+            'family_id' => $this->family->id,
+            'type' => 'income',
+            'amount' => 450000,
+            'description' => 'Pengembalian Saldo Celengan: Celengan Liburan',
+        ]);
     }
 }

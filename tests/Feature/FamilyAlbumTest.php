@@ -66,6 +66,11 @@ class FamilyAlbumTest extends TestCase
 
         $album = Album::where('family_id', $this->family->id)->first();
         $response->assertRedirect(route('albums.show', $album));
+
+        $showResponse = $this->actingAs($this->user)->get(route('albums.show', $album));
+        $showResponse->assertOk()
+            ->assertViewIs('modules.album.show')
+            ->assertSee('Liburan ke Bali 2026');
     }
 
     public function test_free_tier_can_upload_up_to_10_photos_and_11th_fails(): void
