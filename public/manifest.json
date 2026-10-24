@@ -4,10 +4,16 @@
   "description": "Kelola tugas rumah tangga, kas keluarga, jadwal bersama, dan momen indah keluarga.",
   "start_url": "/dashboard",
   "scope": "/",
+  "id": "/",
   "display": "standalone",
   "background_color": "#FBF8EF",
   "theme_color": "#2F5233",
   "orientation": "portrait-primary",
+  "categories": [
+    "lifestyle",
+    "productivity",
+    "family"
+  ],
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -29,6 +35,38 @@
       "src": "/icons/apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Beranda",
+      "url": "/dashboard",
+      "description": "Ringkasan dan aktivitas keluarga",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Tugas Rumah",
+      "url": "/chores",
+      "description": "Daftar tugas rumah tangga",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Kas Keluarga",
+      "url": "/finances",
+      "description": "Catatan kas dan keuangan",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Linimasa & Trip",
+      "url": "/timeline",
+      "description": "Jejak peta dan kenangan",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Album Keluarga",
+      "url": "/albums",
+      "description": "Koleksi foto dan video keluarga",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
     }
   ]
 }

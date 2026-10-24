@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Family;
+use App\Models\Finance;
 use App\Models\FinanceGoal;
 use App\Models\User;
 use App\Models\Wkcal;
@@ -134,11 +135,11 @@ class FinanceCategoryAndGoalTest extends TestCase
         $goal->refresh();
         $this->assertEquals(3500000.00, (float) $goal->current_amount);
 
-        // Pastikan tercatat transaksi kas pengeluaran
+        // Pastikan tercatat transaksi kas tabungan (bukan pengeluaran biasa)
         $this->assertDatabaseHas('t_finances', [
             'family_id' => $this->family->id,
             'user_id' => $this->user->id,
-            'type' => 'expense',
+            'type' => 'saving',
             'amount' => 1500000.00,
         ]);
     }
@@ -307,5 +308,60 @@ class FinanceCategoryAndGoalTest extends TestCase
 
         $firstPeriod = $availablePeriods[0]['period'];
         $this->assertEquals('2028-05', $firstPeriod);
+    }
+
+    public function test_finance_summary_and_report_data_endpoints(): void
+    {
+        // 1. Catat income, expense, saving
+        Finance::create([
+            'family_id' => $this->family->id,
+            'user_id' => $this->user->id,
+            'type' => 'income',
+            'amount' => 10000000,
+            'description' => 'Gaji Bulanan',
+            'transaction_date' => now()->toDateString(),
+        ]);
+
+        Finance::create([
+            'family_id' => $this->family->id,
+            'user_id' => $this->user->id,
+            'type' => 'expense',
+            'amount' => 4000000,
+            'description' => 'Belanja Bulanan',
+            'transaction_date' => now()->toDateString(),
+        ]);
+
+        Finance::create([
+            'family_id' => $this->family->id,
+            'user_id' => $this->user->id,
+            'type' => 'saving',
+            'amount' => 2000000,
+            'description' => 'Nabung Darurat',
+            'transaction_date' => now()->toDateString(),
+        ]);
+
+        // 2. Test summary endpoint
+        $summaryResp = $this->actingAs($this->user)->getJson(route('finances.summary'));
+        $summaryResp->assertStatus(200);
+        $summaryResp->assertJson([
+            'success' => true,
+            'income' => 10000000,
+            'expense' => 4000000,
+            'saving' => 2000000,
+            'balance' => 4000000,
+        ]);
+
+        // 3. Test report endpoint
+        $reportResp = $this->actingAs($this->user)->getJson(route('finances.report_data', [
+            'mode' => 'monthly',
+            'period' => now()->format('Y-m'),
+        ]));
+        $reportResp->assertStatus(200);
+        $reportResp->assertJsonPath('report.total_income', 10000000);
+        $reportResp->assertJsonPath('report.total_expense', 4000000);
+        $reportResp->assertJsonPath('report.total_saving', 2000000);
+        $reportResp->assertJsonPath('report.pct_saving_of_income', 20);
+        $reportResp->assertJsonPath('report.pct_expense_of_income', 40);
+        $reportResp->assertJsonPath('report.pct_remaining_of_income', 40);
     }
 }

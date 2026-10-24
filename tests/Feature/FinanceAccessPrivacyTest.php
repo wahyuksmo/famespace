@@ -112,6 +112,10 @@ class FinanceAccessPrivacyTest extends TestCase
         $responseAnak->assertStatus(200);
         $responseAnak->assertSee('Beli Es Krim Anak');
         $responseAnak->assertDontSee('Rahasia Belanja Ayah');
+        $responseAnak->assertDontSee('Total Saldo Kas Tersedia');
+        $responseAnak->assertDontSee('Batas & Riwayat Anggaran Bulanan');
+        $responseAnak->assertDontSee('Celengan & Target Tabungan Bersama');
+        $responseAnak->assertDontSee('🏷️ Kategori & Anggaran');
 
         // Anak DataTables endpoint
         $dtAnak = $this->actingAs($this->anak)->getJson(route('finances.paginate', ['draw' => 1, 'start' => 0, 'length' => 10]));
@@ -120,11 +124,14 @@ class FinanceAccessPrivacyTest extends TestCase
         $this->assertCount(1, $dataAnak);
         $this->assertEquals('Beli Es Krim Anak', $dataAnak[0]['description']);
 
-        // Ayah view /finances can see both
+        // Ayah view /finances can see both and full finance overview
         $responseAyah = $this->actingAs($this->ayah)->get(route('finances.index'));
         $responseAyah->assertStatus(200);
         $responseAyah->assertSee('Beli Es Krim Anak');
         $responseAyah->assertSee('Rahasia Belanja Ayah');
+        $responseAyah->assertSee('Total Saldo Kas Tersedia');
+        $responseAyah->assertSee('Batas & Riwayat Anggaran Bulanan', false);
+        $responseAyah->assertSee('Celengan & Target Tabungan Bersama', false);
     }
 
     public function test_restricted_member_cannot_modify_or_delete_others_transaction(): void
@@ -156,6 +163,52 @@ class FinanceAccessPrivacyTest extends TestCase
         $this->assertDatabaseHas('t_finances', [
             'id' => $trxAyah->id,
             'description' => 'Cicilan Gadget',
+        ]);
+    }
+
+    public function test_restricted_member_cannot_manage_categories_goals_or_budgets(): void
+    {
+        // Category endpoints
+        $this->actingAs($this->anak)->getJson(route('finances.categories.paginate'))->assertStatus(403);
+        $this->actingAs($this->anak)->postJson(route('finances.categories.store'), [
+            'name' => 'Kategori Gelap',
+            'type' => 'expense',
+        ])->assertStatus(403);
+
+        // Budget endpoints
+        $this->actingAs($this->anak)->getJson(route('finances.budgets.paginate'))->assertStatus(403);
+        $this->actingAs($this->anak)->postJson(route('finances.period_budgets.store'), [
+            'category_id' => $this->category->id,
+            'period' => now()->format('Y-m'),
+            'budget_amount' => 500000,
+        ])->assertStatus(403);
+
+        // Goal endpoints
+        $this->actingAs($this->anak)->postJson(route('finances.goals.store'), [
+            'title' => 'Celengan Rahasia',
+            'target_amount' => 1000000,
+        ])->assertStatus(403);
+    }
+
+    public function test_restricted_member_recording_is_forced_to_expense_and_self(): void
+    {
+        $resp = $this->actingAs($this->anak)->postJson(route('finances.store'), [
+            'type' => 'income', // Intentionally try to record income
+            'amount' => '50.000',
+            'description' => 'Jajan Siang',
+            'category_id' => $this->category->id,
+            'user_id' => $this->ayah->id, // Intentionally try to record as Ayah
+            'transaction_date' => now()->toDateString(),
+        ]);
+
+        $resp->assertStatus(200);
+
+        // Verify stored transaction is forced to 'expense' and user_id is the anak
+        $this->assertDatabaseHas('t_finances', [
+            'description' => 'Jajan Siang',
+            'type' => 'expense',
+            'user_id' => $this->anak->id,
+            'amount' => 50000,
         ]);
     }
 }

@@ -73,6 +73,14 @@
       </div>
 
       <div class="p-2.5 bg-white brutal-border flex items-start gap-2.5">
+        <span class="text-base">📸</span>
+        <div>
+          <div class="text-xs font-black text-ink">Album Keluarga Unlimited</div>
+          <div class="text-[11px] text-ink/70 font-medium leading-snug">Unggah foto & video keluarga tanpa batas kuota (Free dibatasi 10 foto & 1 video).</div>
+        </div>
+      </div>
+
+      <div class="p-2.5 bg-white brutal-border flex items-start gap-2.5">
         <span class="text-base">👨‍👩‍👧‍👦</span>
         <div>
           <div class="text-xs font-black text-ink">Semua Anggota Otomatis Aktif</div>

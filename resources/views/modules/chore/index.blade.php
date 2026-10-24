@@ -6,24 +6,58 @@
 <!-- TAB 2: TUGAS & CHORES -->
 <div id="view-chores" class="space-y-6">
   
-  <!-- HEADER CHORES -->
-  <div class="bg-white brutal-card p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-    <div>
-      <div class="flex items-center gap-2">
-        <span class="px-2.5 py-0.5 bg-accent brutal-border font-mono text-[10px] sm:text-xs font-black uppercase">
-          DISTRIBUSI PEKERJAAN RUMAH
-        </span>
-      </div>
-      <h2 class="text-xl sm:text-2xl font-black font-display text-ink mt-1">Manajemen Tugas & Chores</h2>
-      <p class="text-xs font-medium text-ink/70">Bagi tugas secara adil antar anggota keluarga. Anak-anak kumpulkan poin reward.</p>
-    </div>
-    <button type="button" onclick="openChoreModal()" class="hidden md:inline-flex items-center justify-center px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider text-center">
-      + Tambah Tugas Baru
+  <!-- TAB SWITCHER: TUGAS vs REWARDS -->
+  <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+    <button 
+      type="button" 
+      id="tab-btn-chores" 
+      onclick="switchChoreTab('chores')" 
+      class="px-4 py-2 bg-ink text-white brutal-border font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all shadow-[2px_2px_0px_#121614] active:scale-95"
+    >
+      <span>📋 Checklist Tugas</span>
+      <span class="px-1.5 py-0.2 bg-accent text-ink text-[10px] font-mono font-black rounded-sm">{{ ($allChores ?? $chores)->where('status', 'pending')->count() }}</span>
+    </button>
+    <button 
+      type="button" 
+      id="tab-btn-rewards" 
+      onclick="switchChoreTab('rewards')" 
+      class="px-4 py-2 bg-white text-ink brutal-border font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2 hover:bg-cream transition-all shadow-[2px_2px_0px_#121614] active:scale-95"
+    >
+      <span>🎁 Katalog Hadiah & Klaim</span>
+      <span id="tab-rewards-badge" class="{{ ($pendingClaimsCount ?? 0) > 0 ? '' : 'hidden' }} px-1.5 py-0.2 bg-coral text-white text-[10px] font-mono font-black rounded-sm animate-pulse">
+        {{ $pendingClaimsCount ?? 0 }} Baru
+      </span>
     </button>
   </div>
 
+  <!-- HEADER CHORES & REWARDS -->
+  <div class="bg-white brutal-card p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span id="header-tagline" class="px-2.5 py-0.5 bg-accent brutal-border font-mono text-[10px] sm:text-xs font-black uppercase">
+          DISTRIBUSI PEKERJAAN RUMAH
+        </span>
+      </div>
+      <h2 id="header-title" class="text-xl sm:text-2xl font-black font-display text-ink mt-1">Manajemen Tugas & Chores</h2>
+      <p id="header-subtitle" class="text-xs font-medium text-ink/70">Bagi tugas secara adil antar anggota keluarga. Anak-anak kumpulkan poin reward.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button type="button" id="header-btn-add-chore" onclick="openChoreModal()" class="hidden md:inline-flex items-center justify-center px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider text-center">
+        + Tambah Tugas Baru
+      </button>
+      @if(isset($user) && method_exists($user, 'isParent') && $user->isParent())
+        <button type="button" id="header-btn-add-reward" onclick="openRewardModal()" class="hidden items-center justify-center px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider text-center">
+          + Tambah Hadiah Baru
+        </button>
+      @endif
+    </div>
+  </div>
+
+  <!-- SECTION: CHORES TAB -->
+  <div id="section-chores-tab" class="space-y-6">
+
   <!-- REWARD POIN BANNER FOR KIDS -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div id="chores-kids-banner" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     @php
       $kids = $members->filter(fn($m) => in_array(strtolower($m->role), ['anak', 'member']))->values();
     @endphp
@@ -53,9 +87,16 @@
   <div class="bg-white brutal-card p-4 sm:p-6 space-y-3 sm:space-y-4">
     <div class="flex items-center justify-between pb-3 border-b-2 border-ink">
       <h3 class="font-black font-display text-base">Checklist Tugas Aktif</h3>
-      <span class="text-xs font-mono font-bold text-ink/70">
+      <span id="chores-completion-stat" class="text-xs font-mono font-bold text-ink/70">
         {{ ($allChores ?? $chores)->where('status', 'completed')->count() }}/{{ max(($allChores ?? $chores)->count(), 1) }} Selesai
       </span>
+    </div>
+
+    <!-- FILTER PILLS UNTUK DESKTOP -->
+    <div class="hidden md:flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-mono font-bold no-scrollbar">
+      <button type="button" class="btn-filter-chore px-3 py-1 bg-ink text-white brutal-border text-[11px] font-black uppercase transition-all" data-status="all">Semua</button>
+      <button type="button" class="btn-filter-chore px-3 py-1 bg-white text-ink brutal-border text-[11px] font-bold uppercase transition-all" data-status="pending">Perlu Dikerjakan</button>
+      <button type="button" class="btn-filter-chore px-3 py-1 bg-white text-ink brutal-border text-[11px] font-bold uppercase transition-all" data-status="completed">Selesai</button>
     </div>
 
     @php
@@ -198,18 +239,27 @@
       </div>
     </div>
   </div>
+  </div><!-- /section-chores-tab -->
+
+  <!-- SECTION: REWARDS TAB -->
+  <div id="section-rewards-tab" class="hidden space-y-6">
+    @include('modules.chore.partials.rewards-tab')
+  </div>
 
 </div>
 @endsection
 
 @push('modals')
   @include('modules.chore.modal')
+  @include('modules.chore.reward-modal')
 @endpush
 
 @push('scripts')
 <script>
   let choresDataTable = null;
+  let rewardsDataTable = null;
   let choreDatePicker = null;
+  let choresFilterStatus = 'all';
 
   $(document).ready(function() {
     // Inisialisasi Flatpickr
@@ -223,12 +273,15 @@
     }
 
     // Inisialisasi Server-Side jQuery DataTables untuk Tugas (Custom Card Renderer)
-    choresDataTable = $('#chores-datatable').DataTable({
+    window.choresDataTable = choresDataTable = $('#chores-datatable').DataTable({
       processing: true,
       serverSide: true,
       ajax: {
         url: "{{ route('chores.paginate') }}",
-        type: 'GET'
+        type: 'GET',
+        data: function(d) {
+          d.status = (choresFilterStatus === 'all') ? '' : choresFilterStatus;
+        }
       },
       pageLength: 5,
       lengthMenu: [5, 10, 25],
@@ -302,6 +355,139 @@
                   >
                     🗑️
                   </button>
+                </div>
+              </div>
+            `;
+          }
+        }
+      ]
+    });
+
+    const isUserParent = {{ ($isParent ?? (auth()->user()?->isParent() ?? false)) ? 'true' : 'false' }};
+
+    // Inisialisasi Server-Side jQuery DataTables untuk Hadiah (Katalog Card Grid)
+    window.rewardsDataTable = rewardsDataTable = $('#rewards-datatable').DataTable({
+      processing: true,
+      serverSide: true,
+      ajax: {
+        url: "{{ route('rewards.paginate') }}",
+        type: 'GET'
+      },
+      pageLength: 6,
+      lengthMenu: [6, 12, 24],
+      language: {
+        search: "Cari Hadiah:",
+        lengthMenu: "Tampil _MENU_ hadiah",
+        info: "Menampilkan _START_-_END_ dari _TOTAL_ hadiah",
+        infoEmpty: "Menampilkan 0 hadiah",
+        infoFiltered: "(disaring dari _MAX_ total data)",
+        emptyTable: "Belum ada hadiah di katalog.",
+        processing: "Memuat katalog hadiah...",
+        paginate: {
+          first: "&laquo;",
+          previous: "&larr; Prev",
+          next: "Next &rarr;",
+          last: "&raquo;"
+        }
+      },
+      columns: [
+        {
+          data: null,
+          orderable: false,
+          render: function(data, type, row) {
+            const payload = JSON.stringify(row).replace(/"/g, '&quot;');
+            const stockBadgeClass = row.has_stock ? 'bg-cream text-ink' : 'bg-coral text-white';
+
+            let actionBtns = '';
+            if (isUserParent) {
+              actionBtns = `
+                <button 
+                  type="button" 
+                  onclick='openEditRewardModal(${payload})' 
+                  class="w-7 h-7 bg-white hover:bg-accent brutal-border font-bold text-xs flex items-center justify-center transition-colors"
+                  title="Edit Hadiah"
+                >
+                  ✏️
+                </button>
+                <button 
+                  type="button" 
+                  onclick="confirmDeleteReward(${row.id}, '${escapeHtml(row.title)}')" 
+                  class="w-7 h-7 bg-white hover:bg-coral hover:text-white brutal-border font-bold text-xs flex items-center justify-center transition-colors"
+                  title="Hapus Hadiah"
+                >
+                  🗑️
+                </button>
+              `;
+            }
+
+            let bottomBtn = '';
+            if (!row.has_stock) {
+              bottomBtn = `
+                <button 
+                  type="button" 
+                  disabled 
+                  class="w-full py-2 bg-ink/10 text-ink/40 brutal-border text-xs font-mono font-black uppercase cursor-not-allowed text-center"
+                >
+                  Stok Habis
+                </button>
+              `;
+            } else if (row.can_afford) {
+              bottomBtn = `
+                <button 
+                  type="button" 
+                  onclick='openClaimConfirmModal(${payload})' 
+                  class="w-full py-2 bg-accent hover:bg-accent/80 text-ink brutal-btn text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
+                >
+                  <span>Tukar Hadiah 🚀</span>
+                </button>
+              `;
+            } else {
+              bottomBtn = `
+                <button 
+                  type="button" 
+                  disabled 
+                  class="w-full py-2 bg-cream text-coral brutal-border text-xs font-mono font-black uppercase cursor-not-allowed text-center"
+                  title="Poin kamu belum mencukupi"
+                >
+                  Kurang ${Number(row.points_needed).toLocaleString('id-ID')} Poin
+                </button>
+              `;
+            }
+
+            const descHtml = row.description ? `
+              <p class="text-xs text-ink/70 mt-2 font-medium line-clamp-2">
+                ${escapeHtml(row.description)}
+              </p>
+            ` : '';
+
+            return `
+              <div class="bg-white brutal-card p-4 sm:p-5 flex flex-col justify-between hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform space-y-4 h-full">
+                <div>
+                  <div class="flex items-start justify-between gap-2 mb-3">
+                    <div class="w-12 h-12 bg-accent brutal-border flex items-center justify-center text-2xl shadow-[2px_2px_0px_#121614] flex-shrink-0">
+                      ${escapeHtml(row.icon || '🎁')}
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <span class="px-2 py-0.5 ${stockBadgeClass} brutal-border font-mono font-bold text-[10px]">
+                        📦 ${escapeHtml(row.stock_text)}
+                      </span>
+                      ${actionBtns}
+                    </div>
+                  </div>
+
+                  <h4 class="font-black font-display text-base text-ink line-clamp-1" title="${escapeHtml(row.title)}">
+                    ${escapeHtml(row.title)}
+                  </h4>
+                  <div class="mt-1 flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 bg-brand-soft text-brand brutal-border font-mono font-black text-xs">
+                      ⭐ ${Number(row.points).toLocaleString('id-ID')} Poin
+                    </span>
+                  </div>
+                  ${descHtml}
+                </div>
+
+                <div class="pt-3 border-t border-ink/20">
+                  ${bottomBtn}
                 </div>
               </div>
             `;
@@ -466,11 +652,19 @@
   }
 
   $(document).ready(function() {
-    $(document).on('click', '.btn-mfilter-chore', function() {
-      $('.btn-mfilter-chore').removeClass('bg-ink text-white font-black').addClass('bg-white text-ink font-bold');
-      $(this).removeClass('bg-white text-ink font-bold').addClass('bg-ink text-white font-black');
-      choresMobileFilterStatus = $(this).data('status') || 'all';
-      refreshChoresMobile();
+    $(document).on('click', '.btn-filter-chore, .btn-mfilter-chore', function() {
+      const status = $(this).data('status') || 'all';
+      choresFilterStatus = status;
+      choresMobileFilterStatus = status;
+      $('.btn-filter-chore, .btn-mfilter-chore').each(function() {
+        if ($(this).data('status') === status) {
+          $(this).removeClass('bg-white text-ink font-bold').addClass('bg-ink text-white font-black');
+        } else {
+          $(this).removeClass('bg-ink text-white font-black').addClass('bg-white text-ink font-bold');
+        }
+      });
+      if (choresDataTable) choresDataTable.ajax.reload();
+      if (typeof refreshChoresMobile === 'function') refreshChoresMobile();
     });
 
     let choreSearchTimer = null;
@@ -513,11 +707,12 @@
         success: function(data) {
           if (data.success) {
             showToast(`Status tugas diperbarui (${data.points_awarded > 0 ? '+' : ''}${data.points_awarded} Poin)`);
-            if (data.pending_count !== undefined && typeof updateSidebarChoreCount === 'function') {
-              updateSidebarChoreCount(data.pending_count);
+            if (data.user_points !== undefined && typeof window.updateUserPoints === 'function') {
+              window.updateUserPoints(data.user_points);
             }
-            if (choresDataTable) choresDataTable.ajax.reload(null, false);
-            if (typeof refreshChoresMobile === 'function') refreshChoresMobile();
+            if (typeof window.reloadCurrentModuleData === 'function') {
+              window.reloadCurrentModuleData({ data: data });
+            }
           }
         },
         error: function(err) {
@@ -637,14 +832,8 @@
         closeChoreModal();
         if (typeof fireConfetti === 'function') fireConfetti();
         if (typeof showToast === 'function') showToast(res.message || 'Tugas berhasil disimpan!');
-        if (res.pending_count !== undefined && typeof updateSidebarChoreCount === 'function') {
-          updateSidebarChoreCount(res.pending_count);
-        }
-        if (choresDataTable) {
-          choresDataTable.ajax.reload(null, false);
-        }
-        if (typeof refreshChoresMobile === 'function') {
-          refreshChoresMobile();
+        if (typeof window.reloadCurrentModuleData === 'function') {
+          window.reloadCurrentModuleData({ data: { pending_count: res.pending_count } });
         }
       },
       error: function(xhr) {
@@ -686,11 +875,345 @@
     }
   }
 
+  // REWARD & TAB SYSTEM SCRIPTS
+  let currentActiveTab = 'chores';
+  let targetClaimReward = null;
+
+  function switchChoreTab(tab) {
+    currentActiveTab = tab;
+    const $btnChores = $('#tab-btn-chores');
+    const $btnRewards = $('#tab-btn-rewards');
+    const $secChores = $('#section-chores-tab');
+    const $secRewards = $('#section-rewards-tab');
+    const $btnAddChore = $('#header-btn-add-chore');
+    const $btnAddReward = $('#header-btn-add-reward');
+
+    if (tab === 'chores') {
+      $btnChores.removeClass('bg-white text-ink hover:bg-cream').addClass('bg-ink text-white');
+      $btnRewards.removeClass('bg-ink text-white').addClass('bg-white text-ink hover:bg-cream');
+      
+      $('#header-tagline').text('DISTRIBUSI PEKERJAAN RUMAH');
+      $('#header-title').text('Manajemen Tugas & Chores');
+      $('#header-subtitle').text('Bagi tugas secara adil antar anggota keluarga. Anak-anak kumpulkan poin reward.');
+      
+      $btnAddChore.removeClass('hidden').addClass('hidden md:inline-flex');
+      $btnAddReward.addClass('hidden').removeClass('inline-flex');
+
+      $secChores.removeClass('hidden');
+      $secRewards.addClass('hidden');
+
+      if (history.replaceState) {
+        history.replaceState(null, null, '#chores');
+      }
+    } else {
+      $btnRewards.removeClass('bg-white text-ink hover:bg-cream').addClass('bg-ink text-white');
+      $btnChores.removeClass('bg-ink text-white').addClass('bg-white text-ink hover:bg-cream');
+      
+      $('#header-tagline').text('KATALOG & PENUKARAN REWARD');
+      $('#header-title').text('Katalog Hadiah & Klaim Reward');
+      $('#header-subtitle').text('Tukarkan poin hasil tugas rumah tangga dengan berbagai hadiah menarik pilihan orang tua.');
+      
+      $btnAddChore.addClass('hidden').removeClass('hidden md:inline-flex');
+      $btnAddReward.removeClass('hidden').addClass('inline-flex');
+
+      $secChores.addClass('hidden');
+      $secRewards.removeClass('hidden');
+
+      if (rewardsDataTable) {
+        setTimeout(function() {
+          rewardsDataTable.columns.adjust().draw(false);
+        }, 50);
+      }
+
+      if (history.replaceState) {
+        history.replaceState(null, null, '#rewards');
+      }
+    }
+  }
+
+  function openRewardModal() {
+    $('#reward-manage-modal-form')[0].reset();
+    $('#reward-manage-modal-method').val('POST');
+    $('#reward-manage-modal-form').attr('action', "{{ route('rewards.store') }}");
+    $('#reward-manage-modal-title').text('Tambah Hadiah Baru');
+    $('#reward-manage-modal-icon').text('🎁');
+    $('#btn-submit-reward').html('Simpan Hadiah &rarr;');
+    selectRewardEmoji('🎁');
+    $('#reward-manage-modal').removeClass('hidden');
+  }
+
+  function closeRewardModal() {
+    $('#reward-manage-modal').addClass('hidden');
+  }
+
+  function selectRewardEmoji(emoji) {
+    $('#reward-input-icon').val(emoji);
+    $('#reward-manage-modal-icon').text(emoji);
+    $('.emoji-select-btn').removeClass('bg-accent ring-2 ring-ink').addClass('bg-cream');
+    $(`.emoji-select-btn[data-emoji="${emoji}"]`).removeClass('bg-cream').addClass('bg-accent ring-2 ring-ink');
+  }
+
+  function openEditRewardModal(reward) {
+    $('#reward-manage-modal-form')[0].reset();
+    $('#reward-manage-modal-method').val('PUT');
+    $('#reward-manage-modal-form').attr('action', '/rewards/' + reward.id);
+    $('#reward-manage-modal-title').text('Edit Hadiah: ' + reward.title);
+    $('#btn-submit-reward').html('Perbarui Hadiah &rarr;');
+
+    $('#reward-input-title').val(reward.title);
+    $('#reward-input-points').val(reward.points);
+    $('#reward-input-stock').val(reward.stock !== null ? reward.stock : '');
+    $('#reward-input-description').val(reward.description || '');
+
+    selectRewardEmoji(reward.icon || '🎁');
+    $('#reward-manage-modal').removeClass('hidden');
+  }
+
+  function confirmDeleteReward(id, title) {
+    if (typeof confirmDelete === 'function') {
+      confirmDelete('/rewards/' + id, 'Hadiah "' + title + '"');
+    } else {
+      if (confirm('Yakin ingin menghapus hadiah "' + title + '"?')) {
+        $.ajax({
+          url: '/rewards/' + id,
+          type: 'DELETE',
+          data: { _token: '{{ csrf_token() }}' },
+          success: function(res) {
+            showToast(res.message || 'Hadiah berhasil dihapus.');
+            if (rewardsDataTable) {
+              rewardsDataTable.ajax.reload(null, false);
+            } else {
+              location.reload();
+            }
+          },
+          error: function(err) {
+            showToast(err.responseJSON ? err.responseJSON.message : 'Gagal menghapus hadiah.', 'error');
+          }
+        });
+      }
+    }
+  }
+
+  // Handle Reward Create/Edit AJAX
+  $('#reward-manage-modal-form').on('submit', function(e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $('#btn-submit-reward');
+    const origText = $btn.html();
+    const actionUrl = $form.attr('action');
+
+    $btn.prop('disabled', true).html('Menyimpan...');
+    showLoading('Menyimpan hadiah...');
+
+    $.ajax({
+      url: actionUrl,
+      type: 'POST',
+      data: $form.serialize(),
+      dataType: 'json',
+      success: function(res) {
+        closeRewardModal();
+        if (typeof fireConfetti === 'function') fireConfetti();
+        if (typeof showToast === 'function') showToast(res.message || 'Hadiah berhasil disimpan!');
+        if (rewardsDataTable) {
+          rewardsDataTable.ajax.reload(null, false);
+        } else {
+          setTimeout(function() {
+            window.location.hash = 'rewards';
+            location.reload();
+          }, 500);
+        }
+      },
+      error: function(xhr) {
+        let msg = 'Gagal menyimpan hadiah.';
+        if (xhr.responseJSON) {
+          if (xhr.responseJSON.message) msg = xhr.responseJSON.message;
+          if (xhr.responseJSON.errors) msg = Object.values(xhr.responseJSON.errors).flat().join(' ');
+        }
+        if (typeof showToast === 'function') {
+          showToast(msg, 'error');
+        } else {
+          alert(msg);
+        }
+      },
+      complete: function() {
+        $btn.prop('disabled', false).html(origText);
+        hideLoading();
+      }
+    });
+  });
+
+  // CLAIM EXECUTION MODALS & ACTIONS
+  function openClaimConfirmModal(reward) {
+    targetClaimReward = reward;
+    const userPoints = parseInt($('#sidebar-user-points-val').text().replace(/[^0-9]/g, ''), 10) || {{ (int)($user->points ?? 0) }};
+    const cost = parseInt(reward.points, 10);
+    const remaining = Math.max(0, userPoints - cost);
+
+    $('#claim-confirm-icon').text(reward.icon || '🎁');
+    $('#claim-confirm-title').text(reward.title);
+    $('#claim-confirm-desc').text(reward.description || 'Tukarkan ' + cost.toLocaleString('id-ID') + ' poin untuk hadiah ini.');
+    $('#claim-current-points').text(userPoints.toLocaleString('id-ID') + ' Poin');
+    $('#claim-cost-points').text('- ' + cost.toLocaleString('id-ID') + ' Poin');
+    $('#claim-remaining-points').text(remaining.toLocaleString('id-ID') + ' Poin');
+
+    $('#reward-claim-confirm-modal').removeClass('hidden');
+  }
+
+  function closeClaimConfirmModal() {
+    $('#reward-claim-confirm-modal').addClass('hidden');
+    targetClaimReward = null;
+  }
+
+  function executeClaim() {
+    if (!targetClaimReward) return;
+    const $btn = $('#btn-execute-claim');
+    const origText = $btn.html();
+    $btn.prop('disabled', true).html('Mengklaim...');
+    showLoading('Memproses penukaran poin...');
+
+    $.ajax({
+      url: '/rewards/' + targetClaimReward.id + '/claim',
+      type: 'POST',
+      data: { _token: '{{ csrf_token() }}' },
+      dataType: 'json',
+      success: function(res) {
+        closeClaimConfirmModal();
+        if (typeof fireConfetti === 'function') fireConfetti();
+        if (typeof showToast === 'function') showToast(res.message || 'Hadiah berhasil diklaim!');
+        if (res.user_points !== undefined && typeof window.updateUserPoints === 'function') {
+          window.updateUserPoints(res.user_points);
+        }
+        setTimeout(function() {
+          window.location.hash = 'rewards';
+          location.reload();
+        }, 600);
+      },
+      error: function(xhr) {
+        let msg = 'Gagal menukarkan hadiah.';
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+          msg = xhr.responseJSON.message;
+        }
+        if (typeof showToast === 'function') {
+          showToast(msg, 'error');
+        } else {
+          alert(msg);
+        }
+      },
+      complete: function() {
+        $btn.prop('disabled', false).html(origText);
+        hideLoading();
+      }
+    });
+  }
+
+  function openApproveModal(claimId, rewardTitle = 'Hadiah', userName = 'Anggota', points = 0) {
+    $('#approve-claim-id').val(claimId);
+    $('#approve-confirm-reward-title').text(rewardTitle);
+    $('#approve-confirm-user-name').text(userName);
+    $('#approve-confirm-points').text(points ? Number(points).toLocaleString('id-ID') + ' Poin' : '- Poin');
+    $('#reward-approve-confirm-modal').removeClass('hidden');
+  }
+
+  function closeApproveModal() {
+    $('#reward-approve-confirm-modal').addClass('hidden');
+  }
+
+  function approveClaim(claimId, rewardTitle = 'Hadiah', userName = 'Anggota', points = 0) {
+    openApproveModal(claimId, rewardTitle, userName, points);
+  }
+
+  function executeApproveClaim() {
+    const claimId = $('#approve-claim-id').val();
+    if (!claimId) return;
+
+    const $btn = $('#btn-confirm-approve');
+    const origText = $btn.html();
+    $btn.prop('disabled', true).html('Menyetujui...');
+    showLoading('Menyetujui klaim & menyerahkan hadiah...');
+
+    $.ajax({
+      url: '/rewards/claims/' + claimId + '/approve',
+      type: 'PATCH',
+      data: { _token: '{{ csrf_token() }}' },
+      dataType: 'json',
+      success: function(res) {
+        closeApproveModal();
+        if (typeof fireConfetti === 'function') fireConfetti();
+        if (typeof showToast === 'function') showToast(res.message || 'Klaim berhasil disetujui!');
+        setTimeout(function() {
+          window.location.hash = 'rewards';
+          location.reload();
+        }, 500);
+      },
+      error: function(xhr) {
+        let msg = 'Gagal menyetujui klaim.';
+        if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+        showToast(msg, 'error');
+      },
+      complete: function() {
+        $btn.prop('disabled', false).html(origText);
+        hideLoading();
+      }
+    });
+  }
+
+  function openRejectModal(claimId) {
+    $('#reject-claim-id').val(claimId);
+    $('#reject-claim-notes').val('');
+    $('#reward-reject-modal').removeClass('hidden');
+  }
+
+  function closeRejectModal() {
+    $('#reward-reject-modal').addClass('hidden');
+  }
+
+  function executeRejectClaim() {
+    const claimId = $('#reject-claim-id').val();
+    const notes = $('#reject-claim-notes').val();
+    const $btn = $('#btn-confirm-reject');
+    const origText = $btn.html();
+
+    $btn.prop('disabled', true).html('Menolak...');
+    showLoading('Menolak klaim & mengembalikan poin...');
+
+    $.ajax({
+      url: '/rewards/claims/' + claimId + '/reject',
+      type: 'PATCH',
+      data: {
+        _token: '{{ csrf_token() }}',
+        notes: notes
+      },
+      dataType: 'json',
+      success: function(res) {
+        closeRejectModal();
+        if (typeof showToast === 'function') showToast(res.message || 'Klaim ditolak. Poin dikembalikan.');
+        setTimeout(function() {
+          window.location.hash = 'rewards';
+          location.reload();
+        }, 500);
+      },
+      error: function(xhr) {
+        let msg = 'Gagal menolak klaim.';
+        if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+        showToast(msg, 'error');
+      },
+      complete: function() {
+        $btn.prop('disabled', false).html(origText);
+        hideLoading();
+      }
+    });
+  }
+
   $(document).ready(function() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('open_create') === '1') {
       setTimeout(openChoreModal, 200);
       window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Check URL Hash for tab selection
+    if (window.location.hash === '#rewards') {
+      switchChoreTab('rewards');
     }
   });
 </script>

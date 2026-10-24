@@ -77,7 +77,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
     
     <!-- KALENDER UTAMA (TERPADU: NAVIGASI, FILTER & GRID DALAM SATU CARD) -->
-    <div class="lg:col-span-8 bg-white brutal-card p-3 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
+    <div id="calendar-grid-section" class="lg:col-span-8 bg-white brutal-card p-3 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
       
       <!-- CARD HEADER: NAVIGASI BULAN/TAHUN & FILTER -->
       <div class="space-y-2.5 sm:space-y-3 pb-3 sm:pb-4 border-b-2 border-ink">
@@ -525,7 +525,7 @@
     }
 
     // Inisialisasi Server-Side jQuery DataTables untuk Agenda (Card View)
-    eventsDataTable = $('#events-datatable').DataTable({
+    window.eventsDataTable = eventsDataTable = $('#events-datatable').DataTable({
       processing: true,
       serverSide: true,
       ajax: {
@@ -901,15 +901,23 @@
         closeCalendarModal();
         if (typeof fireConfetti === 'function') fireConfetti();
         if (typeof showToast === 'function') showToast(res.message || 'Agenda berhasil disimpan!');
-        if (eventsDataTable) {
-          eventsDataTable.ajax.reload(null, false);
+        if (typeof window.reloadCurrentModuleData === 'function') {
+          window.reloadCurrentModuleData();
+        } else {
+          if (eventsDataTable) {
+            eventsDataTable.ajax.reload(null, false);
+          }
+          if (typeof refreshEventsMobile === 'function') {
+            refreshEventsMobile();
+          }
+          const $calGrid = $('#calendar-grid-section');
+          if ($calGrid.length) {
+            $.get(window.location.href, function(html) {
+              const newGrid = $(html).find('#calendar-grid-section').html();
+              if (newGrid) $calGrid.html(newGrid);
+            });
+          }
         }
-        if (typeof refreshEventsMobile === 'function') {
-          refreshEventsMobile();
-        }
-        setTimeout(function() {
-          window.location.reload();
-        }, 800);
       },
       error: function(xhr) {
         let msg = 'Gagal menyimpan agenda.';

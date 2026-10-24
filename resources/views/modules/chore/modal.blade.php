@@ -179,9 +179,9 @@
             <span class="text-2xl group-hover:scale-110 transition-transform">📸</span>
             <div class="text-left">
               <p class="text-xs font-bold text-ink">
-                <span class="underline decoration-2 decoration-brand">Pilih file</span> atau seret foto ke sini
+                <span class="underline decoration-2 decoration-brand">Pilih galeri / kamera</span> atau seret foto ke sini
               </p>
-              <p class="text-[10px] text-ink/60 font-mono font-medium">JPG, PNG, WebP (Maks. 5 MB)</p>
+              <p class="text-[10px] text-ink/60 font-mono font-medium">JPG, PNG, WebP</p>
             </div>
           </div>
         </label>

@@ -1,12 +1,16 @@
 <?php
 
+use App\Modules\Album\Controllers\AlbumController;
 use App\Modules\Auth\Controllers\AuthController;
+use App\Modules\Auth\Controllers\ProfileController;
 use App\Modules\Auth\Controllers\RegisterController;
 use App\Modules\Calendar\Controllers\EventController;
 use App\Modules\Chore\Controllers\ChoreController;
 use App\Modules\Dashboard\Controllers\DashboardController;
 use App\Modules\Family\Controllers\MemberController;
 use App\Modules\Finance\Controllers\FinanceController;
+use App\Modules\Note\Controllers\NoteController;
+use App\Modules\Reward\Controllers\RewardController;
 use App\Modules\Subscription\Controllers\SubscriptionController;
 use App\Modules\Timeline\Controllers\TimelineController;
 use Illuminate\Support\Facades\Route;
@@ -36,12 +40,31 @@ Route::middleware('guest')->group(function () {
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     // Members & Roles
     Route::get('/members', [MemberController::class, 'index'])->name('members.index');
     Route::patch('/members/{id}/toggle-finance', [MemberController::class, 'toggleFinanceAccess'])->name('members.toggle_finance');
+    Route::delete('/members/{id}', [MemberController::class, 'kickMember'])->name('members.kick');
+    Route::post('/members/regenerate-invite', [MemberController::class, 'regenerateInviteCode'])->name('members.regenerate_invite');
+
+    // Family Album (Album Keluarga)
+    Route::get('/albums', [AlbumController::class, 'index'])->name('albums.index');
+    Route::post('/albums', [AlbumController::class, 'store'])->name('albums.store');
+    Route::get('/albums/{album}', [AlbumController::class, 'show'])->name('albums.show');
+    Route::put('/albums/{album}', [AlbumController::class, 'update'])->name('albums.update');
+    Route::delete('/albums/{album}', [AlbumController::class, 'destroy'])->name('albums.destroy');
+    Route::post('/albums/{album}/media', [AlbumController::class, 'uploadMedia'])->name('albums.media.upload');
+    Route::delete('/albums/media/{media}', [AlbumController::class, 'destroyMedia'])->name('albums.media.destroy');
+
+    // Notes (Catatan & Kulkas Digital)
+    Route::get('/notes', [NoteController::class, 'index'])->name('notes.index');
+    Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');
+    Route::put('/notes/{note}', [NoteController::class, 'update'])->name('notes.update');
+    Route::delete('/notes/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
+    Route::patch('/notes/{note}/toggle-pin', [NoteController::class, 'togglePin'])->name('notes.toggle_pin');
 
     // Chores (Tugas)
     Route::get('/chores', [ChoreController::class, 'index'])->name('chores.index');
@@ -51,9 +74,21 @@ Route::middleware('auth')->group(function () {
     Route::delete('/chores/{id}', [ChoreController::class, 'destroy'])->name('chores.destroy');
     Route::patch('/chores/{id}/toggle', [ChoreController::class, 'toggle'])->name('chores.toggle');
 
+    // Rewards & Klaim Hadiah
+    Route::get('/rewards/paginate', [RewardController::class, 'paginate'])->name('rewards.paginate');
+    Route::get('/rewards/data', [RewardController::class, 'data'])->name('rewards.data');
+    Route::post('/rewards', [RewardController::class, 'store'])->name('rewards.store');
+    Route::put('/rewards/{id}', [RewardController::class, 'update'])->name('rewards.update');
+    Route::delete('/rewards/{id}', [RewardController::class, 'destroy'])->name('rewards.destroy');
+    Route::post('/rewards/{id}/claim', [RewardController::class, 'claim'])->name('rewards.claim');
+    Route::patch('/rewards/claims/{id}/approve', [RewardController::class, 'approve'])->name('rewards.claims.approve');
+    Route::patch('/rewards/claims/{id}/reject', [RewardController::class, 'reject'])->name('rewards.claims.reject');
+
     // Finance (Kas)
     Route::get('/finances', [FinanceController::class, 'index'])->name('finances.index');
     Route::get('/finances/paginate/{page?}', [FinanceController::class, 'paginate'])->name('finances.paginate');
+    Route::get('/finances/summary', [FinanceController::class, 'summary'])->name('finances.summary');
+    Route::get('/finances/report-data', [FinanceController::class, 'reportData'])->name('finances.report_data');
     Route::post('/finances', [FinanceController::class, 'store'])->name('finances.store');
     Route::put('/finances/{id}', [FinanceController::class, 'update'])->name('finances.update');
     Route::delete('/finances/{id}', [FinanceController::class, 'destroy'])->name('finances.destroy');
@@ -91,5 +126,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/timeline', [TimelineController::class, 'store'])->name('timeline.store');
         Route::put('/timeline/{id}', [TimelineController::class, 'update'])->name('timeline.update');
         Route::delete('/timeline/{id}', [TimelineController::class, 'destroy'])->name('timeline.destroy');
+        Route::post('/timeline/categories', [TimelineController::class, 'storeCategory'])->name('timeline.categories.store');
     });
 });

@@ -9,8 +9,8 @@
           🏷️
         </div>
         <div>
-          <h3 class="font-black font-display text-lg sm:text-xl text-ink">Master Kategori & Batas Anggaran</h3>
-          <p class="text-[10px] font-mono text-ink/60">Kelola master kategori kas dan batas belanja bulanan keluarga</p>
+          <h3 class="font-black font-display text-lg sm:text-xl text-ink">Daftar Kategori & Batas Anggaran</h3>
+          <p class="text-[10px] font-mono text-ink/60">Kelola Daftar Kategori kas dan batas belanja bulanan keluarga</p>
         </div>
       </div>
       <button type="button" onclick="closeCategoryManageModal()" class="w-8 h-8 bg-cream hover:bg-coral hover:text-white brutal-border font-black flex items-center justify-center transition-colors">
@@ -21,7 +21,7 @@
     <!-- TABS -->
     <div class="grid grid-cols-2 gap-2 mb-4 flex-shrink-0 font-mono text-xs font-black">
       <button type="button" id="tab-btn-cat-list" onclick="switchCategoryTab('list')" class="py-2 bg-ink text-white brutal-border transition-all">
-        📋 Master Kategori
+        📋 Daftar Kategori
       </button>
       <button type="button" id="tab-btn-cat-form" onclick="switchCategoryTab('form')" class="py-2 bg-cream text-ink brutal-border transition-all">
         + Tambah Kategori

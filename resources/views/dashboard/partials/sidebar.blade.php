@@ -48,7 +48,7 @@
             <!-- POIN PENGGUNA -->
             <div class="px-2 py-0.5 bg-cream brutal-border font-mono font-black text-[10px] text-ink flex items-center gap-1 shrink-0 shadow-[1px_1px_0px_#121614]">
               <span>⭐</span>
-              <span>{{ number_format($user->points ?? 0) }}</span>
+              <span id="sidebar-user-points-val">{{ number_format($user->points ?? 0) }}</span>
             </div>
           </div>
         </div>
@@ -159,6 +159,26 @@
               {{ $members->count() }}
             </span>
           </a>
+
+          <a href="{{ route('albums.index') }}" id="nav-albums" class="w-full text-left px-2.5 py-2 rounded-none {{ request()->routeIs('albums.*') ? 'nav-item-active' : 'nav-item' }} flex items-center justify-between text-xs uppercase tracking-wider">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 flex items-center justify-center text-sm flex-shrink-0">📸</span>
+              <span class="font-bold">Album Keluarga</span>
+            </div>
+            <span class="px-1.5 py-0.5 bg-brand-soft text-brand font-mono text-[10px] brutal-border font-bold">
+              {{ $family->albums()->count() }}
+            </span>
+          </a>
+
+          <a href="{{ route('notes.index') }}" id="nav-notes" class="w-full text-left px-2.5 py-2 rounded-none {{ request()->routeIs('notes.*') ? 'nav-item-active' : 'nav-item' }} flex items-center justify-between text-xs uppercase tracking-wider">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 flex items-center justify-center text-sm flex-shrink-0">📌</span>
+              <span class="font-bold">Catatan & Kulkas</span>
+            </div>
+            <span class="px-1.5 py-0.5 bg-accent text-ink font-mono text-[10px] brutal-border font-bold">
+              {{ $family->notes()->count() }}
+            </span>
+          </a>
         </div>
       </div>
     </nav>
@@ -192,13 +212,20 @@
 
     <!-- PROFILE CARD -->
     <div class="flex items-center justify-between p-2 bg-cream brutal-border">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <div class="w-8 h-8 bg-brand text-white brutal-border font-black text-xs flex items-center justify-center flex-shrink-0">
-          {{ strtoupper(substr($user->name, 0, 1)) }}
+      <div onclick="openProfileModal()" class="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1 group" title="Klik untuk edit profil & foto">
+        <div id="sidebar-user-avatar" class="w-8 h-8 bg-brand text-white brutal-border font-black text-xs flex items-center justify-center flex-shrink-0 overflow-hidden group-hover:ring-2 group-hover:ring-brand transition-all">
+          @if($user->avatar_url)
+            <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
+          @else
+            <span>{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+          @endif
         </div>
         <div class="min-w-0">
-          <div class="font-black text-xs text-ink leading-tight truncate" title="{{ $user->name }}">{{ $user->name }}</div>
-          <div class="text-[10px] font-mono text-brand font-bold truncate">{{ $user->role ?? 'Kepala Keluarga' }}</div>
+          <div id="sidebar-user-name" class="font-black text-xs text-ink leading-tight truncate group-hover:text-brand transition-colors" title="{{ $user->name }}">{{ $user->name }}</div>
+          <div class="text-[10px] font-mono text-brand font-bold truncate flex items-center gap-1">
+            <span>{{ $user->role ?? 'Kepala Keluarga' }}</span>
+            <span class="text-[9px] text-ink/40 group-hover:text-brand">✏️</span>
+          </div>
         </div>
       </div>
       <form action="{{ route('logout') }}" method="POST" class="inline flex-shrink-0 ml-1">

@@ -23,64 +23,100 @@
       <p class="text-xs font-medium text-ink/70">Catat pemasukan, pengeluaran dapur, dan pantau celengan impian keluarga.</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
+      @if($canViewAllFinances ?? true)
       <button type="button" onclick="openCategoryManageModal()" class="flex-1 sm:flex-none inline-flex items-center justify-center px-3.5 py-2.5 bg-cream hover:bg-accent text-ink brutal-border text-xs font-black uppercase tracking-wider shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">
         🏷️ Kategori & Anggaran
       </button>
+      @endif
       <button type="button" onclick="openFinanceModal()" class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">
-        + Catat Kas
+        {{ ($canViewAllFinances ?? true) ? '+ Catat Kas' : '+ Catat Pengeluaran' }}
       </button>
     </div>
   </div>
 
-  <!-- 3 SUMMARY STATS -->
+  <!-- NAVIGASI TAB UTAMA: BUKU KAS VS REKAP LAPORAN -->
+  <div class="flex items-center gap-2 border-b-2 border-ink pb-2">
+    <button 
+      type="button" 
+      onclick="switchFinanceMainTab('book')" 
+      id="fmain-tab-book" 
+      class="px-4 py-2 bg-ink text-white brutal-border font-display font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
+    >
+      📒 Buku Kas & Anggaran
+    </button>
+    <button 
+      type="button" 
+      onclick="switchFinanceMainTab('rekap')" 
+      id="fmain-tab-rekap" 
+      class="px-4 py-2 bg-cream hover:bg-accent text-ink brutal-border font-display font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
+    >
+      📊 Rekap & Analisis Laporan
+    </button>
+  </div>
+
+  <!-- TAB 1: BUKU KAS & ANGGARAN -->
+  <div id="section-finance-book" class="space-y-6">
+  @if($canViewAllFinances ?? true)
+  <!-- 4 SUMMARY STATS -->
   @php
     $family = $family ?? (auth()->user() ? auth()->user()->family : null);
     $familyName = $family ? $family->name : 'Keluarga';
     $balance = (float) ($finance['balance'] ?? 0);
     $income = (float) ($finance['income'] ?? 0);
     $expense = (float) ($finance['expense'] ?? 0);
+    $saving = (float) ($finance['saving'] ?? 0);
     $budget = (float) ($family ? $family->monthly_budget : 0);
     $budgetPct = $budget > 0 ? round(($expense / $budget) * 100, 1) : 0;
     $currentMonthName = now()->locale('id')->isoFormat('MMM');
     $categoryBudgets = $categoryBudgets ?? collect();
     $goals = $goals ?? collect();
   @endphp
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
+  <div id="finance-summary-cards" class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
     <div class="bg-brand-soft brutal-card p-4 sm:p-5">
-      <div class="text-[11px] sm:text-xs font-mono font-bold text-ink/70 uppercase">Total Saldo Kas Tersedia</div>
-      <div class="text-2xl sm:text-3xl font-black font-mono text-brand mt-1 truncate" title="Rp {{ number_format($balance, 0, ',', '.') }}">
+      <div class="text-[10px] sm:text-xs font-mono font-bold text-ink/70 uppercase">Total Saldo Kas Tersedia</div>
+      <div id="stat-total-balance" class="text-xl sm:text-2xl font-black font-mono text-brand mt-1 truncate" title="Rp {{ number_format($balance, 0, ',', '.') }}">
         Rp {{ number_format($balance, 0, ',', '.') }}
       </div>
-      <div class="text-xs font-bold text-ink/70 mt-1">
-        {{ ($canViewAllFinances ?? true) ? 'Saldo aktif kas ruang keluarga ' . $familyName : 'Saldo kas pribadi ' . auth()->user()->name }}
+      <div class="text-[11px] font-bold text-ink/70 mt-1">
+        Saldo aktif kas {{ $familyName }}
       </div>
     </div>
 
     <div class="bg-white brutal-card p-4 sm:p-5">
-      <div class="text-[11px] sm:text-xs font-mono font-bold text-ink/70 uppercase">Pemasukan Bulan Ini ({{ $currentMonthName }})</div>
-      <div class="text-2xl sm:text-3xl font-black font-mono text-brand mt-1 truncate" title="+ Rp {{ number_format($income, 0, ',', '.') }}">
+      <div class="text-[10px] sm:text-xs font-mono font-bold text-ink/70 uppercase">Pemasukan Bulan Ini ({{ $currentMonthName }})</div>
+      <div id="stat-total-income" class="text-xl sm:text-2xl font-black font-mono text-brand mt-1 truncate" title="+ Rp {{ number_format($income, 0, ',', '.') }}">
         + Rp {{ number_format($income, 0, ',', '.') }}
       </div>
-      <div class="text-xs font-bold text-brand mt-1">Total uang masuk tercatat</div>
+      <div class="text-[11px] font-bold text-brand mt-1">Total uang masuk tercatat</div>
     </div>
 
     <div class="bg-white brutal-card p-4 sm:p-5">
-      <div class="text-[11px] sm:text-xs font-mono font-bold text-ink/70 uppercase">Pengeluaran Bulan Ini ({{ $currentMonthName }})</div>
-      <div class="text-2xl sm:text-3xl font-black font-mono text-coral mt-1 truncate" title="- Rp {{ number_format($expense, 0, ',', '.') }}">
+      <div class="text-[10px] sm:text-xs font-mono font-bold text-ink/70 uppercase">Pengeluaran Bulan Ini ({{ $currentMonthName }})</div>
+      <div id="stat-total-expense" class="text-xl sm:text-2xl font-black font-mono text-coral mt-1 truncate" title="- Rp {{ number_format($expense, 0, ',', '.') }}">
         - Rp {{ number_format($expense, 0, ',', '.') }}
       </div>
-      <div class="text-xs font-bold text-ink/70 mt-1">{{ $budgetPct }}% dari target anggaran bulanan</div>
+      <div class="text-[11px] font-bold text-ink/70 mt-1">{{ $budgetPct }}% target bulanan</div>
+    </div>
+
+    <div class="bg-emerald-50 brutal-card p-4 sm:p-5">
+      <div class="text-[10px] sm:text-xs font-mono font-bold text-emerald-800 uppercase">Tabungan Tersimpan</div>
+      <div id="stat-total-saving" class="text-xl sm:text-2xl font-black font-mono text-emerald-700 mt-1 truncate" title="Rp {{ number_format($saving, 0, ',', '.') }}">
+        Rp {{ number_format($saving, 0, ',', '.') }}
+      </div>
+      <div class="text-[11px] font-bold text-emerald-800 mt-1">Dialokasikan ke celengan</div>
     </div>
   </div>
+  @endif
 
+  @if($canViewAllFinances ?? true)
   <!-- BATAS ANGGARAN & KUOTA PER KATEGORI -->
-  <div class="bg-white brutal-card p-4 sm:p-6">
+  <div id="finance-budgets-section" class="bg-white brutal-card p-4 sm:p-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-ink mb-4 gap-3">
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h3 class="font-black font-display text-base text-ink">Batas & Riwayat Anggaran Bulanan</h3>
           <span id="budget-period-badge" class="px-2 py-0.5 bg-accent text-ink brutal-border text-[10px] font-black font-mono {{ ($selectedPeriod ?? now()->format('Y-m')) !== now()->format('Y-m') ? '' : 'hidden' }}">
-            🗓️ Mode Riwayat: <span id="budget-period-label">{{ $selectedPeriodLabel ?? $selectedPeriod }}</span>
+            🗓️ Mode Riwayat: <span id="budget-period-label">{{ $selectedPeriodLabel ?? ($selectedPeriod ?? '') }}</span>
           </span>
         </div>
         <p class="text-[10px] font-mono text-ink/60">Batas anggaran bulanan dan realisasi belanja per periode kalender</p>
@@ -127,73 +163,6 @@
           </tr>
         </thead>
         <tbody class="divide-y-2 divide-ink/10">
-          @if(isset($categoryBudgets) && count($categoryBudgets) > 0)
-            @foreach($categoryBudgets as $cb)
-              @php
-                $hasBudget = $cb['monthly_budget'] > 0;
-                $isOver = $cb['is_over_budget'];
-                $pct = $cb['pct'];
-                $barColor = $isOver ? 'bg-coral' : ($pct > 80 ? 'bg-amber-500' : 'bg-brand');
-              @endphp
-              <tr>
-                <td class="p-2.5">
-                  <div class="flex items-center gap-2">
-                    <span class="text-base flex-shrink-0">{{ $cb['icon'] ?: '🏷️' }}</span>
-                    <div>
-                      <div class="font-black text-ink flex items-center gap-1.5 flex-wrap">
-                        <span>{{ $cb['name'] }}</span>
-                        @if($cb['has_custom_period_budget'])
-                          <span class="px-1.5 py-0.5 bg-accent text-ink brutal-border text-[9px] font-black font-mono">⭐ Khusus</span>
-                        @endif
-                      </div>
-                      @if(!empty($cb['notes']))
-                        <div class="text-[10px] text-brand font-mono font-bold">📝 {{ $cb['notes'] }}</div>
-                      @endif
-                    </div>
-                  </div>
-                </td>
-                <td class="p-2.5 font-mono">
-                  <span class="font-bold {{ $hasBudget ? 'text-ink' : 'text-ink/40' }}">
-                    {{ $hasBudget ? 'Rp ' . number_format($cb['monthly_budget'], 0, ',', '.') : '—' }}
-                  </span>
-                </td>
-                <td class="p-2.5 font-mono">
-                  <span class="font-bold {{ $isOver ? 'text-coral' : 'text-ink' }}">
-                    Rp {{ number_format($cb['spent'], 0, ',', '.') }}
-                  </span>
-                </td>
-                <td class="p-2.5">
-                  @if($hasBudget)
-                    <div class="space-y-1">
-                      <div class="flex items-center justify-between text-[11px] font-mono">
-                        @if($isOver)
-                          <span class="px-1.5 py-0.2 bg-coral text-white brutal-border text-[9px] font-black font-mono">🚨 OVER</span>
-                          <span class="text-coral font-bold">+Rp {{ number_format($cb['spent'] - $cb['monthly_budget'], 0, ',', '.') }}</span>
-                        @else
-                          <span class="px-1.5 py-0.2 bg-brand-soft text-brand brutal-border text-[9px] font-black font-mono">{{ $pct }}%</span>
-                          <span class="text-brand font-bold">Sisa: Rp {{ number_format($cb['remaining'], 0, ',', '.') }}</span>
-                        @endif
-                      </div>
-                      <div class="w-full bg-cream h-2 brutal-border overflow-hidden">
-                        <div class="{{ $barColor }} h-full" style="width: {{ min(100, $pct) }}%"></div>
-                      </div>
-                    </div>
-                  @else
-                    <span class="px-1.5 py-0.5 bg-cream text-ink/60 brutal-border text-[10px] font-mono">Tanpa Anggaran</span>
-                  @endif
-                </td>
-                <td class="p-2.5 text-center">
-                  <button 
-                    type="button" 
-                    onclick='openPeriodBudgetModal({{ $cb['id'] }}, @json($cb['name']), {{ (int) $cb['monthly_budget'] }}, @json($cb['notes'] ?? ""))' 
-                    class="px-2.5 py-1 bg-accent hover:bg-white text-ink brutal-border text-[10px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
-                  >
-                    ✏️ Atur
-                  </button>
-                </td>
-              </tr>
-            @endforeach
-          @endif
         </tbody>
       </table>
     </div>
@@ -320,7 +289,7 @@
   </div>
 
   <!-- CELENGAN & TARGET TABUNGAN BERSAMA -->
-  <div class="bg-white brutal-card p-4 sm:p-6">
+  <div id="finance-goals-section" class="bg-white brutal-card p-4 sm:p-6">
     <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4 gap-2 flex-wrap">
       <div>
         <h3 class="font-black font-display text-base text-ink">Celengan & Target Tabungan Bersama</h3>
@@ -379,7 +348,9 @@
             <div class="pt-3 border-t border-ink/15 flex items-center justify-between gap-1.5 mt-2">
               <button 
                 type="button" 
-                onclick="openGoalDepositModal({{ $goal['id'] }}, @json($goal['title']))" 
+                data-goal-id="{{ $goal['id'] }}"
+                data-goal-title="{{ $goal['title'] }}"
+                onclick="openGoalDepositModal(this.dataset.goalId, this.dataset.goalTitle)" 
                 class="px-2.5 py-1.5 bg-brand hover:bg-brand-dark text-white brutal-border text-xs font-black uppercase tracking-wider flex items-center gap-1 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all flex-1 justify-center"
               >
                 <span>💰 Setor</span>
@@ -416,13 +387,18 @@
       </div>
     @endif
   </div>
+  @endif
 
   <!-- RIWAYAT TRANSAKSI TABEL SERVERSIDE DATATABLES -->
   <div class="bg-white brutal-card p-4 sm:p-6">
     <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4">
       <div>
-        <h3 class="font-black font-display text-base text-ink">Buku Kas: Catatan Transaksi</h3>
-        <p class="text-[10px] font-mono text-ink/60 hidden sm:block">Mutasi uang masuk dan keluar rumah tangga</p>
+        <h3 class="font-black font-display text-base text-ink">
+          {{ ($canViewAllFinances ?? true) ? 'Buku Kas: Catatan Transaksi' : 'Buku Kas: Catatan Pengeluaran Saya' }}
+        </h3>
+        <p class="text-[10px] font-mono text-ink/60 hidden sm:block">
+          {{ ($canViewAllFinances ?? true) ? 'Mutasi uang masuk dan keluar rumah tangga' : 'Catatan pengeluaran pribadi yang telah Anda input' }}
+        </p>
       </div>
       <button type="button" onclick="window.print()" class="px-2.5 py-1 bg-cream brutal-border text-xs font-bold hover:bg-accent flex items-center gap-1.5 shadow-brutal-sm">
         <span>🖨️</span>
@@ -536,17 +512,19 @@
           <input 
             type="text" 
             id="finance-mobile-search" 
-            placeholder="Cari transaksi kas keluarga..." 
+            placeholder="{{ ($canViewAllFinances ?? true) ? 'Cari transaksi kas keluarga...' : 'Cari pengeluaran saya...' }}" 
             class="w-full pl-9 pr-3 py-2 bg-white brutal-border font-sans text-xs font-bold text-ink placeholder:text-ink/40 focus:outline-none focus:bg-brand-soft shadow-brutal-sm transition-colors"
           >
           <span class="absolute left-3 top-2.5 text-xs text-ink/50">🔍</span>
         </div>
         
+        @if($canViewAllFinances ?? true)
         <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-mono font-bold no-scrollbar">
           <button type="button" class="btn-mfilter-type px-3 py-1 bg-ink text-white brutal-border text-[11px] font-black uppercase transition-all" data-type="all">Semua</button>
           <button type="button" class="btn-mfilter-type px-3 py-1 bg-white text-ink brutal-border text-[11px] font-bold uppercase transition-all" data-type="expense">Pengeluaran</button>
           <button type="button" class="btn-mfilter-type px-3 py-1 bg-white text-ink brutal-border text-[11px] font-bold uppercase transition-all" data-type="income">Pemasukan</button>
         </div>
+        @endif
       </div>
 
       <!-- CARD FEED CONTAINER -->
@@ -653,23 +631,610 @@
 
     </div>
   </div>
+  </div>
 
+  <!-- TAB 2: REKAP LAPORAN KEUANGAN & DIAGRAM ANALISIS -->
+  <div id="section-finance-rekap" class="space-y-6 hidden">
+    <!-- FILTER BAR REKAP -->
+    <div class="bg-white brutal-card p-4 sm:p-6 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b-2 border-ink">
+        <div>
+          <h3 class="font-black font-display text-lg text-ink">Rekap & Analisis Keuangan Keluarga</h3>
+          <p class="text-xs font-medium text-ink/70">Diagram persentase pengeluaran tiap kategori dan tabungan dari seluruh uang masuk yang dikelola.</p>
+        </div>
+        <div class="flex items-center gap-1.5 bg-cream p-1 brutal-border text-xs font-mono font-bold">
+          <button type="button" onclick="setReportMode('monthly')" id="btn-rmode-monthly" class="px-3 py-1.5 bg-ink text-white brutal-border transition-all">
+            Bulanan
+          </button>
+          <button type="button" onclick="setReportMode('yearly')" id="btn-rmode-yearly" class="px-3 py-1.5 bg-transparent text-ink hover:bg-white brutal-border transition-all">
+            Tahunan
+          </button>
+          <button type="button" onclick="setReportMode('range')" id="btn-rmode-range" class="px-3 py-1.5 bg-transparent text-ink hover:bg-white brutal-border transition-all">
+            Rentang Bulan
+          </button>
+        </div>
+      </div>
+
+      <!-- FILTER INPUTS -->
+      <form id="report-filter-form" onsubmit="applyReportFilter(event)" class="flex flex-wrap items-center gap-3">
+        <!-- MONTH PICKER -->
+        <div id="filter-wrapper-monthly" class="flex items-center gap-2">
+          <label class="text-xs font-black font-mono uppercase text-ink">Bulan:</label>
+          <input 
+            type="month" 
+            id="report-input-month" 
+            value="{{ $selectedPeriod ?? now()->format('Y-m') }}" 
+            class="px-3 py-1.5 bg-cream brutal-border text-xs font-bold font-mono text-ink outline-none focus:bg-white"
+          >
+        </div>
+
+        <!-- YEAR PICKER -->
+        <div id="filter-wrapper-yearly" class="items-center gap-2 hidden">
+          <label class="text-xs font-black font-mono uppercase text-ink">Tahun:</label>
+          <select 
+            id="report-input-year" 
+            class="px-3 py-1.5 bg-cream brutal-border text-xs font-bold font-mono text-ink outline-none focus:bg-white"
+          >
+            @php $thisYear = (int) now()->format('Y'); @endphp
+            @for($y = $thisYear; $y >= $thisYear - 4; $y--)
+              <option value="{{ $y }}" {{ $y === $thisYear ? 'selected' : '' }}>{{ $y }}</option>
+            @endfor
+          </select>
+        </div>
+
+        <!-- RANGE PICKER -->
+        <div id="filter-wrapper-range" class="items-center gap-2 hidden">
+          <label class="text-xs font-black font-mono uppercase text-ink">Dari:</label>
+          <input 
+            type="month" 
+            id="report-input-start-month" 
+            value="{{ now()->startOfYear()->format('Y-m') }}" 
+            class="px-3 py-1.5 bg-cream brutal-border text-xs font-bold font-mono text-ink outline-none focus:bg-white"
+          >
+          <label class="text-xs font-black font-mono uppercase text-ink">Sampai:</label>
+          <input 
+            type="month" 
+            id="report-input-end-month" 
+            value="{{ now()->format('Y-m') }}" 
+            class="px-3 py-1.5 bg-cream brutal-border text-xs font-bold font-mono text-ink outline-none focus:bg-white"
+          >
+        </div>
+
+        <button type="submit" class="px-4 py-1.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider shadow-brutal-sm">
+          🔍 Tampilkan Rekap
+        </button>
+
+        <span id="report-active-label" class="text-xs font-mono font-bold text-brand ml-auto">
+          Periode: <span id="report-period-text">{{ $report['period_label'] ?? now()->locale('id')->isoFormat('MMMM Y') }}</span>
+        </span>
+      </form>
+    </div>
+
+    <!-- METRICS 4 CARDS REKAP -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+      <div class="bg-brand-soft brutal-card p-4 sm:p-5">
+        <div class="text-[10px] sm:text-xs font-mono font-bold text-ink/70 uppercase">Total Uang Masuk</div>
+        <div id="rekap-total-income" class="text-xl sm:text-2xl font-black font-mono text-brand mt-1 truncate">
+          {{ $report['formatted_total_income'] ?? 'Rp 0' }}
+        </div>
+        <div class="text-[11px] font-bold text-ink/70 mt-1">100% dana yang dikelola</div>
+      </div>
+
+      <div class="bg-emerald-50 brutal-card p-4 sm:p-5">
+        <div class="text-[10px] sm:text-xs font-mono font-bold text-emerald-800 uppercase">Total Ditabung</div>
+        <div id="rekap-total-saving" class="text-xl sm:text-2xl font-black font-mono text-emerald-700 mt-1 truncate">
+          {{ $report['formatted_total_saving'] ?? 'Rp 0' }}
+        </div>
+        <div class="text-[11px] font-black text-emerald-800 mt-1">
+          <span id="rekap-pct-saving">{{ $report['pct_saving_of_income'] ?? 0 }}</span>% dari uang masuk
+        </div>
+      </div>
+
+      <div class="bg-coral/10 brutal-card p-4 sm:p-5">
+        <div class="text-[10px] sm:text-xs font-mono font-bold text-coral uppercase">Total Pengeluaran</div>
+        <div id="rekap-total-expense" class="text-xl sm:text-2xl font-black font-mono text-coral mt-1 truncate">
+          {{ $report['formatted_total_expense'] ?? 'Rp 0' }}
+        </div>
+        <div class="text-[11px] font-black text-coral mt-1">
+          <span id="rekap-pct-expense">{{ $report['pct_expense_of_income'] ?? 0 }}</span>% dari uang masuk
+        </div>
+      </div>
+
+      <div class="bg-white brutal-card p-4 sm:p-5">
+        <div class="text-[10px] sm:text-xs font-mono font-bold text-ink/70 uppercase">Sisa Kas Tersedia</div>
+        <div id="rekap-net-balance" class="text-xl sm:text-2xl font-black font-mono text-ink mt-1 truncate">
+          {{ $report['formatted_net_balance'] ?? 'Rp 0' }}
+        </div>
+        <div class="text-[11px] font-bold text-ink/70 mt-1">
+          <span id="rekap-pct-remaining">{{ $report['pct_remaining_of_income'] ?? 0 }}</span>% cadangan kas
+        </div>
+      </div>
+    </div>
+
+    <!-- DIAGRAM VISUALISASI REKAP -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- DONUT CHART: ALOKASI UANG MASUK -->
+      <div class="lg:col-span-5 bg-white brutal-card p-4 sm:p-6 flex flex-col justify-between">
+        <div class="pb-3 border-b-2 border-ink mb-4">
+          <h4 class="font-black font-display text-base text-ink">Diagram Alokasi Uang Masuk (%)</h4>
+          <p class="text-[10px] font-mono text-ink/60">Persentase belanja per kategori & tabungan dari total pemasukan</p>
+        </div>
+        <div class="relative w-full aspect-square max-h-[320px] mx-auto flex items-center justify-center">
+          <canvas id="rekapDonutChart"></canvas>
+        </div>
+        <div id="donut-empty-state" class="hidden text-center py-8 font-mono text-xs font-bold text-ink/60">
+          Belum ada catatan pemasukan/pengeluaran pada periode ini.
+        </div>
+      </div>
+
+      <!-- BAR CHART: NOMINAL PENGELUARAN PER KATEGORI -->
+      <div class="lg:col-span-7 bg-white brutal-card p-4 sm:p-6 flex flex-col justify-between">
+        <div class="pb-3 border-b-2 border-ink mb-4">
+          <h4 class="font-black font-display text-base text-ink">Nominal Belanja per Kategori (Rp)</h4>
+          <p class="text-[10px] font-mono text-ink/60">Perbandingan nominal rupiah yang dikeluarkan per pos belanja</p>
+        </div>
+        <div class="relative w-full min-h-[300px] max-h-[320px]">
+          <canvas id="rekapBarChart"></canvas>
+        </div>
+        <div id="bar-empty-state" class="hidden text-center py-8 font-mono text-xs font-bold text-ink/60">
+          Belum ada pengeluaran belanja di periode ini.
+        </div>
+      </div>
+    </div>
+
+    <!-- KARTU ANALISIS KESIMPULAN BOROS DIMANA -->
+    <div class="bg-accent/40 brutal-card p-4 sm:p-6 space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-coral text-white brutal-border flex items-center justify-center text-xl font-black">
+          🚨
+        </div>
+        <div>
+          <h4 class="font-black font-display text-base text-ink">Analisis & Evaluasi Boros Pengeluaran</h4>
+          <p class="text-xs font-medium text-ink/80">Identifikasi pos pengeluaran keluarga yang menyerap anggaran paling besar.</p>
+        </div>
+      </div>
+
+      <div id="rekap-top-waste-box" class="p-3.5 bg-white brutal-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div class="text-[10px] font-mono uppercase font-black text-coral">Kategori Paling Boros di Periode Ini:</div>
+          <div class="text-lg font-black text-ink flex items-center gap-2 mt-0.5" id="rekap-top-waste-title">
+            <span>{{ $report['top_category']['icon'] ?? '🏷️' }}</span>
+            <span>{{ $report['top_category']['name'] ?? 'Belum ada data' }}</span>
+          </div>
+        </div>
+        <div class="text-left sm:text-right">
+          <div class="text-base font-black font-mono text-coral" id="rekap-top-waste-amount">
+            {{ $report['top_category']['formatted_amount'] ?? 'Rp 0' }}
+          </div>
+          <div class="text-[10px] font-mono font-bold text-ink/70" id="rekap-top-waste-pct">
+            {{ $report['top_category']['pct_of_expense'] ?? 0 }}% dari total belanja ({{ $report['top_category']['pct_of_income'] ?? 0 }}% dari uang masuk)
+          </div>
+        </div>
+      </div>
+
+      <!-- TABEL RINCIAN PENGELUARAN PER KATEGORI -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse brutal-border bg-white text-xs">
+          <thead>
+            <tr class="bg-ink text-white font-mono text-[10px] uppercase">
+              <th class="p-2.5">Kategori</th>
+              <th class="p-2.5 text-right">Total Belanja (Rp)</th>
+              <th class="p-2.5 text-center">% dari Uang Masuk</th>
+              <th class="p-2.5 text-center">% dari Total Belanja</th>
+              <th class="p-2.5 text-center">Jumlah Transaksi</th>
+            </tr>
+          </thead>
+          <tbody id="rekap-categories-table-body">
+            @if(isset($report['categories']) && count($report['categories']) > 0)
+              @foreach($report['categories'] as $cat)
+                <tr class="border-b border-ink/20 hover:bg-cream">
+                  <td class="p-2.5 font-bold text-ink flex items-center gap-1.5">
+                    <span>{{ $cat['icon'] }}</span>
+                    <span>{{ $cat['name'] }}</span>
+                  </td>
+                  <td class="p-2.5 text-right font-mono font-bold text-coral">{{ $cat['formatted_amount'] }}</td>
+                  <td class="p-2.5 text-center font-mono font-bold">{{ $cat['pct_of_income'] }}%</td>
+                  <td class="p-2.5 text-center font-mono font-bold text-brand">{{ $cat['pct_of_expense'] }}%</td>
+                  <td class="p-2.5 text-center font-mono">{{ $cat['transaction_count'] }} kali</td>
+                </tr>
+              @endforeach
+            @else
+              <tr>
+                <td colspan="5" class="p-4 text-center font-mono text-ink/60">Tidak ada pengeluaran pada periode ini.</td>
+              </tr>
+            @endif
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 @endsection
 
 @push('modals')
   @include('modules.finance.modal')
-  @include('modules.finance.category-modal')
-  @include('modules.finance.goal-modal')
-  @include('modules.finance.period-budget-modal')
+  @if($canViewAllFinances ?? true)
+    @include('modules.finance.category-modal')
+    @include('modules.finance.goal-modal')
+    @include('modules.finance.period-budget-modal')
+  @endif
 @endpush
 
 @push('scripts')
 <script>
+  window.formatRupiah = function(val) {
+    if (!val && val !== 0) return '';
+    const clean = val.toString().replace(/[^0-9]/g, '');
+    if (!clean) return '';
+    const num = parseInt(clean, 10);
+    if (isNaN(num)) return '';
+    return 'Rp ' + num.toLocaleString('id-ID');
+  };
+
+  window.handleCurrencyInput = function(input) {
+    const clean = input.value.replace(/[^0-9]/g, '');
+    if (!clean) {
+      input.value = '';
+      return;
+    }
+    input.value = 'Rp ' + parseInt(clean, 10).toLocaleString('id-ID');
+  };
+
   let financeDataTable = null;
   let budgetDataTable = null;
   let categoryDataTable = null;
   let financeDatePicker = null;
+  let donutChartInstance = null;
+  let barChartInstance = null;
+  let currentReportData = @json($report ?? null);
+  let currentReportMode = 'monthly';
+
+  window.switchFinanceMainTab = function(tab) {
+    if (tab === 'rekap') {
+      $('#section-finance-book').addClass('hidden');
+      $('#section-finance-rekap').removeClass('hidden');
+      $('#fmain-tab-rekap').removeClass('bg-cream text-ink hover:bg-accent').addClass('bg-ink text-white');
+      $('#fmain-tab-book').removeClass('bg-ink text-white').addClass('bg-cream text-ink hover:bg-accent');
+      setTimeout(() => initOrUpdateReportCharts(), 50);
+    } else {
+      $('#section-finance-rekap').addClass('hidden');
+      $('#section-finance-book').removeClass('hidden');
+      $('#fmain-tab-book').removeClass('bg-cream text-ink hover:bg-accent').addClass('bg-ink text-white');
+      $('#fmain-tab-rekap').removeClass('bg-ink text-white').addClass('bg-cream text-ink hover:bg-accent');
+    }
+  };
+
+  window.setReportMode = function(mode) {
+    currentReportMode = mode;
+    ['monthly', 'yearly', 'range'].forEach(m => {
+      const $btn = $(`#btn-rmode-${m}`);
+      const $wrapper = $(`#filter-wrapper-${m}`);
+      if (m === mode) {
+        $btn.removeClass('bg-transparent text-ink hover:bg-white').addClass('bg-ink text-white');
+        $wrapper.removeClass('hidden').addClass('flex');
+      } else {
+        $btn.removeClass('bg-ink text-white').addClass('bg-transparent text-ink hover:bg-white');
+        $wrapper.addClass('hidden').removeClass('flex');
+      }
+    });
+  };
+
+  window.applyReportFilter = function(e) {
+    if (e) e.preventDefault();
+    fetchReportData();
+  };
+
+  window.fetchReportData = function() {
+    const params = { mode: currentReportMode };
+    if (currentReportMode === 'monthly') {
+      params.period = $('#report-input-month').val() || '';
+    } else if (currentReportMode === 'yearly') {
+      params.year = $('#report-input-year').val() || '';
+    } else if (currentReportMode === 'range') {
+      params.start_month = $('#report-input-start-month').val() || '';
+      params.end_month = $('#report-input-end-month').val() || '';
+    }
+
+    showLoading('Memuat laporan keuangan...');
+    $.ajax({
+      url: "{{ route('finances.report_data') }}",
+      type: 'GET',
+      data: params,
+      dataType: 'json',
+      success: function(res) {
+        if (res && res.success && res.report) {
+          currentReportData = res.report;
+          renderReportUI(res.report);
+          initOrUpdateReportCharts();
+        }
+      },
+      error: function(err) {
+        console.error('Gagal mengambil data laporan:', err);
+        if (typeof showToast === 'function') showToast('Gagal memuat data laporan.', 'error');
+      },
+      complete: function() {
+        hideLoading();
+      }
+    });
+  };
+
+  function renderReportUI(report) {
+    $('#report-period-text').text(report.period_label || '');
+    $('#rekap-total-income').text(report.formatted_total_income || 'Rp 0');
+    $('#rekap-total-saving').text(report.formatted_total_saving || 'Rp 0');
+    $('#rekap-pct-saving').text(report.pct_saving_of_income ?? 0);
+    $('#rekap-total-expense').text(report.formatted_total_expense || 'Rp 0');
+    $('#rekap-pct-expense').text(report.pct_expense_of_income ?? 0);
+    $('#rekap-net-balance').text(report.formatted_net_balance || 'Rp 0');
+    $('#rekap-pct-remaining').text(report.pct_remaining_of_income ?? 0);
+
+    if (report.top_category && report.top_category.amount > 0) {
+      $('#rekap-top-waste-box').removeClass('hidden');
+      $('#rekap-top-waste-title').html(`<span>${report.top_category.icon || '🏷️'}</span><span>${escapeHtml(report.top_category.name)}</span>`);
+      $('#rekap-top-waste-amount').text(report.top_category.formatted_amount);
+      $('#rekap-top-waste-pct').text(`${report.top_category.pct_of_expense}% dari total belanja (${report.top_category.pct_of_income}% dari uang masuk)`);
+    } else {
+      $('#rekap-top-waste-title').html(`<span>👍</span><span>Belum ada pengeluaran boros</span>`);
+      $('#rekap-top-waste-amount').text('Rp 0');
+      $('#rekap-top-waste-pct').text('0% pengeluaran');
+    }
+
+    const $tbody = $('#rekap-categories-table-body');
+    $tbody.empty();
+    if (report.categories && report.categories.length > 0) {
+      report.categories.forEach(cat => {
+        $tbody.append(`
+          <tr class="border-b border-ink/20 hover:bg-cream">
+            <td class="p-2.5 font-bold text-ink flex items-center gap-1.5">
+              <span>${cat.icon || '🏷️'}</span>
+              <span>${escapeHtml(cat.name)}</span>
+            </td>
+            <td class="p-2.5 text-right font-mono font-bold text-coral">${cat.formatted_amount}</td>
+            <td class="p-2.5 text-center font-mono font-bold">${cat.pct_of_income}%</td>
+            <td class="p-2.5 text-center font-mono font-bold text-brand">${cat.pct_of_expense}%</td>
+            <td class="p-2.5 text-center font-mono">${cat.transaction_count} kali</td>
+          </tr>
+        `);
+      });
+    } else {
+      $tbody.append(`
+        <tr>
+          <td colspan="5" class="p-4 text-center font-mono text-ink/60">Tidak ada pengeluaran pada periode ini.</td>
+        </tr>
+      `);
+    }
+  }
+
+  function initOrUpdateReportCharts() {
+    if (typeof Chart === 'undefined') return;
+    const report = currentReportData;
+    if (!report) return;
+
+    const palette = ['#E1523D', '#E2B842', '#2F5233', '#4A7C59', '#3B82F6', '#8B5CF6', '#EC4899', '#F97316', '#14B8A6', '#6366F1'];
+
+    // 1. DATA DONUT CHART
+    const donutLabels = [];
+    const donutData = [];
+    const donutColors = [];
+    const donutRawAmounts = [];
+
+    if (report.categories && report.categories.length > 0) {
+      report.categories.forEach((c, idx) => {
+        donutLabels.push(`${c.icon || '🏷️'} ${c.name}`);
+        donutData.push(c.pct_of_income);
+        donutColors.push(c.color || palette[idx % palette.length]);
+        donutRawAmounts.push(c.formatted_amount);
+      });
+    }
+
+    if (report.total_saving > 0) {
+      donutLabels.push('🐷 Tabungan (Celengan)');
+      donutData.push(report.pct_saving_of_income);
+      donutColors.push('#10B981');
+      donutRawAmounts.push(report.formatted_total_saving);
+    }
+
+    if (report.net_balance > 0 && report.total_income > 0) {
+      donutLabels.push('💵 Sisa Kas Tersedia');
+      donutData.push(report.pct_remaining_of_income);
+      donutColors.push('#E5E7EB');
+      donutRawAmounts.push(report.formatted_net_balance);
+    }
+
+    const donutCanvas = document.getElementById('rekapDonutChart');
+    if (donutCanvas) {
+      if (donutData.length === 0 || report.total_income <= 0) {
+        $('#rekapDonutChart').addClass('hidden');
+        $('#donut-empty-state').removeClass('hidden');
+        if (donutChartInstance) {
+          donutChartInstance.destroy();
+          donutChartInstance = null;
+        }
+      } else {
+        $('#rekapDonutChart').removeClass('hidden');
+        $('#donut-empty-state').addClass('hidden');
+
+        if (donutChartInstance) {
+          donutChartInstance.data.labels = donutLabels;
+          donutChartInstance.data.datasets[0].data = donutData;
+          donutChartInstance.data.datasets[0].backgroundColor = donutColors;
+          donutChartInstance.update();
+        } else {
+          donutChartInstance = new Chart(donutCanvas, {
+            type: 'doughnut',
+            data: {
+              labels: donutLabels,
+              datasets: [{
+                data: donutData,
+                backgroundColor: donutColors,
+                borderWidth: 2,
+                borderColor: '#111827'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    boxWidth: 12,
+                    font: { family: 'ui-monospace, monospace', size: 10, weight: 'bold' },
+                    color: '#111827'
+                  }
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(ctx) {
+                      const raw = donutRawAmounts[ctx.dataIndex] || '';
+                      return ` ${ctx.label}: ${ctx.raw}% (${raw})`;
+                    }
+                  }
+                }
+              },
+              cutout: '60%'
+            }
+          });
+        }
+      }
+    }
+
+    // 2. DATA BAR CHART
+    const barLabels = [];
+    const barData = [];
+    const barColors = [];
+
+    if (report.categories && report.categories.length > 0) {
+      report.categories.forEach((c, idx) => {
+        barLabels.push(`${c.icon || '🏷️'} ${c.name}`);
+        barData.push(c.amount);
+        barColors.push(c.color || palette[idx % palette.length]);
+      });
+    }
+
+    const barCanvas = document.getElementById('rekapBarChart');
+    if (barCanvas) {
+      if (barData.length === 0) {
+        $('#rekapBarChart').addClass('hidden');
+        $('#bar-empty-state').removeClass('hidden');
+        if (barChartInstance) {
+          barChartInstance.destroy();
+          barChartInstance = null;
+        }
+      } else {
+        $('#rekapBarChart').removeClass('hidden');
+        $('#bar-empty-state').addClass('hidden');
+
+        if (barChartInstance) {
+          barChartInstance.data.labels = barLabels;
+          barChartInstance.data.datasets[0].data = barData;
+          barChartInstance.data.datasets[0].backgroundColor = barColors;
+          barChartInstance.update();
+        } else {
+          barChartInstance = new Chart(barCanvas, {
+            type: 'bar',
+            data: {
+              labels: barLabels,
+              datasets: [{
+                label: 'Nominal Belanja',
+                data: barData,
+                backgroundColor: barColors,
+                borderWidth: 2,
+                borderColor: '#111827'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: function(ctx) {
+                      return ' Belanja: Rp ' + Number(ctx.raw).toLocaleString('id-ID');
+                    }
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    font: { family: 'ui-monospace, monospace', size: 9 },
+                    color: '#111827',
+                    callback: function(val) {
+                      if (val >= 1000000) return (val / 1000000).toFixed(1) + ' jt';
+                      if (val >= 1000) return (val / 1000) + ' rb';
+                      return val;
+                    }
+                  },
+                  grid: { color: 'rgba(0,0,0,0.06)' }
+                },
+                x: {
+                  ticks: {
+                    font: { family: 'ui-monospace, monospace', size: 10, weight: 'bold' },
+                    color: '#111827'
+                  },
+                  grid: { display: false }
+                }
+              }
+            }
+          });
+        }
+      }
+    }
+  }
+
+  window.refreshFinanceData = function() {
+    if (financeDataTable) {
+      financeDataTable.ajax.reload(null, false);
+    }
+    if (typeof refreshFinanceMobile === 'function') {
+      refreshFinanceMobile();
+    }
+    if (budgetDataTable) {
+      budgetDataTable.ajax.reload(null, false);
+    }
+    if (typeof refreshBudgetMobile === 'function') {
+      refreshBudgetMobile();
+    }
+    if (categoryDataTable) {
+      categoryDataTable.ajax.reload(null, false);
+    }
+    if (typeof refreshCategoryMobile === 'function') {
+      refreshCategoryMobile();
+    }
+
+    const period = $('#budget-period-select').val() || '';
+    $.get(`/finances/summary?period=${encodeURIComponent(period)}`, function(res) {
+      if (!res || !res.success) return;
+
+      $('#stat-total-balance').text(res.formatted_balance).attr('title', res.formatted_balance);
+      $('#stat-total-income').text('+ ' + res.formatted_income).attr('title', '+ ' + res.formatted_income);
+      $('#stat-total-expense').text('- ' + res.formatted_expense).attr('title', '- ' + res.formatted_expense);
+      $('#stat-total-saving').text(res.formatted_saving).attr('title', res.formatted_saving);
+
+      if (res.categories && Array.isArray(res.categories)) {
+        res.categories.forEach(cat => {
+          if (typeof window.updateCategoryInCombobox === 'function') {
+            window.updateCategoryInCombobox(cat);
+          }
+        });
+      }
+
+      const $goalsSection = $('#finance-goals-section');
+      if ($goalsSection.length) {
+        $.get(window.location.href, function(html) {
+          const freshGoals = $(html).find('#finance-goals-section').html();
+          if (freshGoals) $goalsSection.html(freshGoals);
+        });
+      }
+
+
+      fetchReportData();
+    });
+  };
+  window.reloadCurrentModuleData = window.refreshFinanceData;
 
   $(document).ready(function() {
     // Inisialisasi Flatpickr Tanggal Transaksi
@@ -698,7 +1263,7 @@
     }
 
     // Inisialisasi Server-Side jQuery DataTables dengan Tema Neobrutalisme
-    financeDataTable = $('#finance-datatable').DataTable({
+    window.financeDataTable = financeDataTable = $('#finance-datatable').DataTable({
       processing: true,
       serverSide: true,
       ajax: {
@@ -808,9 +1373,12 @@
     });
 
     // Inisialisasi Server-Side jQuery DataTables untuk Batas & Riwayat Anggaran Bulanan
-    budgetDataTable = $('#budget-datatable').DataTable({
+    if ($('#budget-datatable').length) {
+      window.budgetDataTable = budgetDataTable = $('#budget-datatable').DataTable({
       processing: true,
       serverSide: true,
+      autoWidth: false,
+      order: [[0, 'asc']],
       ajax: {
         url: "{{ route('finances.budgets.paginate') }}",
         type: 'GET',
@@ -926,6 +1494,7 @@
         }
       ]
     });
+    }
 
     // Event filter period select untuk DataTable Anggaran
     $('#budget-period-select').on('change', function() {
@@ -1164,7 +1733,7 @@
   });
 
   // ================= MOBILE BUDGET CARDS (PWA) =================
-  let budgetMobileStart = {{ count($categoryBudgets) }};
+  let budgetMobileStart = {{ min(5, count($categoryBudgets)) }};
   const budgetMobileLength = 5;
   let budgetMobileTotal = {{ count($categoryBudgets) }};
   let budgetMobileFilterStatus = 'all';
@@ -1444,16 +2013,24 @@
   function setFinanceType(type) {
     currentModalType = type;
     $('#finance-input-type').val(type);
+    $('#btn-ftype-income').removeClass('bg-brand text-white').addClass('bg-cream text-ink');
+    $('#btn-ftype-expense').removeClass('bg-coral text-white').addClass('bg-cream text-ink');
+    $('#btn-ftype-saving').removeClass('bg-emerald-600 text-white').addClass('bg-cream text-ink');
+
     if (type === 'income') {
       $('#btn-ftype-income').removeClass('bg-cream text-ink').addClass('bg-brand text-white');
-      $('#btn-ftype-expense').removeClass('bg-coral text-white').addClass('bg-cream text-ink');
       $('#mlabel-title').text('Keterangan Pemasukan:');
       $('#finance-input-description').attr('placeholder', 'misal: Gaji bulanan atau hasil jualan online');
       $('#mlabel-extra').text('Nominal Pemasukan (Rp):');
       $('#mlabel-upload').text('Foto Bukti Transfer / Slip (Opsional):');
+    } else if (type === 'saving') {
+      $('#btn-ftype-saving').removeClass('bg-cream text-ink').addClass('bg-emerald-600 text-white');
+      $('#mlabel-title').text('Keterangan Tabungan:');
+      $('#finance-input-description').attr('placeholder', 'misal: Setor tabungan darurat atau celengan');
+      $('#mlabel-extra').text('Nominal Tabungan (Rp):');
+      $('#mlabel-upload').text('Foto Bukti Setor / Transfer (Opsional):');
     } else {
       $('#btn-ftype-expense').removeClass('bg-cream text-ink').addClass('bg-coral text-white');
-      $('#btn-ftype-income').removeClass('bg-brand text-white').addClass('bg-cream text-ink');
       $('#mlabel-title').text('Keterangan Pengeluaran:');
       $('#finance-input-description').attr('placeholder', 'misal: Belanja sayur mingguan pasar');
       $('#mlabel-extra').text('Nominal Pengeluaran (Rp):');
@@ -1473,12 +2050,13 @@
   }
 
   function openFinanceModal() {
+    const canViewAll = @json($canViewAllFinances ?? true);
     $('#finance-modal-form')[0].reset();
     $('#finance-modal-method').val('POST');
     $('#finance-modal-form').attr('action', "{{ route('finances.store') }}");
-    $('#finance-modal-title').text('Catat Kas & Pengeluaran');
+    $('#finance-modal-title').text(canViewAll ? 'Catat Kas & Pengeluaran' : 'Catat Pengeluaran');
     $('#finance-modal-icon').text('💸');
-    $('#finance-btn-submit').html('Simpan Transaksi &rarr;');
+    $('#finance-btn-submit').html(canViewAll ? 'Simpan Transaksi &rarr;' : 'Simpan Pengeluaran &rarr;');
     
     // Reset file preview
     if (typeof removeUploadedFile === 'function') removeUploadedFile();
@@ -1522,12 +2100,13 @@
   }
 
   function openEditFinanceModal(trx) {
+    const canViewAll = @json($canViewAllFinances ?? true);
     $('#finance-modal-form')[0].reset();
     $('#finance-modal-method').val('PUT');
     $('#finance-modal-form').attr('action', trx.update_url);
-    $('#finance-modal-title').text('Edit Transaksi Kas');
+    $('#finance-modal-title').text(canViewAll ? 'Edit Transaksi Kas' : 'Edit Pengeluaran');
     $('#finance-modal-icon').text('✏️');
-    $('#finance-btn-submit').html('Perbarui Transaksi &rarr;');
+    $('#finance-btn-submit').html(canViewAll ? 'Perbarui Transaksi &rarr;' : 'Perbarui Pengeluaran &rarr;');
     
     // Set type
     setFinanceType(trx.type);
@@ -1612,11 +2191,10 @@
         closeFinanceModal();
         if (typeof fireConfetti === 'function') fireConfetti();
         if (typeof showToast === 'function') showToast(res.message || 'Transaksi berhasil disimpan!');
-        if (financeDataTable) {
+        if (typeof window.refreshFinanceData === 'function') {
+          window.refreshFinanceData();
+        } else if (financeDataTable) {
           financeDataTable.ajax.reload(null, false);
-        }
-        if (typeof refreshFinanceMobile === 'function') {
-          refreshFinanceMobile();
         }
       },
       error: function(xhr) {
@@ -1683,7 +2261,7 @@
       return;
     }
 
-    categoryDataTable = $('#category-datatable').DataTable({
+    window.categoryDataTable = categoryDataTable = $('#category-datatable').DataTable({
       processing: true,
       serverSide: true,
       ajax: {
@@ -1850,6 +2428,9 @@
       dataType: 'json',
       success: function(res) {
         if (typeof showToast === 'function') showToast(res.message || 'Kategori berhasil disimpan!');
+        if (res.category && typeof window.updateCategoryInCombobox === 'function') {
+          window.updateCategoryInCombobox(res.category);
+        }
         resetCategoryForm();
         switchCategoryTab('list');
         if (categoryDataTable) {
@@ -1860,7 +2441,9 @@
           budgetDataTable.ajax.reload(null, false);
         }
         refreshBudgetMobile();
-        refreshBudgetMobile();
+        if (typeof window.refreshFinanceData === 'function') {
+          window.refreshFinanceData();
+        }
       },
       error: function(xhr) {
         let msg = 'Gagal menyimpan kategori.';
@@ -1946,7 +2529,17 @@
         closeGoalModal();
         if (typeof fireConfetti === 'function') fireConfetti();
         if (typeof showToast === 'function') showToast(res.message || 'Target berhasil disimpan!');
-        setTimeout(() => window.location.reload(), 350);
+        if (typeof window.refreshFinanceData === 'function') {
+          window.refreshFinanceData();
+        } else {
+          const $goals = $('#finance-goals-section');
+          if ($goals.length) {
+            $.get(window.location.href, function(html) {
+              const fresh = $(html).find('#finance-goals-section').html();
+              if (fresh) $goals.html(fresh);
+            });
+          }
+        }
       },
       error: function(xhr) {
         let msg = 'Gagal menyimpan target tabungan.';
@@ -1965,17 +2558,17 @@
   });
 
   // ================= GOAL DEPOSIT JS =================
-  function openGoalDepositModal(goalId, title) {
+  window.openGoalDepositModal = function(goalId, title) {
     $('#goal-deposit-form')[0].reset();
     $('#deposit-goal-id').val(goalId);
     $('#deposit-goal-subtitle').text(title);
     $('#goal-deposit-form').attr('action', `/finances/goals/${goalId}/deposit`);
     $('#goal-deposit-modal').removeClass('hidden');
-  }
+  };
 
-  function closeGoalDepositModal() {
+  window.closeGoalDepositModal = function() {
     $('#goal-deposit-modal').addClass('hidden');
-  }
+  };
 
   $('#goal-deposit-form').on('submit', function(e) {
     e.preventDefault();
@@ -2002,7 +2595,20 @@
         closeGoalDepositModal();
         if (typeof fireConfetti === 'function') fireConfetti();
         if (typeof showToast === 'function') showToast(res.message || 'Setoran tabungan berhasil dicatat!');
-        setTimeout(() => window.location.reload(), 400);
+        if (typeof window.refreshFinanceData === 'function') {
+          window.refreshFinanceData();
+        } else {
+          if (financeDataTable) {
+            financeDataTable.ajax.reload(null, false);
+          }
+          const $goals = $('#finance-goals-section');
+          if ($goals.length) {
+            $.get(window.location.href, function(html) {
+              const fresh = $(html).find('#finance-goals-section').html();
+              if (fresh) $goals.html(fresh);
+            });
+          }
+        }
       },
       error: function(xhr) {
         let msg = 'Gagal mencatat setoran tabungan.';
@@ -2065,10 +2671,14 @@
         closePeriodBudgetModal();
         if (typeof fireConfetti === 'function') fireConfetti();
         if (typeof showToast === 'function') showToast(res.message || 'Anggaran periode berhasil disimpan!');
-        if (budgetDataTable) {
-          budgetDataTable.ajax.reload(null, false);
+        if (typeof window.refreshFinanceData === 'function') {
+          window.refreshFinanceData();
+        } else {
+          if (budgetDataTable) {
+            budgetDataTable.ajax.reload(null, false);
+          }
+          refreshBudgetMobile();
         }
-        refreshBudgetMobile();
       },
       error: function(xhr) {
         let msg = 'Gagal menyimpan anggaran periode.';

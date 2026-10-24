@@ -31,7 +31,7 @@
   @endif
 
   <!-- BARIS 1: 4 KARTU ANGKA UTAMA -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+  <div id="overview-stat-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
     
     <!-- KARTU 1: SALDO KAS -->
     <div class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform">
@@ -49,7 +49,7 @@
     </div>
 
     <!-- KARTU 2: TUGAS HARI INI -->
-    <div class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform">
+    <div id="overview-chore-progress" class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform">
       <div class="flex items-center justify-between text-xs font-mono font-bold text-ink/70">
         <span>TUGAS RUMAH</span>
         <span class="text-xl sm:text-2xl">🧹</span>
@@ -208,7 +208,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-3.5 sm:gap-4">
     
     <!-- KOLOM 1: TUGAS HARI INI + DONUT RING -->
-    <div class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between h-full">
+    <div id="overview-chore-widget" class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between h-full">
       <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-2.5">
         <div class="flex items-center gap-1.5">
           <span class="text-base">📋</span>
@@ -248,7 +248,7 @@
     </div>
 
     <!-- KOLOM 2: CATATAN KAS TERBARU -->
-    <div class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between h-full">
+    <div id="overview-finance-widget" class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between h-full">
       <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-2.5">
         <div class="flex items-center gap-1.5">
           <span class="text-base">🧾</span>
@@ -279,7 +279,7 @@
     </div>
 
     <!-- KOLOM 3: JADWAL & MOMEN TERAKHIR -->
-    <div class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden h-full">
+    <div id="overview-calendar-widget" class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden h-full">
       <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-2.5">
         <div class="flex items-center gap-1.5">
           <span class="text-base">🗓️</span>
@@ -360,6 +360,64 @@
       @endif
     </div>
 
+  </div>
+
+  <!-- BARIS 4: PAPAN KULKAS & CATATAN TETAP (STICKY NOTES KELUARGA) -->
+  <div class="bg-white brutal-card p-3.5 sm:p-4 space-y-3">
+    <div class="flex items-center justify-between pb-2 border-b-2 border-ink">
+      <div class="flex items-center gap-2">
+        <span class="text-base sm:text-lg">📌</span>
+        <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">
+          Papan Kulkas Keluarga
+        </h3>
+        <span class="text-[10px] font-mono text-ink/50 hidden sm:inline">(Catatan Disematkan)</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="{{ route('notes.index') }}" class="text-[11px] font-mono font-black text-brand hover:underline flex items-center gap-1">
+          <span>Buka Semua Papan</span>
+          <span>&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    @if(isset($pinnedNotes) && $pinnedNotes->count() > 0)
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        @foreach($pinnedNotes as $pNote)
+          @php
+            $pBg = match($pNote->color) {
+              'mint' => 'bg-[#D1FAE5]',
+              'blue' => 'bg-[#BAE6FD]',
+              'pink' => 'bg-[#FCE7F3]',
+              'orange' => 'bg-[#FED7AA]',
+              'lavender' => 'bg-[#E9D5FF]',
+              default => 'bg-[#FFF9A6]',
+            };
+          @endphp
+          <a href="{{ route('notes.index') }}" class="p-3 brutal-border {{ $pBg }} block hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#121614] transition-all">
+            <div class="flex items-center justify-between text-[10px] font-mono font-black text-ink mb-1">
+              <span class="truncate">{{ $pNote->user->name ?? 'Keluarga' }}</span>
+              <span>📌</span>
+            </div>
+            <div class="font-display font-black text-xs text-ink truncate mb-1">
+              {{ $pNote->title }}
+            </div>
+            <div class="font-mono text-[11px] text-ink/80 line-clamp-2 leading-tight">
+              {{ $pNote->content }}
+            </div>
+          </a>
+        @endforeach
+      </div>
+    @else
+      <div class="p-3 bg-cream brutal-border flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono text-ink/70">
+        <div class="flex items-center gap-2">
+          <span>🧲</span>
+          <span>Belum ada catatan kulkas yang disematkan tetap di atas.</span>
+        </div>
+        <a href="{{ route('notes.index') }}?action=create" class="px-2.5 py-1 bg-accent hover:bg-brand hover:text-white brutal-btn text-[10px] font-mono font-black uppercase tracking-wider shrink-0">
+          + Tulis Catatan
+        </a>
+      </div>
+    @endif
   </div>
 
 </div>

@@ -322,6 +322,47 @@
     max-width: 100% !important;
   }
 
+  /* REWARDS DATATABLE GRID */
+  .rewards-datatable-wrapper table.dataTable tbody {
+    display: grid !important;
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    gap: 1rem !important;
+  }
+  @media (min-width: 640px) {
+    .rewards-datatable-wrapper table.dataTable tbody {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+  }
+  @media (min-width: 1024px) {
+    .rewards-datatable-wrapper table.dataTable tbody {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+  }
+  .rewards-datatable-wrapper table.dataTable tr {
+    margin-bottom: 0 !important;
+    display: flex !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .rewards-datatable-wrapper table.dataTable td {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .rewards-datatable-wrapper table.dataTable tr:has(td.dataTables_empty),
+  .rewards-datatable-wrapper table.dataTable tr.empty-row {
+    grid-column: 1 / -1 !important;
+  }
+  .rewards-datatable-wrapper td.dataTables_empty {
+    padding: 2rem 1rem !important;
+    text-align: center !important;
+    background: #ffffff !important;
+    border: 2px solid #121614 !important;
+    font-weight: 700 !important;
+    box-shadow: 3px 3px 0px #121614 !important;
+  }
+
   /* NEOBRUTALIST MOBILE CARD FEED & LOAD MORE */
   .mobile-card-item {
     border: 2px solid #121614;

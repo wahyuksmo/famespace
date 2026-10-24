@@ -24,18 +24,23 @@
   <div class="p-4 bg-accent/25 brutal-card flex flex-col sm:flex-row items-center justify-between gap-4">
     <div>
       <div class="text-xs font-mono font-bold uppercase text-ink">Kode Rahasia Ruang Keluarga:</div>
-      <div class="text-2xl font-black font-mono tracking-widest text-brand mt-0.5">{{ $family->invite_code }}</div>
+      <div class="text-2xl font-black font-mono tracking-widest text-brand mt-0.5" id="display-invite-code">{{ $family->invite_code }}</div>
       <div class="text-xs font-semibold text-ink/70">Bagikan kode ini ke keluarga yang ingin join via halaman Registrasi.</div>
     </div>
-    <div class="flex items-center gap-2">
-      <a href="https://wa.me/?text=Halo!%20Ayo%20gabung%20ke%20ruang%20keluarga%20kita%20di%20famespace:%20{{ url('/join/' . $family->invite_code) }}" target="_blank" class="px-3.5 py-2 bg-brand text-white brutal-btn text-xs font-bold">
+    <div class="flex flex-wrap items-center gap-2">
+      <a href="https://wa.me/?text=Halo!%20Ayo%20gabung%20ke%20ruang%20keluarga%20kita%20di%20famespace:%20{{ url('/join/' . $family->invite_code) }}" id="btn-wa-invite" target="_blank" class="px-3.5 py-2 bg-brand text-white brutal-btn text-xs font-bold">
         💬 Kirim via WhatsApp
       </a>
+      @if($user->isAyah())
+        <button type="button" onclick="regenerateInviteCode()" id="btn-regen-invite" class="px-3.5 py-2 bg-white text-ink hover:bg-cream brutal-btn text-xs font-bold flex items-center gap-1.5" title="Acak ulang kode jika ada yang mencurigakan mencoba menyusup">
+          <span>🔄 Acak Ulang Kode</span>
+        </button>
+      @endif
     </div>
   </div>
 
   <!-- MEMBER CARDS GRID -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div id="members-list-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     @if($members->count() > 0)
       @foreach($members as $m)
         @php
@@ -57,17 +62,31 @@
             default => 'ANGGOTA'
           };
         @endphp
-        <div class="bg-white brutal-card p-5 space-y-3">
+        <div class="bg-white brutal-card p-5 space-y-3 transition-all duration-300" id="member-card-{{ $m->id }}">
           <div class="flex items-center justify-between">
-            <div class="w-12 h-12 {{ $bg }} brutal-border flex items-center justify-center text-2xl font-black">
-              {{ $emoji }}
+            <div class="w-12 h-12 {{ $bg }} brutal-border flex items-center justify-center text-2xl font-black overflow-hidden" id="member-avatar-{{ $m->id }}">
+              @if($m->avatar_url)
+                <img src="{{ $m->avatar_url }}" alt="{{ $m->name }}" class="w-full h-full object-cover">
+              @else
+                <span>{{ $emoji }}</span>
+              @endif
             </div>
-            <span class="px-2 py-0.5 {{ $m->role === 'Ayah' ? 'bg-brand text-white' : ($m->role === 'Ibu' ? 'bg-accent text-ink' : 'bg-white text-ink') }} brutal-border font-mono text-[10px] font-bold">
-              {{ $badgeText }}
-            </span>
+            <div class="flex items-center gap-1.5">
+              @if($m->id === $user->id)
+                <button type="button" 
+                        onclick="openProfileModal()" 
+                        class="px-2 py-0.5 bg-brand-soft hover:bg-brand text-brand hover:text-white brutal-border font-mono text-[10px] font-black transition-colors"
+                        title="Edit Profil & Foto Saya">
+                  ✏️ Edit
+                </button>
+              @endif
+              <span class="px-2 py-0.5 {{ $m->role === 'Ayah' ? 'bg-brand text-white' : ($m->role === 'Ibu' ? 'bg-accent text-ink' : 'bg-white text-ink') }} brutal-border font-mono text-[10px] font-bold">
+                {{ $badgeText }}
+              </span>
+            </div>
           </div>
           <div>
-            <div class="font-black text-base text-ink">{{ $m->name }}</div>
+            <div class="font-black text-base text-ink" id="member-name-{{ $m->id }}">{{ $m->name }}</div>
             <div class="text-xs font-mono font-bold text-brand">{{ $m->role ?? 'Anggota' }}</div>
             <div class="text-[11px] text-ink/60 mt-1 truncate">{{ $m->email }}</div>
           </div>
@@ -105,6 +124,17 @@
               </span>
             </div>
           @endif
+
+          @if($user->isAyah() && $m->id !== $user->id && !$m->isAyah())
+            <div class="pt-2 border-t-2 border-ink">
+              <button type="button" 
+                      onclick="openKickModal({{ $m->id }}, '{{ addslashes($m->name) }}', '{{ addslashes($m->role) }}')" 
+                      class="w-full py-1.5 px-3 bg-red-50 hover:bg-coral text-coral hover:text-white brutal-border font-mono text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-[2px_2px_0px_#121614] active:translate-x-[1px] active:translate-y-[1px]">
+                <span>🚫</span>
+                <span>Keluarkan dari Keluarga</span>
+              </button>
+            </div>
+          @endif
         </div>
       @endforeach
     @else
@@ -121,10 +151,62 @@
 </div>
 @endsection
 
+@push('modals')
+<!-- MODAL: KONFIRMASI KICK ANGGOTA (NEOBRUTALIST) -->
+<div id="confirm-kick-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeKickModal()">
+  <div class="bg-cream brutal-card max-w-sm sm:max-w-md w-full p-5 sm:p-6 relative modal-box space-y-4">
+    
+    <!-- HEADER -->
+    <div class="flex items-start justify-between pb-3 border-b-2 border-ink">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 bg-coral text-white brutal-border flex items-center justify-center font-black text-lg shadow-[2px_2px_0px_#121614]">
+          🚫
+        </div>
+        <div>
+          <span class="text-[10px] font-black font-mono uppercase text-coral tracking-widest block">Keamanan Keluarga</span>
+          <h3 class="font-black font-display text-lg sm:text-xl text-ink leading-tight">Keluarkan Anggota</h3>
+        </div>
+      </div>
+      <button type="button" onclick="closeKickModal()" class="w-8 h-8 bg-white hover:bg-coral hover:text-white brutal-border font-black flex items-center justify-center transition-colors">
+        ✕
+      </button>
+    </div>
+
+    <!-- CONTENT BODY -->
+    <div class="space-y-3">
+      <p class="text-xs sm:text-sm text-ink font-medium leading-relaxed">
+        Apakah Anda yakin ingin mengeluarkan <span id="kick-target-name" class="font-black text-ink bg-coral/20 px-1.5 py-0.5 brutal-border inline-block break-all"></span> (<span id="kick-target-role" class="font-mono font-bold text-coral"></span>) dari ruang keluarga?
+      </p>
+
+      <div class="p-3 bg-white brutal-border border-l-4 border-l-coral flex items-start gap-2.5">
+        <span class="text-base flex-shrink-0">⚠️</span>
+        <div class="text-[11px] font-mono font-bold text-ink/80 leading-snug">
+          Akses anggota ini ke kas, tugas, agenda, dan momen linimasa keluarga akan langsung dicabut serta sesi login mereka dihentikan.
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="pt-2 flex items-center gap-3">
+      <button type="button" onclick="closeKickModal()" class="w-1/2 py-2.5 bg-white hover:bg-cream brutal-btn text-xs font-mono font-black uppercase tracking-wider text-ink transition-all">
+        Batal
+      </button>
+      <button type="button" id="btn-confirm-kick" onclick="executeKickMember()" class="w-1/2 py-2.5 bg-coral hover:bg-coral/90 text-white brutal-btn text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all">
+        <span>Ya, Keluarkan</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+@endpush
+
 @push('scripts')
 <script>
+  let currentInviteCode = "{{ $family->invite_code }}";
+  let targetKickId = null;
+
   function copyDashboardInvite() {
-    const inviteLink = "{{ url('/join/' . $family->invite_code) }}";
+    const inviteLink = "{{ url('/join') }}/" + currentInviteCode;
     navigator.clipboard.writeText(inviteLink);
     showToast('Link undangan berhasil disalin!');
     const btn = document.getElementById('btn-copy-dash');
@@ -137,6 +219,115 @@
         btn.classList.remove('bg-accent', 'text-ink');
         btn.classList.add('bg-brand', 'text-white');
       }, 2000);
+    }
+  }
+
+  async function regenerateInviteCode() {
+    if (!confirm('Apakah Anda yakin ingin mengacak ulang kode undangan keluarga? Kode lama akan hangus seketika dan tidak dapat digunakan lagi oleh penyusup.')) {
+      return;
+    }
+
+    const btn = document.getElementById('btn-regen-invite');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerText = 'Memperbarui...';
+    }
+
+    try {
+      const res = await fetch('{{ route("members.regenerate_invite") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Gagal memperbarui kode undangan.');
+      }
+
+      currentInviteCode = data.invite_code;
+      const codeDisplay = document.getElementById('display-invite-code');
+      if (codeDisplay) {
+        codeDisplay.textContent = data.invite_code;
+      }
+
+      const waBtn = document.getElementById('btn-wa-invite');
+      if (waBtn) {
+        waBtn.href = `https://wa.me/?text=Halo!%20Ayo%20gabung%20ke%20ruang%20keluarga%20kita%20di%20famespace:%20${encodeURIComponent(data.invite_url)}`;
+      }
+
+      showToast(data.message, 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>🔄 Acak Ulang Kode</span>';
+      }
+    }
+  }
+
+  function openKickModal(id, name, role) {
+    targetKickId = id;
+    const nameEl = document.getElementById('kick-target-name');
+    const roleEl = document.getElementById('kick-target-role');
+    const modal = document.getElementById('confirm-kick-modal');
+
+    if (nameEl) nameEl.textContent = name;
+    if (roleEl) roleEl.textContent = role;
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeKickModal() {
+    targetKickId = null;
+    const modal = document.getElementById('confirm-kick-modal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  async function executeKickMember() {
+    if (!targetKickId) return;
+
+    const btn = document.getElementById('btn-confirm-kick');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerText = 'Mengeluarkan...';
+    }
+
+    try {
+      const res = await fetch(`/members/${targetKickId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Gagal mengeluarkan anggota.');
+      }
+
+      showToast(data.message, 'success');
+      
+      const card = document.getElementById(`member-card-${targetKickId}`);
+      if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.9)';
+        setTimeout(() => card.remove(), 300);
+      }
+
+      closeKickModal();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = 'Ya, Keluarkan';
+      }
     }
   }
 
@@ -166,5 +357,35 @@
       showToast(err.message, 'error');
     }
   }
+
+  // Handle realtime broadcast event for kicked member
+  window.addEventListener('DOMContentLoaded', () => {
+    const userMeta = document.querySelector('meta[name="user-id"]');
+    const currentUserId = userMeta ? Number(userMeta.getAttribute('content')) : null;
+
+    if (window.Echo) {
+      const familyMeta = document.querySelector('meta[name="family-id"]');
+      const familyId = familyMeta ? familyMeta.getAttribute('content') : null;
+
+      if (familyId) {
+        window.Echo.private(`family.${familyId}`).listen('FamilyMemberEvent', (e) => {
+          if (e.action === 'member_kicked' && e.data) {
+            if (currentUserId && Number(e.data.kicked_user_id) === currentUserId) {
+              alert('Akun Anda telah dikeluarkan dari ruang keluarga ini oleh Admin.');
+              window.location.href = '{{ route("login") }}';
+              return;
+            }
+
+            const card = document.getElementById(`member-card-${e.data.kicked_user_id}`);
+            if (card) {
+              card.style.opacity = '0';
+              card.style.transform = 'scale(0.9)';
+              setTimeout(() => card.remove(), 300);
+            }
+          }
+        });
+      }
+    }
+  });
 </script>
 @endpush

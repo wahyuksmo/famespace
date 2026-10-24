@@ -172,7 +172,7 @@
           class="w-full px-3 py-2 bg-cream brutal-border text-sm font-bold font-mono text-ink outline-none focus:bg-white"
           autocomplete="off"
         >
-        <p class="text-[10px] text-ink/60 font-mono mt-1">Uang yang disetor akan otomatis dicatat sebagai pengeluaran/tabungan di kas.</p>
+        <p class="text-[10px] text-ink/60 font-mono mt-1">Uang yang disetor mengurangi saldo kas keluarga sebagai tabungan (bukan pengeluaran).</p>
       </div>
 
       <div>

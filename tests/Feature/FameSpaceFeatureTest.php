@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Events\ChoreEvent;
 use App\Models\Chore;
 use App\Models\Event;
 use App\Models\Family;
@@ -474,6 +475,17 @@ class FameSpaceFeatureTest extends TestCase
             ->assertJson(['success' => true])
             ->assertJsonStructure(['data' => [['id', 'title', 'location_name', 'latitude', 'longitude']]]);
 
+        // Test Map Points search filtering
+        $searchMapPoints = $this->actingAs($user)->getJson('/timeline/map-points?search=AJAX');
+        $searchMapPoints->assertStatus(200)
+            ->assertJson(['success' => true]);
+        $this->assertNotEmpty($searchMapPoints->json('data'));
+
+        $emptyMapPoints = $this->actingAs($user)->getJson('/timeline/map-points?search=NonExistentPlaceXYZ');
+        $emptyMapPoints->assertStatus(200)
+            ->assertJson(['success' => true]);
+        $this->assertEmpty($emptyMapPoints->json('data'));
+
         $tUpdate = $this->actingAs($user)->putJson("/timeline/{$momentId}", [
             'title' => 'AJAX Trip Moment Updated',
             'story' => 'Momen asyik akhir pekan super seru',
@@ -613,7 +625,7 @@ class FameSpaceFeatureTest extends TestCase
         // 1. Verify layout has DataTables assets and no old mega-modal
         $financesPage = $this->actingAs($user)->get('/finances');
         $financesPage->assertStatus(200);
-        $financesPage->assertSee('cdn.datatables.net/2.1.8/js/dataTables.min.js', false);
+        $financesPage->assertSee('vendor/datatables/dataTables.min.js', false);
         $financesPage->assertSee('id="finance-modal"', false);
         $financesPage->assertSee('id="combobox-category-root"', false);
         $financesPage->assertSee('id="upload-dropzone"', false);
@@ -650,7 +662,9 @@ class FameSpaceFeatureTest extends TestCase
         $timelinePage->assertSee('id="upload-dropzone"', false);
         $timelinePage->assertSee('id="upload-preview-card"', false);
         $timelinePage->assertSee('id="timeline-main-map"', false);
+        $timelinePage->assertSee('id="map-search-input"', false);
         $timelinePage->assertSee('id="timeline-picker-map"', false);
+        $timelinePage->assertSee('id="picker-search-query"', false);
         $timelinePage->assertSee('id="timeline-input-location"', false);
         $timelinePage->assertDontSee('id="quick-modal"', false);
 
@@ -784,5 +798,44 @@ class FameSpaceFeatureTest extends TestCase
         ]);
         $eventResponse->assertStatus(422);
         $eventResponse->assertJson(['success' => false]);
+    }
+
+    public function test_chore_realtime_broadcast_event(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([ChoreEvent::class]);
+
+        $user = User::where('email', 'ayah@keluarga.id')->firstOrFail();
+        $family = $user->family;
+
+        $this->actingAs($user)->postJson('/chores', [
+            'title' => 'Tugas Realtime Test',
+            'points' => 25,
+        ])->assertStatus(200);
+
+        \Illuminate\Support\Facades\Event::assertDispatched(ChoreEvent::class, function ($event) use ($family) {
+            $channels = $event->broadcastOn();
+
+            return (string) $event->familyId === (string) $family->id
+                && $channels[0]->name === 'private-family.'.$family->id
+                && $event->broadcastAs() === 'ChoreEvent';
+        });
+    }
+
+    public function test_photo_upload_exceeding_5mb_is_allowed(): void
+    {
+        Storage::fake('public');
+        $user = User::where('email', 'ayah@keluarga.id')->firstOrFail();
+        $largePhoto = UploadedFile::fake()->image('mobile_camera_shot.jpg')->size(10240); // 10 MB
+
+        $response = $this->actingAs($user)->post('/finances', [
+            'type' => 'expense',
+            'amount' => 50000,
+            'description' => 'Beli perlengkapan besar',
+            'transaction_date' => now()->toDateString(),
+            'receipt' => $largePhoto,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('finances.index'));
     }
 }

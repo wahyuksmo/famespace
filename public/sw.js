@@ -1,10 +1,14 @@
-const CACHE_NAME = 'famespace-cache-v1';
+const CACHE_NAME = 'famespace-cache-v3';
 const PRECACHE_ASSETS = [
   '/manifest.json',
+  '/offline',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
   '/icons/icon-maskable-512x512.png',
-  '/icons/apple-touch-icon.png'
+  '/icons/apple-touch-icon.png',
+  '/vendor/tailwindcss/tailwind.js',
+  '/vendor/fonts/fonts.css',
+  '/vendor/jquery/jquery-3.7.1.min.js'
 ];
 
 // Install Event
@@ -32,10 +36,13 @@ self.addEventListener('fetch', (event) => {
   // Hanya proses request GET
   if (event.request.method !== 'GET') return;
 
+  // Abaikan skema selain http / https (misal chrome-extension://)
+  if (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://')) return;
+
   const url = new URL(event.request.url);
 
-  // Jika request ke assets static (icons, manifest, build)
-  if (url.pathname.startsWith('/icons/') || url.pathname === '/manifest.json') {
+  // Jika request ke assets static (icons, vendor, build, manifest)
+  if (url.pathname.startsWith('/icons/') || url.pathname.startsWith('/vendor/') || url.pathname.startsWith('/build/') || url.pathname === '/manifest.json') {
     event.respondWith(
       caches.match(event.request).then((cached) => cached || fetch(event.request))
     );
@@ -61,6 +68,9 @@ self.addEventListener('fetch', (event) => {
 
         // Fallback HTML jika offline
         if (event.request.headers.get('accept')?.includes('text/html')) {
+          const offlinePage = await caches.match('/offline');
+          if (offlinePage) return offlinePage;
+
           return new Response(
             `<!DOCTYPE html>
             <html lang="id">

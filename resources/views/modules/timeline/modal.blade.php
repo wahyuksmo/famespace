@@ -75,17 +75,26 @@
 
         <!-- SEARCHABLE 2: KATEGORI TRIP -->
         <div class="relative" id="combobox-category-root">
-          <label class="block text-xs font-black font-mono uppercase text-ink mb-1" id="mlabel-category">
-            Kategori Liburan / Trip:
-          </label>
-          <input type="hidden" id="minput-category" name="category" value="Wisata Alam">
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-black font-mono uppercase text-ink" id="mlabel-category">
+              Kategori Liburan / Trip:
+            </label>
+            <button 
+              type="button" 
+              onclick="promptAddNewTimelineCategory()" 
+              class="text-[10px] font-black text-brand hover:underline font-mono"
+            >
+              + Kategori Baru
+            </button>
+          </div>
+          <input type="hidden" id="minput-category" name="category_id" value="">
           <button 
             type="button" 
             id="btn-category" 
             onclick="toggleCombobox('category')" 
             class="w-full px-3 py-2 bg-cream brutal-border text-xs font-bold text-ink flex items-center justify-between text-left hover:bg-white focus:bg-white"
           >
-            <span id="label-category" class="truncate">🌲 Wisata Alam & Pantai</span>
+            <span id="label-category" class="truncate">Pilih Kategori...</span>
             <span class="text-[10px] ml-1.5 text-ink/70">▼</span>
           </button>
 
@@ -98,7 +107,7 @@
               <input 
                 type="text" 
                 id="search-category" 
-                placeholder="Ketik cari kategori..." 
+                placeholder="Ketik cari / buat kategori..." 
                 oninput="filterCombobox('category', this.value)" 
                 class="w-full px-2.5 py-1.5 bg-white brutal-border text-xs font-bold text-ink outline-none"
                 autocomplete="off"
@@ -169,6 +178,40 @@
             Belum ada titik dipilih
           </span>
         </div>
+
+        <!-- SEARCH TEMPAT DI PETA PICKER -->
+        <div class="relative mb-2">
+          <div class="flex items-center gap-1.5">
+            <div class="relative flex-1">
+              <input 
+                type="text" 
+                id="picker-search-query" 
+                placeholder="Cari tempat di peta (cth: Candi Borobudur, Kuta, Malioboro)..." 
+                class="w-full pl-8 pr-7 py-1.5 bg-cream brutal-border text-xs font-bold text-ink outline-none focus:bg-white placeholder:text-ink/50"
+                onkeydown="if(event.key === 'Enter'){ event.preventDefault(); searchPickerLocation(); }"
+                autocomplete="off"
+              >
+              <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none">🔍</span>
+              <button 
+                type="button" 
+                id="btn-clear-picker-search" 
+                onclick="clearPickerSearchInput()" 
+                class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-xs font-black text-ink/50 hover:text-coral transition-colors"
+                title="Hapus"
+              >✕</button>
+            </div>
+            <button 
+              type="button" 
+              id="btn-search-picker" 
+              onclick="searchPickerLocation()" 
+              class="px-3 py-1.5 bg-accent hover:bg-brand hover:text-white brutal-border text-xs font-bold transition-colors whitespace-nowrap"
+            >
+              Cari di Peta
+            </button>
+          </div>
+          <!-- HASIL SEARCH DROPDOWN -->
+          <div id="picker-search-results" class="hidden absolute left-0 right-0 top-full mt-1 bg-white brutal-border shadow-brutal z-50 max-h-40 overflow-y-auto p-1 space-y-1"></div>
+        </div>
         
         <div id="timeline-picker-map" class="w-full h-36 sm:h-44 brutal-border bg-stone-200 relative z-0"></div>
         <input type="hidden" id="timeline-input-lat" name="latitude" value="">
@@ -203,9 +246,9 @@
             <span class="text-2xl group-hover:scale-110 transition-transform">📸</span>
             <div class="text-left">
               <p class="text-xs font-bold text-ink">
-                <span class="underline decoration-2 decoration-brand">Pilih file</span> atau seret foto ke sini
+                <span class="underline decoration-2 decoration-brand">Pilih galeri / kamera</span> atau seret foto ke sini
               </p>
-              <p class="text-[10px] text-ink/60 font-mono font-medium">JPG, PNG, WebP (Maks. 5 MB)</p>
+              <p class="text-[10px] text-ink/60 font-mono font-medium">JPG, PNG, WebP</p>
             </div>
           </div>
         </label>

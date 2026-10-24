@@ -35,10 +35,10 @@
   <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
     
     <!-- USER POINTS PILL -->
-    <div class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-cream brutal-border shadow-brutal-sm cursor-default" title="Total Poin Anda: {{ $user->points ?? 0 }} Poin">
+    <div id="desktop-points-badge" class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-cream brutal-border shadow-brutal-sm cursor-default" title="Total Poin Anda: {{ $user->points ?? 0 }} Poin">
       <span class="text-sm">⭐</span>
       <div class="flex items-baseline gap-1">
-        <span class="font-mono font-black text-xs text-ink">{{ number_format($user->points ?? 0) }}</span>
+        <span id="desktop-header-points-val" class="font-mono font-black text-xs text-ink">{{ number_format($user->points ?? 0) }}</span>
         <span class="text-[9px] font-mono font-bold text-ink/60 uppercase">Poin</span>
       </div>
     </div>
@@ -76,8 +76,12 @@
               default => '👧'
             };
           @endphp
-          <div title="{{ $m->name }} ({{ $m->role }})" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full {{ $bg }} brutal-border flex items-center justify-center text-xs font-black ring-1 ring-white">
-            {{ $emoji }}
+          <div title="{{ $m->name }} ({{ $m->role }})" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full {{ $bg }} brutal-border flex items-center justify-center text-xs font-black ring-1 ring-white overflow-hidden">
+            @if($m->avatar_url)
+              <img src="{{ $m->avatar_url }}" alt="{{ $m->name }}" class="w-full h-full object-cover">
+            @else
+              {{ $emoji }}
+            @endif
           </div>
         @endforeach
 

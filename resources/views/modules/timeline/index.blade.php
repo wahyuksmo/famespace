@@ -81,7 +81,7 @@
 
   <!-- PETA JEJAK LIBURAN & MOMEN KELUARGA (LEAFLET) -->
   <div class="bg-white brutal-card p-4 sm:p-5 space-y-4">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-ink gap-2">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between pb-3 border-b-2 border-ink gap-3">
       <div class="flex items-center gap-3">
         <span class="w-10 h-10 bg-accent text-ink brutal-border flex items-center justify-center text-xl flex-shrink-0">
           🗺️
@@ -91,12 +91,33 @@
           <p class="text-xs font-medium text-ink/70">Pin lokasi kenangan keluarga yang terekam di linimasa.</p>
         </div>
       </div>
-      <div class="flex items-center gap-2 self-start sm:self-center">
-        <span id="map-counter-badge" class="px-2.5 py-1 bg-cream brutal-border font-mono text-xs font-bold text-ink">
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- MAP SEARCH INPUT -->
+        <div class="relative flex-1 sm:flex-initial min-w-[200px] sm:w-64">
+          <input 
+            type="text" 
+            id="map-search-input" 
+            placeholder="Cari lokasi / momen di peta..." 
+            class="w-full pl-8 pr-7 py-1.5 bg-cream brutal-border text-xs font-bold text-ink outline-none focus:bg-white placeholder:text-ink/50"
+            autocomplete="off"
+          >
+          <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none">🔍</span>
+          <button 
+            type="button" 
+            id="btn-clear-map-search" 
+            onclick="clearTimelineMapSearch()" 
+            class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-xs font-black text-ink/50 hover:text-coral transition-colors"
+            title="Hapus Pencarian"
+          >
+            ✕
+          </button>
+        </div>
+
+        <span id="map-counter-badge" class="px-2.5 py-1.5 bg-cream brutal-border font-mono text-xs font-bold text-ink whitespace-nowrap">
           Memuat lokasi...
         </span>
-        <button type="button" onclick="fitTimelineMapBounds()" class="px-3 py-1 bg-accent hover:bg-white brutal-border text-xs font-bold transition-colors" title="Tampilkan seluruh titik di peta">
-          🔍 Reset Tampilan
+        <button type="button" onclick="resetTimelineMapSearch()" class="px-3 py-1.5 bg-accent hover:bg-white brutal-border text-xs font-bold transition-colors whitespace-nowrap" title="Tampilkan seluruh titik di peta">
+          ↺ Reset Tampilan
         </button>
       </div>
     </div>
@@ -229,6 +250,13 @@
               </div>
             ` : '';
 
+            const categoryBadge = row.category_name ? `
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/40 brutal-border text-[11px] font-bold text-ink">
+                <span>${row.category_icon || '📸'}</span>
+                <span>${escapeHtml(row.category_name)}</span>
+              </span>
+            ` : '';
+
             const locationBadge = row.location_name ? `
               <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-cream brutal-border text-[11px] font-bold text-ink">
                 📍 ${escapeHtml(row.location_name)}
@@ -246,8 +274,9 @@
               </button>
             ` : '';
 
-            const locationRow = (locationBadge || mapJumpBtn) ? `
-              <div class="flex flex-wrap items-center gap-2 pt-0.5">
+            const badgesRow = (categoryBadge || locationBadge || mapJumpBtn) ? `
+              <div class="flex flex-wrap items-center gap-2 pt-1">
+                ${categoryBadge}
                 ${locationBadge}
                 ${mapJumpBtn}
               </div>
@@ -263,7 +292,7 @@
                       <div class="text-[11px] sm:text-xs font-medium text-ink/70">
                         ${row.formatted_date} &bull; Oleh ${escapeHtml(row.user_name)}
                       </div>
-                      ${locationRow}
+                      ${badgesRow}
                     </div>
                   </div>
                   <div class="flex items-center gap-1.5 self-start sm:self-center flex-shrink-0">
@@ -294,6 +323,30 @@
         }
       ]
     });
+
+    // Sinkronisasi input pencarian peta dan tabel
+    $('#map-search-input').on('input', function() {
+      const val = $(this).val();
+      filterTimelineMap(val, true);
+    });
+
+    $('#picker-search-query').on('input', function() {
+      if ($(this).val().trim()) {
+        $('#btn-clear-picker-search').removeClass('hidden');
+      } else {
+        $('#btn-clear-picker-search').addClass('hidden');
+        $('#picker-search-results').addClass('hidden').empty();
+      }
+    });
+
+    $('#timeline-datatable').on('draw.dt', function() {
+      const tableSearch = timelineDataTable ? timelineDataTable.search() : '';
+      const $mapInput = $('#map-search-input');
+      if ($mapInput.length && $mapInput.val() !== tableSearch) {
+        $mapInput.val(tableSearch);
+        filterTimelineMap(tableSearch, false);
+      }
+    });
   });
 
   // Inisialisasi Peta Utama (Semua Titik Jejak Keluarga)
@@ -321,7 +374,11 @@
       dataType: 'json',
       success: function(res) {
         // Hapus marker lama
-        mainMapMarkers.forEach(m => mainTimelineMap.removeLayer(m.marker));
+        mainMapMarkers.forEach(m => {
+          if (mainTimelineMap.hasLayer(m.marker)) {
+            mainTimelineMap.removeLayer(m.marker);
+          }
+        });
         mainMapMarkers = [];
 
         const points = (res && res.data) ? res.data : [];
@@ -337,6 +394,7 @@
               <div class="p-1 space-y-1.5 max-w-[220px]">
                 ${point.image_url ? `<img src="${point.image_url}" class="w-full h-24 object-cover brutal-border mb-1.5 cursor-pointer hover:opacity-90 transition-opacity" onclick="showImagePreview('${point.image_url}', '${escapeHtml(point.title)}')" title="Ketuk untuk perbesar">` : ''}
                 <div class="font-black text-xs text-ink uppercase">${escapeHtml(point.title)}</div>
+                ${point.category_name ? `<div class="text-[10px] font-bold text-ink/80 flex items-center gap-1"><span>${point.category_icon || '📸'}</span> <span>${escapeHtml(point.category_name)}</span></div>` : ''}
                 ${point.location_name ? `<div class="text-[11px] font-bold text-coral flex items-center gap-1">📍 ${escapeHtml(point.location_name)}</div>` : ''}
                 <div class="text-[10px] text-ink/70 font-mono">${point.formatted_date} &bull; ${escapeHtml(point.user_name)}</div>
                 ${point.story ? `<p class="text-[11px] text-ink/90 font-medium italic line-clamp-2">"${escapeHtml(point.story)}"</p>` : ''}
@@ -349,6 +407,10 @@
 
             mainMapMarkers.push({
               id: point.id,
+              title: point.title || '',
+              location_name: point.location_name || '',
+              story: point.story || '',
+              user_name: point.user_name || '',
               lat: lat,
               lng: lng,
               marker: marker
@@ -356,16 +418,98 @@
           }
         });
 
-        // Update badge counter
-        $('#map-counter-badge').text(`${bounds.length} Lokasi Tersemat`);
-
-        // Fit map bounds jika ada titik
-        if (bounds.length > 0) {
-          mainTimelineMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+        // Terapkan filter pencarian jika input search sedang terisi
+        const activeSearch = $('#map-search-input').val();
+        if (activeSearch) {
+          filterTimelineMap(activeSearch, false);
+        } else {
+          $('#map-counter-badge').text(`${bounds.length} Lokasi Tersemat`);
+          if (bounds.length > 0) {
+            mainTimelineMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+          }
         }
       }
     });
   }
+  window.loadTimelineMapPoints = window.loadMainMapPoints = loadMainMapPoints;
+
+  // Filter Marker di Peta Linimasa berdasarkan kata kunci
+  function filterTimelineMap(keyword, syncTable = false) {
+    if (!mainTimelineMap) return;
+
+    const query = (keyword || '').trim().toLowerCase();
+    const $clearBtn = $('#btn-clear-map-search');
+    const $badge = $('#map-counter-badge');
+
+    if (query) {
+      $clearBtn.removeClass('hidden');
+    } else {
+      $clearBtn.addClass('hidden');
+    }
+
+    const matchedMarkers = [];
+    const matchedBounds = [];
+
+    mainMapMarkers.forEach(item => {
+      const isMatch = !query ||
+        item.title.toLowerCase().includes(query) ||
+        item.location_name.toLowerCase().includes(query) ||
+        item.story.toLowerCase().includes(query) ||
+        item.user_name.toLowerCase().includes(query);
+
+      if (isMatch) {
+        if (!mainTimelineMap.hasLayer(item.marker)) {
+          mainTimelineMap.addLayer(item.marker);
+        }
+        matchedMarkers.push(item);
+        matchedBounds.push([item.lat, item.lng]);
+      } else {
+        if (mainTimelineMap.hasLayer(item.marker)) {
+          mainTimelineMap.removeLayer(item.marker);
+        }
+      }
+    });
+
+    if (!query) {
+      $badge.text(`${mainMapMarkers.length} Lokasi Tersemat`);
+      if (mainMapMarkers.length > 0) {
+        fitTimelineMapBounds();
+      }
+    } else {
+      $badge.text(`${matchedMarkers.length} dari ${mainMapMarkers.length} Ditemukan`);
+
+      if (matchedMarkers.length === 1) {
+        const single = matchedMarkers[0];
+        mainTimelineMap.flyTo([single.lat, single.lng], 14, { duration: 0.8 });
+        setTimeout(() => single.marker.openPopup(), 900);
+      } else if (matchedMarkers.length > 1) {
+        mainTimelineMap.fitBounds(matchedBounds, { padding: [40, 40], maxZoom: 14 });
+      }
+    }
+
+    // Sinkronkan ke DataTables jika diminta
+    if (syncTable && window.timelineDataTable) {
+      if (window.timelineDataTable.search() !== (keyword || '')) {
+        window.timelineDataTable.search(keyword || '').draw();
+      }
+    }
+  }
+  window.filterTimelineMap = filterTimelineMap;
+
+  // Hapus pencarian peta dan tampilkan kembali semua marker
+  function clearTimelineMapSearch() {
+    $('#map-search-input').val('');
+    filterTimelineMap('', true);
+  }
+  window.clearTimelineMapSearch = clearTimelineMapSearch;
+
+  // Reset tampilan peta dan pencarian
+  function resetTimelineMapSearch() {
+    $('#map-search-input').val('');
+    filterTimelineMap('', true);
+    fitTimelineMapBounds();
+  }
+  window.resetTimelineMapSearch = resetTimelineMapSearch;
 
   // Pusatkan peta ke semua titik lokasi
   function fitTimelineMapBounds() {
@@ -457,6 +601,75 @@
     $('#map-picker-coords-text').text('Belum ada titik dipilih');
   }
 
+  // Bersihkan input pencarian alamat/tempat pada picker
+  function clearPickerSearchInput() {
+    $('#picker-search-query').val('');
+    $('#btn-clear-picker-search').addClass('hidden');
+    $('#picker-search-results').addClass('hidden').empty();
+  }
+  window.clearPickerSearchInput = clearPickerSearchInput;
+
+  // Cari lokasi/kota untuk picker menggunakan OpenStreetMap Nominatim
+  function searchPickerLocation() {
+    const q = ($('#picker-search-query').val() || '').trim();
+    if (!q) return;
+
+    const $btn = $('#btn-search-picker');
+    const $results = $('#picker-search-results');
+    const oldText = $btn.html();
+    $btn.prop('disabled', true).html('⏳...');
+
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&addressdetails=1`)
+      .then(res => res.json())
+      .then(data => {
+        $btn.prop('disabled', false).html(oldText);
+        $results.empty();
+        if (!data || data.length === 0) {
+          $results.removeClass('hidden').html('<div class="p-2 text-xs font-bold text-ink/70">Lokasi tidak ditemukan. Coba kata kunci lain.</div>');
+          return;
+        }
+
+        if (data.length === 1) {
+          selectPickerSearchResult(data[0].lat, data[0].lon, data[0].display_name);
+          return;
+        }
+
+        $results.removeClass('hidden');
+        data.forEach(item => {
+          const shortName = item.name || item.display_name.split(',')[0];
+          const $itemDiv = $(`
+            <div class="p-2 hover:bg-accent border border-ink text-xs cursor-pointer transition-colors bg-white">
+              <div class="font-black text-ink">📍 ${escapeHtml(shortName)}</div>
+              <div class="text-[10px] text-ink/70 truncate">${escapeHtml(item.display_name)}</div>
+            </div>
+          `);
+          $itemDiv.on('click', function() {
+            selectPickerSearchResult(item.lat, item.lon, item.display_name);
+          });
+          $results.append($itemDiv);
+        });
+      })
+      .catch(() => {
+        $btn.prop('disabled', false).html(oldText);
+        $results.removeClass('hidden').html('<div class="p-2 text-xs font-bold text-coral">Gagal mencari lokasi. Coba lagi atau klik langsung pada peta.</div>');
+      });
+  }
+  window.searchPickerLocation = searchPickerLocation;
+
+  // Pilih hasil pencarian Nominatim
+  function selectPickerSearchResult(lat, lon, displayName) {
+    const shortName = displayName.split(',')[0].trim();
+    setPickerCoords(lat, lon);
+    const $loc = $('#timeline-input-location');
+    if (!$loc.val()) {
+      $loc.val(shortName);
+    }
+    $('#picker-search-query').val(shortName);
+    $('#btn-clear-picker-search').removeClass('hidden');
+    $('#picker-search-results').addClass('hidden').empty();
+  }
+  window.selectPickerSearchResult = selectPickerSearchResult;
+
   function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -478,11 +691,17 @@
     if (timelineDatePicker) timelineDatePicker.setDate(new Date());
 
     selectComboboxOption('assignee', "{{ Auth::id() }}", "👨 {{ Auth::user()->name }}");
-    selectComboboxOption('category', 'Wisata Alam', '🌲 Wisata Alam & Pantai');
+    const firstCat = (comboboxData.category.trip && comboboxData.category.trip.length > 0) ? comboboxData.category.trip[0] : null;
+    if (firstCat) {
+      selectComboboxOption('category', firstCat.id || firstCat.value, firstCat.text);
+    } else {
+      selectComboboxOption('category', '', 'Pilih Kategori...');
+    }
 
     // Reset lokasi & Leaflet picker
     $('#timeline-input-location').val('');
     clearPickerMarker();
+    clearPickerSearchInput();
 
     if (typeof removeUploadedFile === 'function') removeUploadedFile();
     $('#popover-assignee').addClass('hidden');
@@ -517,6 +736,11 @@
     $('#timeline-input-title').val(moment.title);
     $('#timeline-input-story').val(moment.story || '');
     $('#timeline-input-location').val(moment.location_name || '');
+    clearPickerSearchInput();
+    if (moment.location_name) {
+      $('#picker-search-query').val(moment.location_name);
+      $('#btn-clear-picker-search').removeClass('hidden');
+    }
 
     if (moment.latitude && moment.longitude) {
       setPickerCoords(moment.latitude, moment.longitude);
@@ -529,7 +753,17 @@
     }
 
     selectComboboxOption('assignee', moment.user_id || "{{ Auth::id() }}", moment.user_name ? `👨 ${moment.user_name}` : "👨 {{ Auth::user()->name }}");
-    selectComboboxOption('category', 'Wisata Alam', '🌲 Wisata Alam & Pantai');
+    if (moment.category_id) {
+      const catText = (moment.category_icon || '📸') + ' ' + (moment.category_name || 'Kategori');
+      selectComboboxOption('category', moment.category_id, catText);
+    } else {
+      const firstCat = (comboboxData.category.trip && comboboxData.category.trip.length > 0) ? comboboxData.category.trip[0] : null;
+      if (firstCat) {
+        selectComboboxOption('category', firstCat.id || firstCat.value, firstCat.text);
+      } else {
+        selectComboboxOption('category', '', 'Pilih Kategori...');
+      }
+    }
 
     const fileInput = document.getElementById('minput-file');
     if (fileInput) fileInput.value = '';
@@ -607,6 +841,53 @@
       }
     });
   });
+
+  function promptAddNewTimelineCategory() {
+    const name = window.prompt('Masukkan nama kategori liburan/trip baru:');
+    if (!name || !name.trim()) return;
+
+    const trimmed = name.trim();
+    $.ajax({
+      url: "{{ route('timeline.categories.store') }}",
+      type: 'POST',
+      data: {
+        _token: '{{ csrf_token() }}',
+        name: trimmed,
+        icon: '📸'
+      },
+      dataType: 'json',
+      success: function(res) {
+        if (res && res.success && res.category) {
+          const newCat = {
+            id: res.category.id,
+            value: res.category.id,
+            name: res.category.name,
+            text: `${res.category.icon || '📸'} ${res.category.name}`
+          };
+          if (!comboboxData.category.trip) comboboxData.category.trip = [];
+          comboboxData.category.trip.push(newCat);
+          selectComboboxOption('category', newCat.id, newCat.text);
+          if (typeof renderComboboxOptions === 'function') {
+            renderComboboxOptions('category');
+          }
+          if (typeof showToast === 'function') {
+            showToast(res.message || 'Kategori linimasa berhasil ditambahkan!', 'success');
+          } else {
+            alert(res.message || 'Kategori linimasa berhasil ditambahkan!');
+          }
+        }
+      },
+      error: function(xhr) {
+        const msg = xhr.responseJSON?.message || 'Gagal menambahkan kategori linimasa.';
+        if (typeof showToast === 'function') {
+          showToast(msg, 'error');
+        } else {
+          alert(msg);
+        }
+      }
+    });
+  }
+  window.promptAddNewTimelineCategory = promptAddNewTimelineCategory;
 
   // Global helper fallback
   window.openModal = function(type) {

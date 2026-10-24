@@ -7,22 +7,29 @@
         <div id="finance-modal-icon" class="w-7 h-7 bg-brand text-white brutal-border flex items-center justify-center font-black text-xs">
           💸
         </div>
-        <h3 id="finance-modal-title" class="font-black font-display text-xl text-ink">Catat Kas & Pengeluaran</h3>
+        <h3 id="finance-modal-title" class="font-black font-display text-xl text-ink">
+          {{ ($canViewAllFinances ?? true) ? 'Catat Kas & Pengeluaran' : 'Catat Pengeluaran' }}
+        </h3>
       </div>
       <button type="button" onclick="closeFinanceModal()" class="w-8 h-8 bg-cream hover:bg-coral hover:text-white brutal-border font-black flex items-center justify-center transition-colors">
         ✕
       </button>
     </div>
 
-    <!-- TYPE TOGGLE (PENGELUARAN VS PEMASUKAN) -->
-    <div class="grid grid-cols-2 gap-2 mb-4 font-black text-xs">
+    <!-- TYPE TOGGLE (PENGELUARAN VS PEMASUKAN VS TABUNGAN) -->
+    @if($canViewAllFinances ?? true)
+    <div class="grid grid-cols-3 gap-1.5 sm:gap-2 mb-4 font-black text-[11px] sm:text-xs">
       <button type="button" onclick="setFinanceType('expense')" id="btn-ftype-expense" class="py-2 bg-coral text-white brutal-border transition-all">
         💸 Pengeluaran
       </button>
       <button type="button" onclick="setFinanceType('income')" id="btn-ftype-income" class="py-2 bg-cream text-ink brutal-border transition-all">
         💰 Pemasukan
       </button>
+      <button type="button" onclick="setFinanceType('saving')" id="btn-ftype-saving" class="py-2 bg-cream text-ink brutal-border transition-all">
+        🐷 Tabungan
+      </button>
     </div>
+    @endif
 
     <form id="finance-modal-form" method="POST" action="{{ route('finances.store') }}" enctype="multipart/form-data" class="space-y-3.5">
       @csrf
@@ -45,7 +52,8 @@
       </div>
 
       <!-- SEARCHABLE DROPDOWNS: ANGGOTA & KATEGORI -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 {{ ($canViewAllFinances ?? true) ? 'sm:grid-cols-2' : '' }} gap-3">
+        @if($canViewAllFinances ?? true)
         <!-- SEARCHABLE 1: ANGGOTA -->
         <div class="relative" id="combobox-assignee-root">
           <label class="block text-xs font-black font-mono uppercase text-ink mb-1">
@@ -83,6 +91,9 @@
             </div>
           </div>
         </div>
+        @else
+          <input type="hidden" id="minput-assignee" name="user_id" value="{{ Auth::id() }}">
+        @endif
 
         <!-- SEARCHABLE 2: KATEGORI -->
         <div class="relative" id="combobox-category-root">
@@ -177,9 +188,9 @@
             <span class="text-2xl group-hover:scale-110 transition-transform">📸</span>
             <div class="text-left">
               <p class="text-xs font-bold text-ink">
-                <span class="underline decoration-2 decoration-brand">Pilih file</span> atau seret foto ke sini
+                <span class="underline decoration-2 decoration-brand">Pilih galeri / kamera</span> atau seret foto ke sini
               </p>
-              <p class="text-[10px] text-ink/60 font-mono font-medium">JPG, PNG, WebP (Maks. 5 MB)</p>
+              <p class="text-[10px] text-ink/60 font-mono font-medium">JPG, PNG, WebP</p>
             </div>
           </div>
         </label>
@@ -209,7 +220,7 @@
           Batal
         </button>
         <button type="submit" id="finance-btn-submit" class="w-2/3 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider">
-          Simpan Transaksi &rarr;
+          {{ ($canViewAllFinances ?? true) ? 'Simpan Transaksi →' : 'Simpan Pengeluaran →' }}
         </button>
       </div>
     </form>

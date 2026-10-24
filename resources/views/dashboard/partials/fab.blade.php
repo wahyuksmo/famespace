@@ -107,6 +107,36 @@
       </div>
       <span class="text-xs font-black font-mono text-ink">➔</span>
     </button>
+
+    <!-- Action 5: Album Keluarga -->
+    <a href="{{ route('albums.index') }}" 
+       class="w-full flex items-center justify-between p-2.5 bg-white brutal-card group touch-press active:scale-[0.98] transition-transform">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 bg-brand-soft text-ink brutal-border rounded-xl flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+          📸
+        </div>
+        <div class="text-left min-w-0">
+          <div class="text-xs font-mono font-black text-ink">Album Keluarga</div>
+          <div class="text-[10px] font-mono font-semibold text-ink/60 truncate">Koleksi foto & video memori</div>
+        </div>
+      </div>
+      <span class="text-xs font-black font-mono text-ink">➔</span>
+    </a>
+
+    <!-- Action 6: Catatan Kulkas -->
+    <a href="{{ route('notes.index') }}?action=create" 
+       class="w-full flex items-center justify-between p-2.5 bg-white brutal-card group touch-press active:scale-[0.98] transition-transform">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 bg-[#FFF9A6] text-ink brutal-border rounded-xl flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+          📌
+        </div>
+        <div class="text-left min-w-0">
+          <div class="text-xs font-mono font-black text-ink">Catatan Kulkas</div>
+          <div class="text-[10px] font-mono font-semibold text-ink/60 truncate">Pesan & info penting keluarga</div>
+        </div>
+      </div>
+      <span class="text-xs font-black font-mono text-ink">➔</span>
+    </a>
   </div>
 
 </div>

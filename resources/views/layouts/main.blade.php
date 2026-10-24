@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>@yield('title', 'Dashboard Keluarga — ' . ($family->name ?? 'famespace') . ' — famespace')</title>
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="user-id" content="{{ auth()->id() }}">
+  <meta name="family-id" content="{{ auth()->user()?->family_id ?? '' }}">
 
   <!-- PWA & Mobile Web App Meta -->
   <meta name="theme-color" content="#2F5233">
@@ -14,21 +16,20 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Famespace">
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+  <script src="{{ asset('vendor/tailwindcss/tailwind.js') }}"></script>
+  <link rel="stylesheet" href="{{ asset('vendor/fonts/fonts.css') }}">
   <!-- JQUERY -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="{{ asset('vendor/jquery/jquery-3.7.1.min.js') }}"></script>
   <!-- DATATABLES JQUERY -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css">
-  <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
+  <link rel="stylesheet" href="{{ asset('vendor/datatables/dataTables.min.css') }}">
+  <script src="{{ asset('vendor/datatables/dataTables.min.js') }}"></script>
   <!-- FLATPICKR (CUSTOM BRUTALIST DATEPICKER) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+  <link rel="stylesheet" href="{{ asset('vendor/flatpickr/flatpickr.min.css') }}">
+  <script src="{{ asset('vendor/flatpickr/flatpickr.min.js') }}"></script>
+  <script src="{{ asset('vendor/flatpickr/id.js') }}"></script>
   <!-- CHART.JS FOR INTERACTIVE ANALYTICS -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="{{ asset('vendor/chartjs/chart.umd.min.js') }}"></script>
+  @vite(['resources/js/app.js'])
   @include('dashboard.partials.styles')
   @stack('styles')
 </head>
@@ -72,6 +73,7 @@
   @include('modules.subscription.modal')
   @include('dashboard.partials.delete-modal')
   @include('dashboard.partials.image-modal')
+  @include('dashboard.partials.profile-modal')
   @stack('modals')
 
   <!-- JAVASCRIPT LOGIC -->
