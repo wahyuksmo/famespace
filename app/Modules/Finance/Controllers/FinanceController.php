@@ -664,4 +664,46 @@ class FinanceController extends Controller
             return redirect()->route('finances.index')->with('error', $e->getMessage());
         }
     }
+
+    public function destroyPeriodBudget(Request $request, int $category)
+    {
+        if (! Auth::user()->canViewAllFinances()) {
+            abort(403, 'Akses terbatas.');
+        }
+
+        $period = (string) ($request->input('period') ?: now()->format('Y-m'));
+        if (! preg_match('/^\d{4}-\d{2}$/', $period)) {
+            $period = now()->format('Y-m');
+        }
+
+        $familyId = Auth::user()->family_id;
+
+        try {
+            $categoryName = $this->financeService->deletePeriodBudget($familyId, $category, $period);
+
+            broadcast(new FinanceEvent(
+                familyId: (string) $familyId,
+                action: 'budget_updated',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' menghapus anggaran kategori '.$categoryName.' periode '.$period.'.'
+            ))->toOthers();
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Batas anggaran kategori berhasil dihapus!',
+                ]);
+            }
+
+            return redirect()->route('finances.index', ['period' => $period])
+                ->with('success', 'Batas anggaran kategori berhasil dihapus!');
+        } catch (Throwable $e) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+
+            return redirect()->route('finances.index')->with('error', $e->getMessage());
+        }
+    }
 }

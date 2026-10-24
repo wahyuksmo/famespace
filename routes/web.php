@@ -100,6 +100,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/finances/categories/{id}', [FinanceController::class, 'updateCategory'])->name('finances.categories.update');
     Route::delete('/finances/categories/{id}', [FinanceController::class, 'destroyCategory'])->name('finances.categories.destroy');
     Route::post('/finances/period-budgets', [FinanceController::class, 'storePeriodBudget'])->name('finances.period_budgets.store');
+    Route::delete('/finances/period-budgets/{category}', [FinanceController::class, 'destroyPeriodBudget'])->name('finances.period_budgets.destroy');
 
     // Finance Goals (Celengan)
     Route::post('/finances/goals', [FinanceController::class, 'storeGoal'])->name('finances.goals.store');

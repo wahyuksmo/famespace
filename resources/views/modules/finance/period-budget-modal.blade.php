@@ -95,12 +95,21 @@
         </p>
       </div>
 
-      <div class="pt-2 flex items-center gap-3">
-        <button type="button" onclick="closePeriodBudgetModal()" class="w-1/3 py-2.5 bg-white brutal-btn text-xs font-bold uppercase">
+      <div class="pt-2 flex items-center gap-2">
+        <button type="button" onclick="closePeriodBudgetModal()" class="flex-1 py-2.5 bg-white brutal-btn text-xs font-bold uppercase">
           Batal
         </button>
-        <button type="submit" id="pbudget-btn-submit" class="w-2/3 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider">
-          Simpan Anggaran Periode &rarr;
+        <button 
+          type="button" 
+          id="pbudget-btn-delete" 
+          onclick="deleteCurrentPeriodBudget()" 
+          class="hidden px-3.5 py-2.5 bg-coral hover:bg-ink text-white brutal-btn text-xs font-black uppercase transition-colors shadow-brutal-sm"
+          title="Hapus batasan anggaran untuk kategori ini"
+        >
+          🗑️ Hapus
+        </button>
+        <button type="submit" id="pbudget-btn-submit" class="flex-1 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider">
+          Simpan &rarr;
         </button>
       </div>
     </form>

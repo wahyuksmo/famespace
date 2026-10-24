@@ -245,14 +245,24 @@
                 @endif
               </div>
 
-              <div class="pt-2 border-t border-ink/15">
+              <div class="pt-2 border-t border-ink/15 flex items-center gap-2">
                 <button 
                   type="button" 
-                  onclick='openPeriodBudgetModal({{ $cb['id'] }}, @json($cb['name']), {{ (int) $cb['monthly_budget'] }}, @json($cb['notes'] ?? ""))' 
-                  class="w-full py-2 bg-accent hover:bg-white text-ink brutal-border text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                  onclick='openPeriodBudgetModal({{ $cb['id'] }}, @json($cb['name']), {{ (int) $cb['monthly_budget'] }}, @json($cb['notes'] ?? ""), {{ $hasBudget ? 'true' : 'false' }})' 
+                  class="flex-1 py-2 bg-accent hover:bg-white text-ink brutal-border text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
                 >
                   <span>✏️ Atur Anggaran Bulan Ini</span>
                 </button>
+                @if($hasBudget)
+                  <button 
+                    type="button" 
+                    onclick="confirmDelete('{{ url('/finances/period-budgets/' . $cb['id']) }}?period={{ urlencode($selectedPeriod ?? now()->format('Y-m')) }}', 'anggaran kategori {{ addslashes($cb['name']) }}')" 
+                    class="px-3 py-2 bg-coral hover:bg-ink text-white brutal-border text-xs font-black uppercase shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                    title="Hapus Batas Anggaran"
+                  >
+                    <span>🗑️</span>
+                  </button>
+                @endif
               </div>
             </div>
           @endforeach
@@ -1481,15 +1491,33 @@
           render: function(data, type, row) {
             const notesSafe = (row.notes || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
             const nameSafe = (row.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            return `
-              <button 
-                type="button" 
-                onclick='openPeriodBudgetModal(${row.id}, "${nameSafe}", ${row.monthly_budget}, "${notesSafe}")' 
-                class="px-2.5 py-1 bg-accent hover:bg-white text-ink brutal-border text-[10px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
-              >
-                ✏️ Atur
-              </button>
+            const currentPeriod = $('#budget-period-select').val() || "{{ now()->format('Y-m') }}";
+            let actions = `
+              <div class="flex items-center justify-center gap-1.5">
+                <button 
+                  type="button" 
+                  onclick='openPeriodBudgetModal(${row.id}, "${nameSafe}", ${row.monthly_budget}, "${notesSafe}", ${row.has_budget})' 
+                  class="px-2.5 py-1 bg-accent hover:bg-white text-ink brutal-border text-[10px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
+                  title="Atur Anggaran"
+                >
+                  ✏️ Atur
+                </button>
             `;
+            if (row.has_budget) {
+              const deleteUrl = `{{ url('/finances/period-budgets') }}/${row.id}?period=${encodeURIComponent(currentPeriod)}`;
+              actions += `
+                <button 
+                  type="button" 
+                  onclick="confirmDelete('${deleteUrl}', 'anggaran kategori ${nameSafe}')" 
+                  class="px-2 py-1 bg-coral hover:bg-ink text-white brutal-border text-[10px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
+                  title="Hapus Batas Anggaran"
+                >
+                  🗑️
+                </button>
+              `;
+            }
+            actions += `</div>`;
+            return actions;
           }
         }
       ]
@@ -1796,14 +1824,24 @@
           ${notesHtml}
         </div>
 
-        <div class="pt-2 border-t border-ink/15">
+        <div class="pt-2 border-t border-ink/15 flex items-center gap-2">
           <button 
             type="button" 
-            onclick='openPeriodBudgetModal(${row.id}, "${nameSafe}", ${row.monthly_budget}, "${notesSafe}")' 
-            class="w-full py-2 bg-accent hover:bg-white text-ink brutal-border text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
+            onclick='openPeriodBudgetModal(${row.id}, "${nameSafe}", ${row.monthly_budget}, "${notesSafe}", ${row.has_budget})' 
+            class="flex-1 py-2 bg-accent hover:bg-white text-ink brutal-border text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
           >
             <span>✏️ Atur Anggaran Bulan Ini</span>
           </button>
+          ${row.has_budget ? `
+            <button 
+              type="button" 
+              onclick="confirmDelete('{{ url('/finances/period-budgets') }}/${row.id}?period=${encodeURIComponent($('#budget-period-select').val() || '{{ now()->format('Y-m') }}')}', 'anggaran kategori ${nameSafe}')" 
+              class="px-3 py-2 bg-coral hover:bg-ink text-white brutal-border text-xs font-black uppercase shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
+              title="Hapus Batas Anggaran"
+            >
+              <span>🗑️</span>
+            </button>
+          ` : ''}
         </div>
       </div>
     `;
@@ -2632,7 +2670,7 @@
     });
   });
   // ================= PERIOD BUDGET JS =================
-  function openPeriodBudgetModal(catId = null, catName = null, currentAmount = null, notes = null) {
+  function openPeriodBudgetModal(catId = null, catName = null, currentAmount = null, notes = null, hasBudget = false) {
     $('#period-budget-form')[0].reset();
     if (catId) {
       $('#pbudget-input-category').val(catId);
@@ -2645,11 +2683,56 @@
     }
     const currentPeriod = $('#budget-period-select').val() || "{{ $selectedPeriod ?? now()->format('Y-m') }}";
     $('#pbudget-input-period').val(currentPeriod);
+
+    if (catId && (hasBudget || (currentAmount && Number(currentAmount) > 0))) {
+      $('#pbudget-btn-delete').removeClass('hidden');
+    } else {
+      $('#pbudget-btn-delete').addClass('hidden');
+    }
+
     $('#period-budget-modal').removeClass('hidden');
   }
 
   function closePeriodBudgetModal() {
     $('#period-budget-modal').addClass('hidden');
+  }
+
+  function deleteCurrentPeriodBudget() {
+    const catId = $('#pbudget-input-category').val();
+    const period = $('#pbudget-input-period').val() || $('#budget-period-select').val() || "{{ now()->format('Y-m') }}";
+    const catName = $('#pbudget-input-category option:selected').text().trim() || 'kategori ini';
+
+    if (!catId) return;
+
+    closePeriodBudgetModal();
+    const deleteUrl = `{{ url('/finances/period-budgets') }}/${catId}?period=${encodeURIComponent(period)}`;
+    if (typeof confirmDelete === 'function') {
+      confirmDelete(deleteUrl, `anggaran ${catName}`);
+    } else if (confirm(`Hapus batasan anggaran untuk ${catName}?`)) {
+      showLoading('Menghapus anggaran...');
+      $.ajax({
+        url: deleteUrl,
+        type: 'DELETE',
+        dataType: 'json',
+        success: function(res) {
+          showToast(res.message || 'Anggaran berhasil dihapus!');
+          if (typeof window.refreshFinanceData === 'function') {
+            window.refreshFinanceData();
+          } else {
+            if (budgetDataTable) budgetDataTable.ajax.reload(null, false);
+            refreshBudgetMobile();
+          }
+        },
+        error: function(xhr) {
+          let msg = 'Gagal menghapus anggaran.';
+          if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+          showToast(msg, 'error');
+        },
+        complete: function() {
+          hideLoading();
+        }
+      });
+    }
   }
 
   $('#period-budget-form').on('submit', function(e) {

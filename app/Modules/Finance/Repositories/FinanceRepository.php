@@ -213,6 +213,14 @@ class FinanceRepository
         ]);
     }
 
+    public function deleteCategoryBudgetForPeriod(string $familyId, int $categoryId, string $period): bool
+    {
+        return (bool) CategoryBudget::where('family_id', $familyId)
+            ->where('category_id', $categoryId)
+            ->where('period', $period)
+            ->delete();
+    }
+
     public function getMonthlyExpensesByCategory(string $familyId, Carbon|string|null $period = null): \Illuminate\Support\Collection
     {
         if (is_string($period) && preg_match('/^\d{4}-\d{2}$/', $period)) {

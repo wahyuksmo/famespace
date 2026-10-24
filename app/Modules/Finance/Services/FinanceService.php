@@ -278,6 +278,22 @@ class FinanceService
         return $this->financeRepo->setCategoryBudgetForPeriod($familyId, $categoryId, $period, $amount, $notes);
     }
 
+    public function deletePeriodBudget(string $familyId, int $categoryId, string $period): string
+    {
+        $cat = $this->financeRepo->findCategoryInFamily($categoryId, $familyId);
+        if (! $cat) {
+            throw new Exception('Kategori tidak ditemukan.');
+        }
+
+        $this->financeRepo->deleteCategoryBudgetForPeriod($familyId, $categoryId, $period);
+
+        if ($cat->family_id === $familyId && (float) $cat->monthly_budget > 0) {
+            $cat->update(['monthly_budget' => 0]);
+        }
+
+        return $cat->name;
+    }
+
     public function saveCategory(string $familyId, array $data, ?int $id = null): Category
     {
         $monthlyBudget = isset($data['monthly_budget'])

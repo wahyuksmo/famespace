@@ -206,6 +206,45 @@ class FinanceCategoryAndGoalTest extends TestCase
         $indexResp->assertSee('Anggaran Khusus');
     }
 
+    public function test_user_can_delete_period_budget(): void
+    {
+        $cat = Category::create([
+            'family_id' => $this->family->id,
+            'name' => 'Belanja Buku',
+            'type' => 'expense',
+            'monthly_budget' => 200000.00,
+        ]);
+
+        $period = now()->format('Y-m');
+
+        $this->actingAs($this->user)->postJson(route('finances.period_budgets.store'), [
+            'category_id' => $cat->id,
+            'period' => $period,
+            'budget_amount' => '300.000',
+            'notes' => 'Pagu buku bulan ini',
+        ])->assertStatus(200);
+
+        $this->assertDatabaseHas('t_category_budgets', [
+            'category_id' => $cat->id,
+            'period' => $period,
+        ]);
+
+        $deleteResp = $this->actingAs($this->user)->deleteJson(
+            route('finances.period_budgets.destroy', ['category' => $cat->id, 'period' => $period])
+        );
+
+        $deleteResp->assertStatus(200);
+        $deleteResp->assertJson(['success' => true]);
+
+        $this->assertDatabaseMissing('t_category_budgets', [
+            'category_id' => $cat->id,
+            'period' => $period,
+        ]);
+
+        $cat->refresh();
+        $this->assertEquals(0, (float) $cat->monthly_budget);
+    }
+
     public function test_budget_datatable_server_side_pagination_and_search(): void
     {
         Category::create([
