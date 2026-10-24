@@ -290,7 +290,7 @@
       dataType: 'json',
       success: function(data) {
         closePaywallModal();
-        showToast('Selamat! Seluruh fitur Famespace Pro aktif.');
+        showToast('Selamat! Seluruh fitur FamSpace Pro aktif.');
         setTimeout(function() {
           window.location.reload();
         }, 400);
@@ -1131,7 +1131,7 @@
         if (typeof openPaywallModal === 'function') {
           openPaywallModal('calendar');
         } else {
-          alert('Fitur Agenda Jadwal khusus Famespace PRO!');
+          alert('Fitur Agenda Jadwal khusus FamSpace PRO!');
         }
       @endif
     } else if (type === 'timeline') {
@@ -1145,7 +1145,7 @@
         if (typeof openPaywallModal === 'function') {
           openPaywallModal('timeline');
         } else {
-          alert('Fitur Linimasa khusus Famespace PRO!');
+          alert('Fitur Linimasa khusus FamSpace PRO!');
         }
       @endif
     }
@@ -1382,7 +1382,7 @@
     // Registrasi PWA Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
-        .then((reg) => console.log('Famespace PWA Service Worker aktif:', reg.scope))
+        .then((reg) => console.log('FamSpace PWA Service Worker aktif:', reg.scope))
         .catch((err) => console.warn('PWA registration error:', err));
     }
   });

@@ -98,7 +98,7 @@
         </div>
         <div class="p-2.5 bg-cream-soft brutal-border space-y-0.5">
           <span class="text-[9px] uppercase font-bold text-ink/60 block">Ruang Keluarga</span>
-          <span class="font-black text-ink truncate block">{{ auth()->user()?->family?->name ?? 'Famespace' }}</span>
+          <span class="font-black text-ink truncate block">{{ auth()->user()?->family?->name ?? 'FamSpace' }}</span>
         </div>
         <div class="col-span-2 p-2.5 bg-cream-soft brutal-border space-y-0.5">
           <span class="text-[9px] uppercase font-bold text-ink/60 block">Email Terdaftar</span>

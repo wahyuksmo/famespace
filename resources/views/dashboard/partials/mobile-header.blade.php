@@ -30,17 +30,17 @@
 
     <a href="{{ route('dashboard') }}" 
        onclick="if(window.vibrateDevice) window.vibrateDevice(6);"
-       class="w-8 h-8 bg-brand text-white brutal-border flex items-center justify-center font-black text-sm font-display shadow-[1.5px_1.5px_0px_#121614] shrink-0 active:scale-95 transition-transform" 
-       title="Beranda Famespace"
+       class="w-8 h-8 brutal-border overflow-hidden rounded-md flex items-center justify-center shadow-[1.5px_1.5px_0px_#121614] shrink-0 active:scale-95 transition-transform" 
+       title="Beranda FamSpace"
        aria-label="Beranda">
-      f
+      <img src="{{ asset('icons/logo_famspace.jpeg') }}" alt="FamSpace Logo" class="w-full h-full object-cover">
     </a>
     
     <div class="min-w-0">
       <div class="flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-brand inline-block animate-pulse shrink-0" title="Ruang Keluarga Aktif"></span>
         <span class="font-display font-black text-xs sm:text-sm text-ink truncate leading-tight">
-          {{ $family->name ?? 'Famespace' }}
+          {{ $family->name ?? 'FamSpace' }}
         </span>
         @if($isPro)
           <span class="px-1 py-0.2 bg-accent brutal-border text-[8px] font-mono font-black shadow-[1px_1px_0px_#121614] shrink-0">

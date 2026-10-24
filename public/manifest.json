@@ -1,6 +1,6 @@
 {
-  "name": "Famespace - Ruang Harmoni Keluarga",
-  "short_name": "Famespace",
+  "name": "FamSpace - Ruang Harmoni Keluarga",
+  "short_name": "FamSpace",
   "description": "Kelola tugas rumah tangga, kas keluarga, jadwal bersama, dan momen indah keluarga.",
   "start_url": "/dashboard",
   "scope": "/",

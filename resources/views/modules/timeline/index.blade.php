@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Linimasa & Trip — famespace')
+@section('title', 'Linimasa & Trip — ' . ($family->name ?? 'FamSpace') . ' — FamSpace')
 
 @push('styles')
 <!-- LEAFLET CSS -->

@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Catatan & Kulkas — ' . ($family->name ?? 'Famespace'))
+@section('title', 'Catatan & Kulkas — ' . ($family->name ?? 'FamSpace'))
 
 @section('content')
 <div class="space-y-6">

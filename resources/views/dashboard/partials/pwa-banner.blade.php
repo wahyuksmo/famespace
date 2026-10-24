@@ -2,12 +2,12 @@
 <div id="pwa-install-prompt" class="fixed inset-x-3 bottom-20 z-50 lg:hidden hidden bg-white brutal-border p-3.5 shadow-brutal select-none animate-slide-up-mobile rounded-xl">
   <div class="flex items-start justify-between gap-3">
     <div class="flex items-center gap-3 min-w-0">
-      <div class="w-11 h-11 bg-brand text-white brutal-border flex items-center justify-center font-black text-lg font-display shadow-[2px_2px_0px_#121614] rounded-lg shrink-0">
-        f
+      <div class="w-11 h-11 brutal-border shadow-[2px_2px_0px_#121614] rounded-lg shrink-0 overflow-hidden">
+        <img src="{{ asset('icons/logo_famspace.jpeg') }}" alt="FamSpace Logo" class="w-full h-full object-cover">
       </div>
       <div class="min-w-0">
         <h4 class="text-xs font-black uppercase tracking-tight text-ink flex items-center gap-1.5">
-          <span>Pasang Famespace</span>
+          <span>Pasang FamSpace</span>
           <span class="px-1 py-0.2 bg-accent text-[8px] font-mono brutal-border">PWA</span>
         </h4>
         <p id="pwa-prompt-desc" class="text-[11px] font-medium text-ink/70 leading-snug mt-0.5">

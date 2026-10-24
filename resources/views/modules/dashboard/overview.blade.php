@@ -7,7 +7,7 @@
       <div class="flex items-center gap-2">
         <span class="text-lg sm:text-xl">👑</span>
         <div class="text-xs font-mono">
-          <span class="font-black text-ink">Paket Famespace Pro Aktif</span>
+          <span class="font-black text-ink">Paket FamSpace Pro Aktif</span>
           <span class="text-ink/70"> &bull; Fitur Kas, Tugas, Kalender, & Linimasa terbuka penuh</span>
         </div>
       </div>

@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Tugas & Chores — famespace')
+@section('title', 'Tugas & Chores — ' . ($family->name ?? 'FamSpace') . ' — FamSpace')
 
 @section('content')
 <!-- TAB 2: TUGAS & CHORES -->

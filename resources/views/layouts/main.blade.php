@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>@yield('title', 'Dashboard Keluarga — ' . ($family->name ?? 'famespace') . ' — famespace')</title>
+  <title>@yield('title', 'Dashboard Keluarga — ' . ($family->name ?? 'FamSpace') . ' — FamSpace')</title>
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <meta name="user-id" content="{{ auth()->id() }}">
   <meta name="family-id" content="{{ auth()->user()?->family_id ?? '' }}">
 
   <!-- PWA & Mobile Web App Meta -->
   <meta name="theme-color" content="#2F5233">
+  <link rel="icon" type="image/jpeg" href="{{ asset('icons/logo_famspace.jpeg') }}">
   <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="apple-touch-icon" href="{{ asset('icons/logo_famspace.jpeg') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Famespace">
+  <meta name="apple-mobile-web-app-title" content="FamSpace">
 
   <script src="{{ asset('vendor/tailwindcss/tailwind.js') }}"></script>
   <link rel="stylesheet" href="{{ asset('vendor/fonts/fonts.css') }}">

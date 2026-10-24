@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gabung Ruang Keluarga — famespace</title>
+  <title>Gabung Ruang Keluarga — FamSpace</title>
+  <link rel="icon" type="image/jpeg" href="{{ asset('icons/logo_famspace.jpeg') }}">
   <script src="{{ asset('vendor/tailwindcss/tailwind.js') }}"></script>
   <link rel="stylesheet" href="{{ asset('vendor/fonts/fonts.css') }}">
   <script>
@@ -76,9 +77,9 @@
 <body class="min-h-screen flex flex-col justify-between p-4 sm:p-6 antialiased selection:bg-accent selection:text-ink">
 
   <header class="max-w-md mx-auto w-full flex items-center justify-between py-4">
-    <a href="{{ route('landing') }}" class="flex items-center gap-2">
-      <div class="w-9 h-9 bg-brand text-white brutal-border flex items-center justify-center font-black text-xl font-display">f</div>
-      <span class="font-display font-black text-xl tracking-tight text-ink">famespace<span class="text-brand">.</span></span>
+    <a href="{{ route('landing') }}" class="flex items-center gap-2.5 group">
+      <img src="{{ asset('icons/logo_famspace.jpeg') }}" alt="FamSpace Logo" class="w-9 h-9 brutal-border object-cover rounded-lg group-hover:rotate-6 transition-transform shadow-[2px_2px_0px_#121614] shrink-0">
+      <span class="font-display font-black text-xl tracking-tight text-ink">FamSpace<span class="text-brand">.</span></span>
     </a>
     <a href="{{ route('login') }}" class="text-xs font-bold text-ink hover:text-brand">&larr; Masuk</a>
   </header>
@@ -141,7 +142,7 @@
   </main>
 
   <footer class="max-w-md mx-auto w-full text-center py-4 text-xs font-mono font-bold text-ink/60">
-    famespace • Warm Green Neobrutalism
+    &copy; {{ date('Y') }} FamSpace. Seluruh hak cipta dilindungi.
   </footer>
 </body>
 </html>

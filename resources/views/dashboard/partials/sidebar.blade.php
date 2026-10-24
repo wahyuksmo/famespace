@@ -6,11 +6,9 @@
     <div class="pb-4 border-b-2 border-ink flex-shrink-0 space-y-3">
       <div class="flex items-center justify-between">
         <a href="{{ route('landing') }}" class="flex items-center gap-2.5 group">
-          <div class="w-9 h-9 bg-brand text-white brutal-border flex items-center justify-center font-black text-xl font-display group-hover:rotate-6 transition-transform shadow-[2px_2px_0px_#121614]">
-            f
-          </div>
+          <img src="{{ asset('icons/logo_famspace.jpeg') }}" alt="FamSpace Logo" class="w-9 h-9 brutal-border object-cover rounded-lg group-hover:rotate-6 transition-transform shadow-[2px_2px_0px_#121614] shrink-0">
           <div class="leading-none">
-            <span class="font-display font-black text-xl tracking-tight text-ink">famespace<span class="text-brand">.</span></span>
+            <span class="font-display font-black text-xl tracking-tight text-ink">FamSpace<span class="text-brand">.</span></span>
             <span class="block text-[9px] font-mono font-bold text-ink/50 uppercase tracking-widest mt-0.5">Family OS</span>
           </div>
         </a>
@@ -203,7 +201,7 @@
           @endif
         </span>
         @if(!$isPro)
-          <button type="button" onclick="openPaywallModal('Fitur Pro Famespace')" class="px-2 py-0.5 bg-brand text-white hover:bg-accent hover:text-ink brutal-btn font-mono font-black text-[10px]">
+          <button type="button" onclick="openPaywallModal('Fitur Pro FamSpace')" class="px-2 py-0.5 bg-brand text-white hover:bg-accent hover:text-ink brutal-btn font-mono font-black text-[10px]">
             Upgrade
           </button>
         @endif

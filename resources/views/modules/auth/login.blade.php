@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Masuk — famespace</title>
+  <title>Masuk — FamSpace</title>
 
   <!-- PWA & Mobile Web App Meta -->
   <meta name="theme-color" content="#2F5233">
+  <link rel="icon" type="image/jpeg" href="{{ asset('icons/logo_famspace.jpeg') }}">
   <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="apple-touch-icon" href="{{ asset('icons/logo_famspace.jpeg') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Famespace">
+  <meta name="apple-mobile-web-app-title" content="FamSpace">
 
   <script src="{{ asset('vendor/tailwindcss/tailwind.js') }}"></script>
   <link rel="stylesheet" href="{{ asset('vendor/fonts/fonts.css') }}">
@@ -106,11 +107,9 @@
 
   <!-- TOP HEADER -->
   <header class="max-w-xl mx-auto w-full flex items-center justify-between py-4">
-    <a href="{{ route('landing') }}" class="flex items-center gap-2 group">
-      <div class="w-9 h-9 bg-brand text-white brutal-border flex items-center justify-center font-black text-xl font-display group-hover:rotate-6 transition-transform">
-        f
-      </div>
-      <span class="font-display font-black text-xl tracking-tight text-ink">famespace<span class="text-brand">.</span></span>
+    <a href="{{ route('landing') }}" class="flex items-center gap-2.5 group">
+      <img src="{{ asset('icons/logo_famspace.jpeg') }}" alt="FamSpace Logo" class="w-9 h-9 brutal-border object-cover rounded-lg group-hover:rotate-6 transition-transform shadow-[2px_2px_0px_#121614] shrink-0">
+      <span class="font-display font-black text-xl tracking-tight text-ink">FamSpace<span class="text-brand">.</span></span>
     </a>
     <a href="{{ route('landing') }}" class="text-xs font-bold text-ink/80 hover:text-brand flex items-center gap-1">
       &larr; Kembali ke Beranda
@@ -203,7 +202,7 @@
 
   <!-- FOOTER NOTICE -->
   <footer class="max-w-xl mx-auto w-full text-center py-4 text-xs font-mono font-bold text-ink/60">
-    &copy; {{ date('Y') }} famespace. Seluruh hak cipta dilindungi.
+    &copy; {{ date('Y') }} FamSpace. Seluruh hak cipta dilindungi.
   </footer>
 </body>
 </html>

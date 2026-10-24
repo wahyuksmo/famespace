@@ -22,7 +22,7 @@ class FameSpaceFeatureTest extends TestCase
     {
         $response = $this->get('/');
         $response->assertStatus(200);
-        $response->assertSee('famespace');
+        $response->assertSee('FamSpace');
     }
 
     public function test_login_page_can_be_rendered(): void
@@ -89,7 +89,7 @@ class FameSpaceFeatureTest extends TestCase
 
             $responsePro = $this->actingAs($user)->get('/dashboard');
             $responsePro->assertStatus(200);
-            $responsePro->assertSee('Paket Famespace Pro Aktif');
+            $responsePro->assertSee('Paket FamSpace Pro Aktif');
 
             Subscription::where('family_id', $user->family_id)->delete();
             $responseFree = $this->actingAs($user)->get('/dashboard');

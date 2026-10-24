@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>famespace — Kelola Rumah Tangga Tanpa Drama</title>
+  <title>FamSpace — Kelola Rumah Tangga Tanpa Drama</title>
 
   <!-- PWA & Mobile Web App Meta -->
   <meta name="theme-color" content="#2F5233">
+  <link rel="icon" type="image/jpeg" href="{{ asset('icons/logo_famspace.jpeg') }}">
   <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="apple-touch-icon" href="{{ asset('icons/logo_famspace.jpeg') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Famespace">
+  <meta name="apple-mobile-web-app-title" content="FamSpace">
 
   <script src="{{ asset('vendor/tailwindcss/tailwind.js') }}"></script>
   <link rel="stylesheet" href="{{ asset('vendor/fonts/fonts.css') }}">
@@ -163,11 +164,9 @@
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
       <!-- LOGO -->
       <a href="{{ route('landing') }}" class="flex items-center gap-2 sm:gap-3 group shrink-0 min-w-0">
-        <div class="w-9 h-9 sm:w-11 sm:h-11 bg-brand text-white brutal-border brutal-card flex items-center justify-center font-black text-xl sm:text-2xl font-display group-hover:rotate-6 transition-transform shrink-0">
-          f
-        </div>
+        <img src="{{ asset('icons/logo_famspace.jpeg') }}" alt="FamSpace Logo" class="w-9 h-9 sm:w-11 sm:h-11 brutal-border brutal-card object-cover rounded-xl group-hover:rotate-6 transition-transform shrink-0">
         <div class="min-w-0">
-          <span class="font-display font-black text-xl sm:text-2xl tracking-tight text-ink">famespace<span class="text-brand">.</span></span>
+          <span class="font-display font-black text-xl sm:text-2xl tracking-tight text-ink">FamSpace<span class="text-brand">.</span></span>
           <span class="hidden lg:inline-block ml-2 px-2 py-0.5 text-[10px] font-black uppercase bg-accent brutal-border text-ink">Rumah Tangga OS</span>
         </div>
       </a>
@@ -175,9 +174,9 @@
       <!-- NAV LINKS -->
       <div class="hidden md:flex items-center gap-8 font-bold text-sm">
         <a href="#fitur" class="hover:text-brand transition-colors">4 Pilar Fitur</a>
+        <a href="#keunggulan" class="hover:text-brand transition-colors">Keunggulan</a>
         <a href="#cara-kerja" class="hover:text-brand transition-colors">Cara Kerja</a>
         <a href="#harga" class="hover:text-brand transition-colors">Harga & Paket</a>
-        <a href="#kisah" class="hover:text-brand transition-colors">Cerita Pengguna</a>
       </div>
 
       <!-- CTA BUTTONS -->
@@ -215,7 +214,7 @@
 
         <p class="text-lg sm:text-xl font-medium text-ink/80 max-w-2xl leading-relaxed">
           Stop ribut urusan cuci piring, lupa bayar PAM, atau bon liburan hilang. 
-          <strong class="text-ink font-bold">famespace</strong> menyatukan Ayah, Ibu, dan Anak dalam satu aplikasi transparan, seru, dan terorganisir.
+          <strong class="text-ink font-bold">FamSpace</strong> menyatukan Ayah, Ibu, dan Anak dalam satu aplikasi transparan, seru, dan terorganisir.
         </p>
 
         <!-- CTA & TRUST -->
@@ -260,7 +259,7 @@
               <div class="w-3.5 h-3.5 rounded-full bg-coral brutal-border"></div>
               <div class="w-3.5 h-3.5 rounded-full bg-accent brutal-border"></div>
               <div class="w-3.5 h-3.5 rounded-full bg-sage brutal-border"></div>
-              <span class="font-mono text-xs font-bold text-ink/70 ml-2">ruang-keluarga-santoso</span>
+              <span class="font-mono text-xs font-bold text-ink/70 ml-2">ruang-keluarga-harmonis</span>
             </div>
             <span class="px-2 py-0.5 bg-brand text-white font-mono text-[11px] font-bold uppercase brutal-border flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-accent animate-ping inline-block"></span>
@@ -340,24 +339,24 @@
     </div>
   </section>
 
-  <!-- TICKER / STATS BAR -->
+  <!-- VALUE PILLARS BAR (REAL PRODUCTION VALUE, NO FAKE STATS) -->
   <section class="bg-ink text-white brutal-border border-x-0 py-6 overflow-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
       <div class="p-2">
-        <div class="text-3xl sm:text-4xl font-black font-display text-accent count-up" data-target="2800" data-suffix="+">2.800+</div>
-        <div class="text-xs sm:text-sm font-bold text-cream/80 uppercase tracking-wider mt-1">Keluarga Aktif</div>
+        <div class="text-2xl sm:text-3xl font-black font-display text-accent">100% Privat</div>
+        <div class="text-xs sm:text-sm font-bold text-cream/80 uppercase tracking-wider mt-1">Tertutup Khusus Keluarga</div>
       </div>
       <div class="p-2">
-        <div class="text-3xl sm:text-4xl font-black font-display text-sage count-up" data-target="94.8" data-suffix="%" data-float="true">94.8%</div>
-        <div class="text-xs sm:text-sm font-bold text-cream/80 uppercase tracking-wider mt-1">Tugas Rumah Tuntas</div>
+        <div class="text-2xl sm:text-3xl font-black font-display text-sage">Real-Time</div>
+        <div class="text-xs sm:text-sm font-bold text-cream/80 uppercase tracking-wider mt-1">Sinkron Instan Antar HP</div>
       </div>
       <div class="p-2">
-        <div class="text-3xl sm:text-4xl font-black font-display text-coral count-up" data-target="14" data-prefix="Rp " data-suffix=" M+">Rp 14 M+</div>
-        <div class="text-xs sm:text-sm font-bold text-cream/80 uppercase tracking-wider mt-1">Pengeluaran Terlacak</div>
+        <div class="text-2xl sm:text-3xl font-black font-display text-coral">Tanpa Iklan</div>
+        <div class="text-xs sm:text-sm font-bold text-cream/80 uppercase tracking-wider mt-1">Fokus Harmoni Rumah</div>
       </div>
       <div class="p-2">
-        <div class="text-3xl sm:text-4xl font-black font-display text-sky">0 Menit</div>
-        <div class="text-xs sm:text-sm font-bold text-cream/80 uppercase tracking-wider mt-1">Lupa Jadwal Imunisasi</div>
+        <div class="text-2xl sm:text-3xl font-black font-display text-sky">PWA Ready</div>
+        <div class="text-xs sm:text-sm font-bold text-cream/80 uppercase tracking-wider mt-1">Ringan di Semua Gadget</div>
       </div>
     </div>
   </section>
@@ -384,7 +383,7 @@
   <section id="fitur" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 reveal">
     <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
       <span class="px-3 py-1 bg-brand text-white brutal-border font-mono text-xs font-bold uppercase tracking-wider">
-        4 Pilar famespace
+        4 Pilar FamSpace
       </span>
       <h2 class="text-3xl sm:text-5xl font-black font-display text-ink tracking-tight">
         Satu Aplikasi, Selesaikan 4 Masalah Klasik Rumah Tangga.
@@ -617,7 +616,7 @@
 
         <div>
           <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-1 bg-brand text-white brutal-border font-mono text-xs font-black uppercase">Famespace Pro</span>
+            <span class="px-2.5 py-1 bg-brand text-white brutal-border font-mono text-xs font-black uppercase">FamSpace Pro</span>
             <span class="text-xs font-mono font-bold text-brand">1 Biaya Sekeluarga</span>
           </div>
           <h3 class="text-2xl font-black font-display text-ink">Family Pro</h3>
@@ -668,7 +667,7 @@
 
         <div>
           <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-1 bg-coral text-white brutal-border font-mono text-xs font-black uppercase">Famespace Lifetime</span>
+            <span class="px-2.5 py-1 bg-coral text-white brutal-border font-mono text-xs font-black uppercase">FamSpace Lifetime</span>
             <span class="text-xs font-mono font-bold text-coral">Hemat Selamanya</span>
           </div>
           <h3 class="text-2xl font-black font-display text-ink">Family Lifetime</h3>
@@ -711,72 +710,66 @@
     </div>
   </section>
 
-  <!-- TESTIMONI KELUARGA -->
-  <section id="kisah" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 reveal">
+  <!-- KEUNGGULAN UTAMA (PRODUKSI NYATA, TANPA TESTIMONI / DATA PALSU) -->
+  <section id="keunggulan" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 reveal">
     <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
       <span class="px-3 py-1 bg-brand-soft text-brand-dark brutal-border font-mono text-xs font-bold uppercase tracking-wider">
-        Kisah Nyata
+        Keunggulan Utama
       </span>
       <h2 class="text-3xl sm:text-4xl font-black font-display text-ink tracking-tight">
-        Kata Mereka yang Rumah Tangganya Naik Kelas.
+        Mengapa Rumah Tangga Modern Memilih FamSpace.
       </h2>
+      <p class="text-ink/80 text-sm sm:text-base font-medium">
+        Solusi langsung untuk transparansi, kekompakan, dan privasi rumah tangga Anda.
+      </p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <!-- TESTI 1 -->
+      <!-- KEUNGGULAN 1 -->
       <div class="bg-white brutal-card p-6 flex flex-col justify-between hover:-translate-y-1.5 transition-transform">
-        <div class="space-y-4">
-          <div class="text-brand text-lg font-bold">★★★★★</div>
-          <p class="text-sm font-semibold text-ink leading-relaxed">
-            "Dulu suami sering lupa beli titipan dapur atau jemput anak les. Sekarang sejak pakai famespace, ada notif reminder dan checklist tugas. Hemat waktu dan gak perlu tensi tinggi!"
+        <div class="space-y-3">
+          <div class="w-12 h-12 bg-accent brutal-border flex items-center justify-center text-xl shadow-brutal-sm font-black">
+            🤝
+          </div>
+          <h3 class="text-xl font-black font-display text-ink">Transparansi Tanpa Curiga</h3>
+          <p class="text-xs sm:text-sm font-semibold text-ink/80 leading-relaxed">
+            Semua catatan kas dapur, tagihan rutin, dan tabungan impian terlihat jelas oleh pasangan. Mengurangi beban pikiran dan perdebatan seputar finansial rumah tangga.
           </p>
         </div>
-        <div class="pt-6 border-t-2 border-ink mt-6 flex items-center gap-3">
-          <div class="w-10 h-10 bg-coral brutal-border font-black text-white flex items-center justify-center">
-            M
-          </div>
-          <div>
-            <div class="font-black text-xs">Maya Indriani</div>
-            <div class="text-[11px] text-ink/70">Ibu Rumah Tangga (3 Anak), Jakarta</div>
-          </div>
+        <div class="pt-4 border-t-2 border-ink mt-6 font-mono text-[11px] font-bold text-brand uppercase tracking-wider">
+          ✦ Finansial Harmonis
         </div>
       </div>
 
-      <!-- TESTI 2 -->
+      <!-- KEUNGGULAN 2 -->
       <div class="bg-white brutal-card p-6 flex flex-col justify-between hover:-translate-y-1.5 transition-transform">
-        <div class="space-y-4">
-          <div class="text-brand text-lg font-bold">★★★★★</div>
-          <p class="text-sm font-semibold text-ink leading-relaxed">
-            "Fitur Linimasa & Pengeluaran Trip itu penyelamat banget! Kita liburan ke Dieng 4 hari, semua struk tiket dan makan kecatat langsung di app. Anak-anak juga happy bisa upload foto kenangan."
+        <div class="space-y-3">
+          <div class="w-12 h-12 bg-coral text-white brutal-border flex items-center justify-center text-xl shadow-brutal-sm font-black">
+            🎯
+          </div>
+          <h3 class="text-xl font-black font-display text-ink">Bagi Tugas Lebih Seru</h3>
+          <p class="text-xs sm:text-sm font-semibold text-ink/80 leading-relaxed">
+            Chores rumah tangga bukan lagi beban sepihak. Checklist harian dilengkapi sistem poin dan rewards yang mendidik anak-anak untuk mandiri dan gemar membantu.
           </p>
         </div>
-        <div class="pt-6 border-t-2 border-ink mt-6 flex items-center gap-3">
-          <div class="w-10 h-10 bg-brand brutal-border font-black text-white flex items-center justify-center">
-            D
-          </div>
-          <div>
-            <div class="font-black text-xs">Dimas Pratama</div>
-            <div class="text-[11px] text-ink/70">Kepala Keluarga, Bandung</div>
-          </div>
+        <div class="pt-4 border-t-2 border-ink mt-6 font-mono text-[11px] font-bold text-coral uppercase tracking-wider">
+          ✦ Edukatif & Adil
         </div>
       </div>
 
-      <!-- TESTI 3 -->
+      <!-- KEUNGGULAN 3 -->
       <div class="bg-white brutal-card p-6 flex flex-col justify-between hover:-translate-y-1.5 transition-transform">
-        <div class="space-y-4">
-          <div class="text-brand text-lg font-bold">★★★★★</div>
-          <p class="text-sm font-semibold text-ink leading-relaxed">
-            "Sistem koin chores bikin anak-anak rebutan bersihin kamar dan kasih makan kucing. Nanti akhir bulan poinnya mereka tukar uang jajan tambahan atau beli buku. Sangat edukatif!"
+        <div class="space-y-3">
+          <div class="w-12 h-12 bg-brand text-white brutal-border flex items-center justify-center text-xl shadow-brutal-sm font-black">
+            🔒
+          </div>
+          <h3 class="text-xl font-black font-display text-ink">100% Privat & Aman</h3>
+          <p class="text-xs sm:text-sm font-semibold text-ink/80 leading-relaxed">
+            Data keluarga Anda adalah milik Anda. Ruang keluarga tertutup rapat, hanya dapat diakses melalui kode undangan unik anggota keluarga sah tanpa kebocoran data.
           </p>
         </div>
-        <div class="pt-6 border-t-2 border-ink mt-6 flex items-center gap-3">
-          <div class="w-10 h-10 bg-sage brutal-border font-black text-ink flex items-center justify-center">
-            R
-          </div>
-          <div>
-            <div class="font-black text-xs">Ratih & Eko</div>
-            <div class="text-[11px] text-ink/70">Orang Tua Baru, Surabaya</div>
-          </div>
+        <div class="pt-4 border-t-2 border-ink mt-6 font-mono text-[11px] font-bold text-brand uppercase tracking-wider">
+          ✦ Privasi Terjamin
         </div>
       </div>
     </div>
@@ -811,23 +804,22 @@
   <footer class="bg-white brutal-border border-x-0 border-b-0 py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6 text-xs font-bold text-ink/80">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-brand text-white brutal-border flex items-center justify-center font-black font-display">
-          f
-        </div>
-        <span class="font-display font-black text-lg text-ink">famespace.</span>
+        <img src="{{ asset('icons/logo_famspace.jpeg') }}" alt="FamSpace Logo" class="w-8 h-8 brutal-border object-cover rounded-lg shrink-0">
+        <span class="font-display font-black text-lg text-ink">FamSpace<span class="text-brand">.</span></span>
         <span>— Sistem Operasi Rumah Tangga Indonesia</span>
       </div>
 
       <div class="flex items-center gap-6">
         <a href="{{ route('landing') }}" class="hover:text-brand">Beranda</a>
-        <a href="#fitur" class="hover:text-brand">Fitur Utama</a>
-        <a href="#harga" class="hover:text-brand">Harga & Paket</a>
+        <a href="#fitur" class="hover:text-brand">4 Pilar</a>
+        <a href="#keunggulan" class="hover:text-brand">Keunggulan</a>
+        <a href="#harga" class="hover:text-brand">Harga</a>
         <a href="{{ route('login') }}" class="hover:text-brand">Masuk</a>
         <a href="{{ route('register') }}" class="hover:text-brand">Daftar</a>
       </div>
 
       <div class="font-mono text-[11px] text-ink/60">
-        &copy; {{ date('Y') }} famespace. Seluruh hak cipta dilindungi.
+        &copy; {{ date('Y') }} FamSpace. Seluruh hak cipta dilindungi.
       </div>
     </div>
   </footer>
@@ -1025,7 +1017,7 @@
       <div class="flex items-start justify-between gap-3">
         <div class="flex items-center gap-2">
           <span class="text-2xl">📲</span>
-          <h3 class="font-display font-black text-lg text-ink">Pasang Famespace</h3>
+          <h3 class="font-display font-black text-lg text-ink">Pasang FamSpace</h3>
         </div>
         <button type="button" onclick="closePwaGuideModal()" class="w-8 h-8 bg-cream hover:bg-coral hover:text-white brutal-border text-ink font-bold flex items-center justify-center cursor-pointer">✕</button>
       </div>
