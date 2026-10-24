@@ -74,9 +74,14 @@
       <h2 class="text-xl sm:text-2xl font-black font-display text-ink mt-1">Linimasa & Pengeluaran Trip</h2>
       <p class="text-xs font-medium text-ink/70">Kemana aja, ngapain aja, dan berapa pengeluarannya — semua terdokumentasi rapi.</p>
     </div>
-    <button type="button" onclick="openTimelineModal()" class="hidden md:inline-flex items-center justify-center px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider text-center">
-      + Tambah Momen / Trip Baru
-    </button>
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="button" onclick="openTimelineCategoryManageModal()" class="flex-1 sm:flex-none inline-flex items-center justify-center px-3.5 py-2.5 bg-cream hover:bg-accent text-ink brutal-border text-xs font-black uppercase tracking-wider shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">
+        🏷️ Kelola Kategori
+      </button>
+      <button type="button" onclick="openTimelineModal()" class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider text-center">
+        + Tambah Momen / Trip Baru
+      </button>
+    </div>
   </div>
 
   <!-- PETA JEJAK LIBURAN & MOMEN KELUARGA (LEAFLET) -->
@@ -145,6 +150,7 @@
 
 @push('modals')
   @include('modules.timeline.modal')
+  @include('modules.timeline.category-modal')
 @endpush
 
 @push('scripts')
@@ -719,6 +725,7 @@
 
   function closeTimelineModal() {
     $('#timeline-modal').addClass('hidden');
+    if (typeof closeTimelineCategoryManageModal === 'function') closeTimelineCategoryManageModal();
     if (typeof removeUploadedFile === 'function') removeUploadedFile();
     $('#popover-assignee').addClass('hidden');
     $('#popover-category').addClass('hidden');
@@ -767,6 +774,8 @@
 
     const fileInput = document.getElementById('minput-file');
     if (fileInput) fileInput.value = '';
+    const cameraInput = document.getElementById('minput-camera');
+    if (cameraInput) cameraInput.value = '';
 
     if (moment.image_url) {
       document.getElementById('upload-preview-img').src = moment.image_url;
@@ -804,6 +813,10 @@
     const actionUrl = $form.attr('action');
 
     const formData = new FormData($form[0]);
+    const cameraInput = document.getElementById('minput-camera');
+    if (cameraInput && cameraInput.files && cameraInput.files[0] && (!formData.get('image') || formData.get('image').size === 0)) {
+      formData.set('image', cameraInput.files[0]);
+    }
     $btn.prop('disabled', true).html('Menyimpan...');
     showLoading('Menyimpan momen liburan...');
 
@@ -831,8 +844,6 @@
         }
         if (typeof showToast === 'function') {
           showToast(msg, 'error');
-        } else {
-          alert(msg);
         }
       },
       complete: function() {
@@ -842,52 +853,342 @@
     });
   });
 
-  function promptAddNewTimelineCategory() {
-    const name = window.prompt('Masukkan nama kategori liburan/trip baru:');
-    if (!name || !name.trim()) return;
+  /* ========================================================
+   * KELOLA KATEGORI LINIMASA (SERUPA MODUL FINANCE)
+   * ======================================================== */
+  let timelineCategoryDataTable = null;
+  let timelineCategoryMobileStart = 5;
+  let timelineCategoryMobileTotal = {{ isset($categories) ? count($categories) : 0 }};
+  let timelineCategoryMobileLoading = false;
 
-    const trimmed = name.trim();
-    $.ajax({
-      url: "{{ route('timeline.categories.store') }}",
-      type: 'POST',
-      data: {
-        _token: '{{ csrf_token() }}',
-        name: trimmed,
-        icon: '📸'
+  function openTimelineCategoryManageModal() {
+    $('#timeline-category-manage-modal').removeClass('hidden');
+    switchTimelineCategoryTab('list');
+    setTimeout(() => {
+      initTimelineCategoryDataTable();
+      refreshTimelineCategoryMobile();
+    }, 50);
+  }
+  window.openTimelineCategoryManageModal = openTimelineCategoryManageModal;
+  window.promptAddNewTimelineCategory = openTimelineCategoryManageModal;
+
+  function closeTimelineCategoryManageModal() {
+    $('#timeline-category-manage-modal').addClass('hidden');
+  }
+  window.closeTimelineCategoryManageModal = closeTimelineCategoryManageModal;
+
+  function switchTimelineCategoryTab(tab) {
+    if (tab === 'list') {
+      $('#tab-timeline-cat-list').removeClass('hidden');
+      $('#tab-timeline-cat-form').addClass('hidden');
+      $('#tab-btn-timeline-cat-list').removeClass('bg-cream text-ink').addClass('bg-ink text-white');
+      $('#tab-btn-timeline-cat-form').removeClass('bg-ink text-white').addClass('bg-cream text-ink');
+    } else {
+      $('#tab-timeline-cat-list').addClass('hidden');
+      $('#tab-timeline-cat-form').removeClass('hidden');
+      $('#tab-btn-timeline-cat-form').removeClass('bg-cream text-ink').addClass('bg-ink text-white');
+      $('#tab-btn-timeline-cat-list').removeClass('bg-ink text-white').addClass('bg-cream text-ink');
+      if (!$('#timeline-category-input-id').val()) {
+        resetTimelineCategoryForm();
+      }
+    }
+  }
+  window.switchTimelineCategoryTab = switchTimelineCategoryTab;
+
+  function resetTimelineCategoryForm() {
+    $('#timeline-category-modal-form')[0].reset();
+    $('#timeline-category-input-id').val('');
+    $('#timeline-category-modal-method').val('POST');
+    $('#timeline-category-modal-form').attr('action', "{{ route('timeline.categories.store') }}");
+    $('#timeline-category-btn-submit').html('Simpan Kategori &rarr;');
+    $('#timeline-category-input-icon').val('📸');
+  }
+  window.resetTimelineCategoryForm = resetTimelineCategoryForm;
+
+  function openEditTimelineCategoryForm(cat) {
+    resetTimelineCategoryForm();
+    $('#timeline-category-input-id').val(cat.id);
+    $('#timeline-category-modal-method').val('PUT');
+    $('#timeline-category-modal-form').attr('action', `/timeline/categories/${cat.id}`);
+    $('#timeline-category-input-name').val(cat.name);
+    $('#timeline-category-input-icon').val(cat.icon || '📸');
+    $('#timeline-category-btn-submit').html('Perbarui Kategori &rarr;');
+    switchTimelineCategoryTab('form');
+  }
+  window.openEditTimelineCategoryForm = openEditTimelineCategoryForm;
+
+  function initTimelineCategoryDataTable() {
+    if (timelineCategoryDataTable) {
+      timelineCategoryDataTable.columns.adjust().draw();
+      timelineCategoryDataTable.ajax.reload(null, false);
+      return;
+    }
+
+    timelineCategoryDataTable = $('#timeline-category-datatable').DataTable({
+      processing: true,
+      serverSide: true,
+      ajax: {
+        url: "{{ route('timeline.categories.paginate') }}",
+        type: 'GET'
       },
+      pageLength: 5,
+      lengthMenu: [5, 10, 25],
+      language: {
+        search: "Cari Kategori:",
+        lengthMenu: "Tampil _MENU_ data",
+        info: "Menampilkan _START_-_END_ dari _TOTAL_ kategori",
+        infoEmpty: "Menampilkan 0 kategori",
+        infoFiltered: "(disaring dari _MAX_ total data)",
+        emptyTable: "Belum ada kategori yang terdaftar.",
+        processing: "Memuat master kategori...",
+        paginate: {
+          first: "&laquo;",
+          previous: "&larr; Prev",
+          next: "Next &rarr;",
+          last: "&raquo;"
+        }
+      },
+      columns: [
+        {
+          data: 'name',
+          name: 'name',
+          className: 'p-2.5',
+          render: function(data, type, row) {
+            return `
+              <div class="flex items-center gap-2">
+                <span class="text-base flex-shrink-0">${row.icon || '📸'}</span>
+                <span class="font-black text-ink">${escapeHtml(data)}</span>
+              </div>
+            `;
+          }
+        },
+        {
+          data: 'type_label',
+          name: 'type',
+          className: 'p-2.5',
+          render: function(data) {
+            return `<span class="px-1.5 py-0.5 bg-brand text-white brutal-border text-[9px] font-bold uppercase font-mono">${escapeHtml(data)}</span>`;
+          }
+        },
+        {
+          data: null,
+          orderable: false,
+          searchable: false,
+          className: 'p-2.5 text-center',
+          render: function(data, type, row) {
+            const catJson = JSON.stringify(row).replace(/"/g, '&quot;');
+            if (row.is_custom) {
+              return `
+                <div class="flex items-center justify-center gap-1.5">
+                  <button 
+                    type="button" 
+                    onclick='openEditTimelineCategoryForm(${catJson})' 
+                    class="px-2 py-0.5 bg-accent hover:bg-white text-ink brutal-border text-[10px] font-bold shadow-brutal-sm"
+                    title="Edit Kategori"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button 
+                    type="button" 
+                    onclick="confirmDelete('${row.destroy_url}', 'kategori ${escapeHtml(row.name)}')" 
+                    class="px-2 py-0.5 bg-coral hover:bg-ink text-white brutal-border text-[10px] font-bold shadow-brutal-sm"
+                    title="Hapus Kategori"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              `;
+            }
+            return `<span class="text-[10px] font-mono text-ink/50 italic">Bawaan Sistem</span>`;
+          }
+        }
+      ]
+    });
+  }
+
+  function renderMobileTimelineCategoryCard(row) {
+    const catJson = JSON.stringify(row).replace(/"/g, '&quot;');
+    const actions = row.is_custom ? `
+      <button 
+        type="button" 
+        onclick='openEditTimelineCategoryForm(${catJson})' 
+        class="flex-1 py-1.5 bg-accent hover:bg-white text-ink brutal-border text-xs font-bold text-center shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
+      >
+        ✏️ Edit
+      </button>
+      <button 
+        type="button" 
+        onclick="confirmDelete('${row.destroy_url}', 'kategori ${escapeHtml(row.name)}')" 
+        class="px-3 py-1.5 bg-coral hover:bg-ink text-white brutal-border text-xs font-bold text-center shadow-brutal-sm"
+      >
+        🗑️ Hapus
+      </button>
+    ` : `<span class="text-[10px] font-mono text-ink/50 italic py-1">Kategori bawaan sistem</span>`;
+
+    return `
+      <div class="p-3 bg-cream brutal-border space-y-2 mobile-category-card" data-id="${row.id}">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-xl flex-shrink-0">${row.icon || '📸'}</span>
+            <span class="font-black text-xs sm:text-sm text-ink truncate">${escapeHtml(row.name)}</span>
+          </div>
+          <span class="px-2 py-0.5 bg-brand text-white brutal-border text-[9px] font-bold uppercase font-mono flex-shrink-0">
+            Liburan & Trip
+          </span>
+        </div>
+        <div class="pt-2 border-t border-ink/15 flex items-center justify-end gap-2">
+          ${actions}
+        </div>
+      </div>
+    `;
+  }
+
+  function fetchTimelineCategoryMobileData(append = false) {
+    if (timelineCategoryMobileLoading) return;
+    timelineCategoryMobileLoading = true;
+
+    const $btn = $('#timeline-category-mobile-load-more');
+    const origHtml = $btn.html();
+    $btn.prop('disabled', true).html('<span>⏳ Memuat...</span>');
+
+    const start = append ? timelineCategoryMobileStart : 0;
+    $.ajax({
+      url: "{{ route('timeline.categories.paginate') }}",
+      type: 'GET',
+      data: { start: start, length: 5 },
       dataType: 'json',
       success: function(res) {
-        if (res && res.success && res.category) {
-          const newCat = {
-            id: res.category.id,
-            value: res.category.id,
-            name: res.category.name,
-            text: `${res.category.icon || '📸'} ${res.category.name}`
-          };
-          if (!comboboxData.category.trip) comboboxData.category.trip = [];
-          comboboxData.category.trip.push(newCat);
-          selectComboboxOption('category', newCat.id, newCat.text);
-          if (typeof renderComboboxOptions === 'function') {
-            renderComboboxOptions('category');
-          }
-          if (typeof showToast === 'function') {
-            showToast(res.message || 'Kategori linimasa berhasil ditambahkan!', 'success');
-          } else {
-            alert(res.message || 'Kategori linimasa berhasil ditambahkan!');
-          }
+        const rows = res.data || [];
+        timelineCategoryMobileTotal = res.recordsFiltered !== undefined ? res.recordsFiltered : (res.recordsTotal || 0);
+
+        if (!append) {
+          $('#timeline-category-mobile-card-list').empty();
+          timelineCategoryMobileStart = 0;
+        }
+
+        if (rows.length === 0 && !append) {
+          $('#timeline-category-mobile-card-list').html(`
+            <div class="p-6 text-center bg-cream brutal-border font-mono text-xs font-bold text-ink/60">
+              Tidak ada kategori yang terdaftar.
+            </div>
+          `);
+        } else {
+          rows.forEach(function(row) {
+            $('#timeline-category-mobile-card-list').append(renderMobileTimelineCategoryCard(row));
+          });
+          timelineCategoryMobileStart += rows.length;
+        }
+
+        $('#timeline-category-mobile-count').text(timelineCategoryMobileStart);
+        $('#timeline-category-mobile-total').text(timelineCategoryMobileTotal);
+
+        if (timelineCategoryMobileStart >= timelineCategoryMobileTotal || rows.length === 0) {
+          $('#timeline-category-mobile-load-more').addClass('hidden');
+          $('#timeline-category-mobile-all-loaded').removeClass('hidden');
+        } else {
+          $('#timeline-category-mobile-load-more').removeClass('hidden');
+          $('#timeline-category-mobile-all-loaded').addClass('hidden');
         }
       },
-      error: function(xhr) {
-        const msg = xhr.responseJSON?.message || 'Gagal menambahkan kategori linimasa.';
-        if (typeof showToast === 'function') {
-          showToast(msg, 'error');
-        } else {
-          alert(msg);
-        }
+      error: function(err) {
+        console.error('Gagal memuat kategori mobile:', err);
+      },
+      complete: function() {
+        timelineCategoryMobileLoading = false;
+        $btn.prop('disabled', false).html(origHtml);
       }
     });
   }
-  window.promptAddNewTimelineCategory = promptAddNewTimelineCategory;
+
+  function loadMoreTimelineCategoryMobile() {
+    fetchTimelineCategoryMobileData(true);
+  }
+  window.loadMoreTimelineCategoryMobile = loadMoreTimelineCategoryMobile;
+
+  function refreshTimelineCategoryMobile() {
+    timelineCategoryMobileStart = 0;
+    fetchTimelineCategoryMobileData(false);
+  }
+  window.refreshTimelineCategoryMobile = refreshTimelineCategoryMobile;
+
+  // Form submit handler
+  $('#timeline-category-modal-form').on('submit', function(e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $('#timeline-category-btn-submit');
+    const origText = $btn.html();
+    const actionUrl = $form.attr('action');
+
+    const formData = new FormData($form[0]);
+    $btn.prop('disabled', true).html('Menyimpan...');
+
+    $.ajax({
+      url: actionUrl,
+      type: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: 'json',
+      success: function(res) {
+        if (typeof showToast === 'function') {
+          showToast(res.message || 'Kategori linimasa berhasil disimpan!');
+        }
+        if (res.category) {
+          const cat = res.category;
+          const item = {
+            id: cat.id,
+            value: cat.id,
+            name: cat.name,
+            text: (cat.icon || '📸') + ' ' + cat.name
+          };
+          if (!comboboxData.category.trip) comboboxData.category.trip = [];
+          const idx = comboboxData.category.trip.findIndex(c => String(c.id) === String(cat.id));
+          if (idx >= 0) {
+            comboboxData.category.trip[idx] = item;
+          } else {
+            comboboxData.category.trip.push(item);
+          }
+          selectComboboxOption('category', item.id, item.text);
+          if (typeof renderComboboxOptions === 'function') {
+            renderComboboxOptions('category');
+          }
+        }
+        resetTimelineCategoryForm();
+        switchTimelineCategoryTab('list');
+        if (timelineCategoryDataTable) {
+          timelineCategoryDataTable.ajax.reload(null, false);
+        }
+        refreshTimelineCategoryMobile();
+      },
+      error: function(xhr) {
+        let msg = 'Gagal menyimpan kategori.';
+        if (xhr.responseJSON?.message) msg = xhr.responseJSON.message;
+        else if (xhr.responseJSON?.errors) msg = Object.values(xhr.responseJSON.errors).flat().join(' ');
+        if (typeof showToast === 'function') showToast(msg, 'error');
+      },
+      complete: function() {
+        $btn.prop('disabled', false).html(origText);
+      }
+    });
+  });
+
+  // Sinkronkan reloadCurrentModuleData agar refresh kategori dan linimasa saat ada delete
+  const origTimelineModuleReload = window.reloadCurrentModuleData;
+  window.reloadCurrentModuleData = function(hint) {
+    if (typeof origTimelineModuleReload === 'function') {
+      origTimelineModuleReload(hint);
+    }
+    if (timelineDataTable) {
+      timelineDataTable.ajax.reload(null, false);
+    }
+    if (timelineCategoryDataTable) {
+      timelineCategoryDataTable.ajax.reload(null, false);
+    }
+    if (typeof refreshTimelineCategoryMobile === 'function') {
+      refreshTimelineCategoryMobile();
+    }
+    loadMainMapPoints();
+  };
 
   // Global helper fallback
   window.openModal = function(type) {

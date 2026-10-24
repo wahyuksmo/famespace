@@ -126,6 +126,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/timeline', [TimelineController::class, 'store'])->name('timeline.store');
         Route::put('/timeline/{id}', [TimelineController::class, 'update'])->name('timeline.update');
         Route::delete('/timeline/{id}', [TimelineController::class, 'destroy'])->name('timeline.destroy');
+        Route::get('/timeline/categories/paginate', [TimelineController::class, 'paginateCategories'])->name('timeline.categories.paginate');
         Route::post('/timeline/categories', [TimelineController::class, 'storeCategory'])->name('timeline.categories.store');
+        Route::put('/timeline/categories/{id}', [TimelineController::class, 'updateCategory'])->name('timeline.categories.update');
+        Route::delete('/timeline/categories/{id}', [TimelineController::class, 'destroyCategory'])->name('timeline.categories.destroy');
     });
 });

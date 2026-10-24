@@ -2148,6 +2148,8 @@
     // Receipt preview
     const fileInput = document.getElementById('minput-file');
     if (fileInput) fileInput.value = '';
+    const cameraInput = document.getElementById('minput-camera');
+    if (cameraInput) cameraInput.value = '';
     $('#finance-input-remove-receipt').val('0');
 
     if (trx.receipt_url) {
@@ -2176,6 +2178,10 @@
     const rawAmount = $('#finance-input-amount').val().replace(/[^0-9]/g, '');
     const formData = new FormData($form[0]);
     formData.set('amount', rawAmount || '0');
+    const cameraInput = document.getElementById('minput-camera');
+    if (cameraInput && cameraInput.files && cameraInput.files[0] && (!formData.get('receipt') || formData.get('receipt').size === 0)) {
+      formData.set('receipt', cameraInput.files[0]);
+    }
 
     $btn.prop('disabled', true).html('Menyimpan...');
     showLoading('Menyimpan data kas...');

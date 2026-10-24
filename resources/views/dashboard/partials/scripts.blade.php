@@ -1248,6 +1248,13 @@
   window.previewProfileAvatar = function(input) {
     if (input.files && input.files[0]) {
       const file = input.files[0];
+      if (input.id === 'profile-camera-input') {
+        const fileInput = document.getElementById('profile-avatar-input');
+        if (fileInput) fileInput.value = '';
+      } else if (input.id === 'profile-avatar-input') {
+        const cameraInput = document.getElementById('profile-camera-input');
+        if (cameraInput) cameraInput.value = '';
+      }
       if (file.size > 2 * 1024 * 1024) {
         showToast('Ukuran foto terlalu besar. Maksimal 2MB!', 'error');
         input.value = '';
@@ -1266,6 +1273,7 @@
 
   window.resetProfileAvatar = function() {
     $('#profile-avatar-input').val('');
+    $('#profile-camera-input').val('');
     $('#profile-remove-avatar-input').val('1');
     $('#profile-modal-avatar-img').attr('src', '').addClass('hidden');
     $('#profile-modal-avatar-placeholder').removeClass('hidden');
@@ -1278,6 +1286,10 @@
     if (!form) return;
 
     const formData = new FormData(form);
+    const cameraInput = document.getElementById('profile-camera-input');
+    if (cameraInput && cameraInput.files && cameraInput.files[0] && (!formData.get('avatar') || formData.get('avatar').size === 0)) {
+      formData.set('avatar', cameraInput.files[0]);
+    }
     const $btn = $('#profile-submit-btn');
     const $spinner = $('#profile-submit-spinner');
     const $text = $('#profile-submit-text');

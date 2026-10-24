@@ -237,10 +237,10 @@
     </div>
 
     <!-- FOOTER INFO -->
-    <div class="flex items-center justify-between text-[11px] font-mono font-bold text-ink/60 px-1">
+    <!-- <div class="flex items-center justify-between text-[11px] font-mono font-bold text-ink/60 px-1">
       <a href="{{ route('landing') }}" class="hover:text-brand hover:underline flex items-center gap-1">&larr; Landing Page</a>
       <span class="text-[10px] px-1 bg-white brutal-border">v1.0</span>
-    </div>
+    </div> -->
   </div>
 
 </aside>

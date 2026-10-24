@@ -270,4 +270,81 @@ class TimelineController extends Controller
             return redirect()->route('timeline.index')->with('error', $e->getMessage());
         }
     }
+
+    public function paginateCategories(Request $request)
+    {
+        $familyId = Auth::user()->family_id;
+
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 5);
+        $searchParam = $request->input('search');
+        $search = is_array($searchParam) ? (string) ($searchParam['value'] ?? '') : (string) ($searchParam ?? '');
+
+        $dt = $this->timelineRepo->getDataTablesCategories($familyId, $start, $length, $search);
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $dt['recordsTotal'],
+            'recordsFiltered' => $dt['recordsFiltered'],
+            'data' => $dt['data'],
+        ]);
+    }
+
+    public function updateCategory(int $id, Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:50',
+            'icon' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:20',
+        ]);
+
+        $familyId = Auth::user()->family_id;
+
+        try {
+            $cat = $this->timelineService->saveCategory($familyId, $validated, $id);
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Kategori linimasa berhasil diperbarui!',
+                    'category' => [
+                        'id' => $cat->id,
+                        'name' => $cat->name,
+                        'icon' => $cat->icon,
+                        'color' => $cat->color,
+                    ],
+                ]);
+            }
+
+            return redirect()->route('timeline.index')->with('success', 'Kategori linimasa berhasil diperbarui!');
+        } catch (Throwable $e) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+
+            return redirect()->route('timeline.index')->with('error', $e->getMessage());
+        }
+    }
+
+    public function destroyCategory(int $id, Request $request)
+    {
+        $familyId = Auth::user()->family_id;
+
+        try {
+            $this->timelineService->deleteCategory($id, $familyId);
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Kategori linimasa berhasil dihapus!']);
+            }
+
+            return redirect()->route('timeline.index')->with('success', 'Kategori linimasa berhasil dihapus!');
+        } catch (Throwable $e) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+
+            return redirect()->route('timeline.index')->with('error', $e->getMessage());
+        }
+    }
 }

@@ -281,19 +281,43 @@
         <label for="media_file_input" class="text-xs font-mono font-black uppercase tracking-wider text-ink block">
           Pilih Foto atau Video <span class="text-coral">*</span>
         </label>
-        <div id="file-dropzone" class="p-4 bg-cream brutal-border border-dashed border-2 text-center cursor-pointer hover:bg-accent/20 transition-colors">
+        <div id="file-dropzone" class="p-4 bg-cream brutal-border border-dashed border-2 text-center transition-colors">
           <input type="file" 
                  id="media_file_input" 
                  name="media_file" 
                  required 
                  accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" 
-                 onchange="handleFileSelected(this)"
+                 onchange="handleMediaFileSelected(this)"
+                 class="hidden">
+          <input type="file" 
+                 id="media_camera_input" 
+                 accept="image/*" 
+                 capture="environment" 
+                 onchange="handleCameraSelected(this)"
                  class="hidden">
           
           <!-- DEFAULT DROPZONE STATE -->
-          <div id="dropzone-empty" class="space-y-1.5 py-3">
+          <div id="dropzone-empty" class="space-y-2.5 py-3">
             <span class="text-3xl block">📁</span>
-            <div class="text-xs font-mono font-bold text-ink">Klik untuk memilih berkas media</div>
+            <div class="text-xs font-mono font-bold text-ink">Pilih sumber foto atau video:</div>
+            <div class="flex items-center justify-center gap-2 flex-wrap">
+              <button 
+                type="button" 
+                onclick="document.getElementById('media_camera_input').click()" 
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent hover:bg-accent/80 text-ink brutal-border text-xs font-black shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] cursor-pointer transition-all"
+              >
+                <span>📸</span>
+                <span>Buka Kamera</span>
+              </button>
+              <button 
+                type="button" 
+                onclick="document.getElementById('media_file_input').click()" 
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-cream text-ink brutal-border text-xs font-black shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] cursor-pointer transition-all"
+              >
+                <span>📁</span>
+                <span>Pilih Berkas / Galeri</span>
+              </button>
+            </div>
             <div class="text-[10px] font-mono text-ink/60">Foto JPG/PNG/WEBP (maks 5MB) atau Video MP4/MOV (maks 25MB)</div>
           </div>
 
@@ -394,15 +418,30 @@
                   class="w-full p-2.5 bg-cream brutal-border font-mono text-xs text-ink focus:bg-white focus:outline-none">{{ $album->description }}</textarea>
       </div>
 
-      <div class="space-y-1">
+      <div class="space-y-1.5">
         <label for="edit_album_cover" class="text-xs font-mono font-black uppercase tracking-wider text-ink block">
           Ganti Sampul Album (Opsional)
         </label>
-        <input type="file" 
-               id="edit_album_cover" 
-               name="cover_image" 
-               accept="image/jpeg,image/png,image/webp" 
-               class="w-full p-2 bg-cream brutal-border font-mono text-[11px] text-ink file:mr-3 file:py-1 file:px-2.5 file:brutal-border file:bg-white file:font-mono file:font-bold file:text-xs">
+        <div class="flex items-center gap-2">
+          <input type="file" 
+                 id="edit_album_cover" 
+                 name="cover_image" 
+                 accept="image/jpeg,image/png,image/webp" 
+                 class="w-full p-2 bg-cream brutal-border font-mono text-[11px] text-ink file:mr-3 file:py-1 file:px-2.5 file:brutal-border file:bg-white file:font-mono file:font-bold file:text-xs">
+          <input type="file" 
+                 id="edit_album_cover_camera" 
+                 accept="image/*" 
+                 capture="environment" 
+                 class="hidden" 
+                 onchange="handleAlbumCoverCamera(this, 'edit_album_cover')">
+          <button type="button" 
+                  onclick="document.getElementById('edit_album_cover_camera').click()" 
+                  class="px-2.5 py-2 bg-accent hover:bg-accent/80 text-ink brutal-border text-xs font-black shadow-brutal-sm shrink-0 flex items-center gap-1 cursor-pointer" 
+                  title="Ambil foto sampul dengan kamera">
+            <span>📸</span>
+            <span class="hidden sm:inline">Kamera</span>
+          </button>
+        </div>
       </div>
 
       <div class="flex items-center justify-end gap-2 pt-2 border-t-2 border-ink">
@@ -466,10 +505,33 @@
 
   // Click on dropzone triggers hidden file input
   document.getElementById('file-dropzone').addEventListener('click', function(e) {
-    if (e.target.tagName !== 'BUTTON' && e.target.id !== 'media_file_input') {
+    if (e.target.tagName !== 'BUTTON' && !e.target.closest('button') && e.target.id !== 'media_file_input' && e.target.id !== 'media_camera_input') {
       document.getElementById('media_file_input').click();
     }
   });
+
+  function handleMediaFileSelected(input) {
+    const cameraInput = document.getElementById('media_camera_input');
+    if (cameraInput) {
+      cameraInput.value = '';
+      cameraInput.name = '';
+    }
+    input.name = 'media_file';
+    handleFileSelected(input);
+  }
+
+  function handleCameraSelected(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const mediaInput = document.getElementById('media_file_input');
+    if (mediaInput) {
+      mediaInput.removeAttribute('required');
+      mediaInput.name = '';
+      mediaInput.value = '';
+    }
+    input.name = 'media_file';
+    handleFileSelected(input);
+  }
 
   function handleFileSelected(input) {
     const file = input.files && input.files[0];
@@ -551,6 +613,13 @@
   function clearSelectedFile() {
     const input = document.getElementById('media_file_input');
     input.value = "";
+    input.name = "media_file";
+    input.required = true;
+    const cameraInput = document.getElementById('media_camera_input');
+    if (cameraInput) {
+      cameraInput.value = "";
+      cameraInput.name = "";
+    }
     document.getElementById('dropzone-empty').classList.remove('hidden');
     document.getElementById('dropzone-preview').classList.add('hidden');
     document.getElementById('preview-image').classList.add('hidden');
@@ -624,9 +693,26 @@
     }
   });
 
+  function handleAlbumCoverCamera(cameraInput, targetInputId) {
+    const file = cameraInput.files && cameraInput.files[0];
+    if (!file) return;
+    const targetInput = document.getElementById(targetInputId);
+    if (targetInput && window.DataTransfer) {
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        targetInput.files = dt.files;
+      } catch (e) {}
+    }
+  }
+
   function openEditAlbumModal(id, titleText, descText) {
     document.getElementById('edit_album_title').value = titleText || '';
     document.getElementById('edit_album_description').value = descText || '';
+    const editCover = document.getElementById('edit_album_cover');
+    if (editCover) editCover.value = '';
+    const camCover = document.getElementById('edit_album_cover_camera');
+    if (camCover) camCover.value = '';
     document.getElementById('album-modal').classList.remove('hidden');
   }
 

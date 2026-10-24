@@ -124,9 +124,25 @@ class TimelineService
         });
     }
 
-    public function saveCategory(string $familyId, array $data): Category
+    public function saveCategory(string $familyId, array $data, ?int $id = null): Category
     {
         $name = trim($data['name']);
+
+        if ($id) {
+            $cat = $this->timelineRepo->findCategoryInFamily($id, $familyId);
+            if (! $cat) {
+                throw new Exception('Kategori tidak ditemukan.');
+            }
+            if (is_null($cat->family_id)) {
+                throw new Exception('Kategori bawaan sistem tidak dapat diubah.');
+            }
+
+            return $this->timelineRepo->updateCategory($cat, [
+                'name' => $name,
+                'icon' => $data['icon'] ?? $cat->icon,
+                'color' => $data['color'] ?? $cat->color,
+            ]);
+        }
 
         return Category::firstOrCreate([
             'family_id' => $familyId,
@@ -136,5 +152,19 @@ class TimelineService
             'icon' => $data['icon'] ?? '📸',
             'color' => $data['color'] ?? '#2F5233',
         ]);
+    }
+
+    public function deleteCategory(int $id, string $familyId): void
+    {
+        $cat = $this->timelineRepo->findCategoryInFamily($id, $familyId);
+        if (! $cat) {
+            throw new Exception('Kategori tidak ditemukan.');
+        }
+
+        if (is_null($cat->family_id)) {
+            throw new Exception('Kategori bawaan sistem tidak dapat dihapus.');
+        }
+
+        $this->timelineRepo->deleteCategory($cat);
     }
 }

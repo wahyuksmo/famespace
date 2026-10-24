@@ -1,5 +1,5 @@
 <!-- MODAL: KONFIRMASI HAPUS (NEO-BRUTALIST) -->
-<div id="confirm-delete-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeDeleteModal()">
+<div id="confirm-delete-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-[80] flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeDeleteModal()">
   <div class="bg-cream brutal-card max-w-sm sm:max-w-md w-full p-5 sm:p-6 relative modal-box space-y-4">
     
     <!-- HEADER -->

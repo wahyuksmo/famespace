@@ -21,6 +21,7 @@
       @csrf
       <input type="hidden" name="remove_avatar" id="profile-remove-avatar-input" value="0">
       <input type="file" id="profile-avatar-input" name="avatar" accept="image/*" class="hidden" onchange="previewProfileAvatar(this)">
+      <input type="file" id="profile-camera-input" accept="image/*" capture="user" class="hidden" onchange="previewProfileAvatar(this)">
 
       <!-- AVATAR SECTION -->
       <div class="p-4 bg-white brutal-border space-y-3">
@@ -49,15 +50,21 @@
           <div class="space-y-2 flex-1">
             <div class="flex flex-wrap gap-2">
               <button type="button" 
+                      onclick="document.getElementById('profile-camera-input').click()" 
+                      class="px-2.5 py-1.5 bg-accent text-ink hover:bg-accent/80 brutal-btn text-xs font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer">
+                <span>📸 Selfie</span>
+              </button>
+              
+              <button type="button" 
                       onclick="document.getElementById('profile-avatar-input').click()" 
-                      class="px-3 py-1.5 bg-brand text-white hover:bg-brand-dark brutal-btn text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
-                <span>📸 Pilih / Kamera</span>
+                      class="px-2.5 py-1.5 bg-brand text-white hover:bg-brand-dark brutal-btn text-xs font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer">
+                <span>🖼️ Galeri</span>
               </button>
               
               <button type="button" 
                       id="profile-remove-avatar-btn"
                       onclick="resetProfileAvatar()" 
-                      class="px-2.5 py-1.5 bg-white text-ink hover:bg-coral hover:text-white brutal-btn text-xs font-bold transition-colors flex items-center gap-1 {{ auth()->user()?->avatar_url ? '' : 'hidden' }}">
+                      class="px-2.5 py-1.5 bg-white text-ink hover:bg-coral hover:text-white brutal-btn text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer {{ auth()->user()?->avatar_url ? '' : 'hidden' }}">
                 <span>🗑️ Hapus</span>
               </button>
             </div>

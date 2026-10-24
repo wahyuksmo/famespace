@@ -886,6 +886,10 @@
     const actionUrl = $form.attr('action');
 
     const formData = new FormData($form[0]);
+    const cameraInput = document.getElementById('minput-camera');
+    if (cameraInput && cameraInput.files && cameraInput.files[0] && (!formData.get('attachment') || formData.get('attachment').size === 0)) {
+      formData.set('attachment', cameraInput.files[0]);
+    }
 
     $btn.prop('disabled', true).html('Menyimpan...');
     showLoading('Menyimpan agenda...');

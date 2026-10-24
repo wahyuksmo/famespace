@@ -273,15 +273,30 @@
                   class="w-full p-2.5 bg-cream brutal-border font-mono text-xs text-ink focus:bg-white focus:outline-none"></textarea>
       </div>
 
-      <div class="space-y-1">
+      <div class="space-y-1.5">
         <label for="album_cover" class="text-xs font-mono font-black uppercase tracking-wider text-ink block">
           Sampul Album (Opsional)
         </label>
-        <input type="file" 
-               id="album_cover" 
-               name="cover_image" 
-               accept="image/jpeg,image/png,image/webp" 
-               class="w-full p-2 bg-cream brutal-border font-mono text-[11px] text-ink file:mr-3 file:py-1 file:px-2.5 file:brutal-border file:bg-white file:font-mono file:font-bold file:text-xs">
+        <div class="flex items-center gap-2">
+          <input type="file" 
+                 id="album_cover" 
+                 name="cover_image" 
+                 accept="image/jpeg,image/png,image/webp" 
+                 class="w-full p-2 bg-cream brutal-border font-mono text-[11px] text-ink file:mr-3 file:py-1 file:px-2.5 file:brutal-border file:bg-white file:font-mono file:font-bold file:text-xs">
+          <input type="file" 
+                 id="album_cover_camera" 
+                 accept="image/*" 
+                 capture="environment" 
+                 class="hidden" 
+                 onchange="handleAlbumCoverCamera(this, 'album_cover')">
+          <button type="button" 
+                  onclick="document.getElementById('album_cover_camera').click()" 
+                  class="px-2.5 py-2 bg-accent hover:bg-accent/80 text-ink brutal-border text-xs font-black shadow-brutal-sm shrink-0 flex items-center gap-1 cursor-pointer" 
+                  title="Ambil foto sampul dengan kamera">
+            <span>📸</span>
+            <span class="hidden sm:inline">Kamera</span>
+          </button>
+        </div>
         <p class="text-[10px] font-mono text-ink/60">Foto JPG/PNG/WEBP maks 5MB.</p>
       </div>
 
@@ -323,6 +338,8 @@
     titleInput.value = "";
     descInput.value = "";
     document.getElementById('album_cover').value = "";
+    const camInput = document.getElementById('album_cover_camera');
+    if (camInput) camInput.value = "";
 
     modal.classList.remove('hidden');
     titleInput.focus();
@@ -342,9 +359,24 @@
     titleInput.value = titleText || "";
     descInput.value = descText || "";
     document.getElementById('album_cover').value = "";
+    const camInput = document.getElementById('album_cover_camera');
+    if (camInput) camInput.value = "";
 
     modal.classList.remove('hidden');
     titleInput.focus();
+  }
+
+  function handleAlbumCoverCamera(cameraInput, targetInputId) {
+    const file = cameraInput.files && cameraInput.files[0];
+    if (!file) return;
+    const targetInput = document.getElementById(targetInputId);
+    if (targetInput && window.DataTransfer) {
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        targetInput.files = dt.files;
+      } catch (e) {}
+    }
   }
 
   function closeAlbumModal() {

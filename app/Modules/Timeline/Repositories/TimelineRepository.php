@@ -132,4 +132,56 @@ class TimelineRepository
     {
         return Category::create($data);
     }
+
+    public function updateCategory(Category $category, array $data): Category
+    {
+        $category->update($data);
+
+        return $category;
+    }
+
+    public function deleteCategory(Category $category): bool
+    {
+        return (bool) $category->delete();
+    }
+
+    public function getDataTablesCategories(string $familyId, int $start = 0, int $length = 10, ?string $search = null): array
+    {
+        $query = Category::where(function ($q) use ($familyId) {
+            $q->where('family_id', $familyId)->orWhereNull('family_id');
+        })->where('type', 'timeline');
+
+        $recordsTotal = (clone $query)->count();
+
+        if ($search !== null && trim($search) !== '') {
+            $term = trim($search);
+            $query->where('name', 'like', "%{$term}%");
+        }
+
+        $recordsFiltered = (clone $query)->count();
+
+        $data = $query->orderByRaw('CASE WHEN family_id IS NOT NULL THEN 0 ELSE 1 END')
+            ->orderBy('name', 'asc')
+            ->skip($start)
+            ->take($length)
+            ->get()
+            ->map(function ($cat) {
+                return [
+                    'id' => $cat->id,
+                    'name' => $cat->name,
+                    'type' => $cat->type,
+                    'type_label' => 'Liburan & Trip',
+                    'icon' => $cat->icon ?: '📸',
+                    'color' => $cat->color,
+                    'is_custom' => ! is_null($cat->family_id),
+                    'destroy_url' => route('timeline.categories.destroy', $cat->id),
+                ];
+            });
+
+        return [
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data,
+        ];
+    }
 }
