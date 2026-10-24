@@ -35,12 +35,12 @@
   } elseif ($isEvents) {
     $centerAction = $isPro
       ? "if(window.vibrateDevice) window.vibrateDevice(12); if(typeof openCalendarModal === 'function') { openCalendarModal(); }"
-      : "if(window.vibrateDevice) window.vibrateDevice(20); if(typeof openPaywallModal === 'function') { openPaywallModal('calendar'); } else { alert('Fitur Agenda khusus FamSpace PRO!'); }";
+      : "if(window.vibrateDevice) window.vibrateDevice(20); if(typeof openPaywallModal === 'function') { openPaywallModal('calendar'); } else { alert('Fitur Agenda khusus FamKoji PRO!'); }";
     $centerLabel = "Agenda Baru";
   } elseif ($isTimeline) {
     $centerAction = $isPro
       ? "if(window.vibrateDevice) window.vibrateDevice(12); if(typeof openTimelineModal === 'function') { openTimelineModal(); }"
-      : "if(window.vibrateDevice) window.vibrateDevice(20); if(typeof openPaywallModal === 'function') { openPaywallModal('timeline'); } else { alert('Fitur Linimasa khusus FamSpace PRO!'); }";
+      : "if(window.vibrateDevice) window.vibrateDevice(20); if(typeof openPaywallModal === 'function') { openPaywallModal('timeline'); } else { alert('Fitur Linimasa khusus FamKoji PRO!'); }";
     $centerLabel = "Momen Baru";
   } else {
     $centerAction = "if(window.vibrateDevice) window.vibrateDevice(12); toggleMobileFabMenu();";

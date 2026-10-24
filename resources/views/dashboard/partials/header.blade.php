@@ -52,7 +52,7 @@
 
     @if($isPro)
       <!-- PRO BADGE -->
-      <span class="hidden sm:inline-flex items-center gap-1 px-2 py-1 bg-accent text-ink brutal-border shadow-brutal-sm font-mono font-black text-[10px] uppercase tracking-wider" title="Langganan FamSpace Pro Aktif">
+      <span class="hidden sm:inline-flex items-center gap-1 px-2 py-1 bg-accent text-ink brutal-border shadow-brutal-sm font-mono font-black text-[10px] uppercase tracking-wider" title="Langganan FamKoji Pro Aktif">
         <span>👑</span>
         <span>PRO</span>
       </span>

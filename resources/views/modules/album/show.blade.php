@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', $album->title . ' — Album Keluarga — ' . ($family->name ?? 'FamSpace'))
+@section('title', $album->title . ' — Album Keluarga — ' . ($family->name ?? 'FamKoji'))
 
 @section('content')
 <div class="space-y-6">
@@ -153,6 +153,16 @@
               </span>
             </div>
 
+            <!-- BANNER ACTIVE BADGE -->
+            @if($item->id === $family->banner_media_id)
+              <div class="absolute top-2 right-2 z-10">
+                <span class="px-1.5 py-0.5 bg-brand text-white brutal-border text-[9px] font-mono font-black shadow-[1px_1px_0px_#121614] flex items-center gap-1">
+                  <span>★</span>
+                  <span>BANNER</span>
+                </span>
+              </div>
+            @endif
+
             <!-- FILE SIZE BADGE -->
             <div class="absolute bottom-2 right-2 z-10">
               <span class="px-1.5 py-0.2 bg-white/90 text-ink brutal-border text-[8px] font-mono font-bold shadow-[1px_1px_0px_#121614]">
@@ -175,23 +185,43 @@
               @endif
             </div>
 
-            <div class="flex items-center justify-between text-[9px] font-mono text-ink/60 pt-1 border-t border-ink/10">
+            <div class="flex items-center justify-between text-[9px] font-mono text-ink/60 pt-1 border-t border-ink/10 gap-1">
               <span class="truncate">{{ $item->user->name ?? 'Anggota' }}</span>
 
-              @if($user->isParent() || $item->user_id === $user->id || $album->user_id === $user->id)
-                <form action="{{ route('albums.media.destroy', $item) }}" 
-                      method="POST" 
-                      onsubmit="return confirm('Hapus media ini dari album?');" 
-                      class="inline">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" 
-                          class="p-1 hover:bg-coral hover:text-white brutal-border text-ink text-[9px] leading-none transition-colors" 
-                          title="Hapus Media">
-                    🗑️
-                  </button>
-                </form>
-              @endif
+              <div class="flex items-center gap-1 shrink-0">
+                @if($item->isPhoto())
+                  @if($item->id === $family->banner_media_id)
+                    <form action="{{ route('albums.banner.remove') }}" method="POST" class="inline">
+                      @csrf
+                      <button type="submit" class="px-1.5 py-0.5 bg-brand text-white hover:bg-coral brutal-border text-[9px] font-mono font-black leading-none" title="Lepas dari banner beranda">
+                        ★ Banner Aktif
+                      </button>
+                    </form>
+                  @else
+                    <form action="{{ route('albums.media.set-banner', $item) }}" method="POST" class="inline">
+                      @csrf
+                      <button type="submit" class="px-1.5 py-0.5 bg-cream hover:bg-accent text-ink brutal-border text-[9px] font-mono font-bold leading-none shadow-[1px_1px_0px_#121614]" title="Jadikan banner di beranda">
+                        ☆ Banner
+                      </button>
+                    </form>
+                  @endif
+                @endif
+
+                @if($user->isParent() || $item->user_id === $user->id || $album->user_id === $user->id)
+                  <form action="{{ route('albums.media.destroy', $item) }}" 
+                        method="POST" 
+                        onsubmit="return confirm('Hapus media ini dari album?');" 
+                        class="inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" 
+                            class="p-1 hover:bg-coral hover:text-white brutal-border text-ink text-[9px] leading-none transition-colors" 
+                            title="Hapus Media">
+                      🗑️
+                    </button>
+                  </form>
+                @endif
+              </div>
             </div>
           </div>
 
@@ -243,12 +273,15 @@
     </div>
 
     <!-- CAPTION & DETAILS BAR -->
-    <div class="p-3 sm:p-4 bg-white border-t-2 border-ink space-y-1">
-      <div class="flex items-center justify-between gap-2">
-        <span id="lightbox-counter" class="px-2 py-0.5 bg-accent text-ink brutal-border text-[10px] font-mono font-black">
-          1 / 1
-        </span>
-        <span id="lightbox-meta" class="text-[10px] font-mono text-ink/60"></span>
+    <div class="p-3 sm:p-4 bg-white border-t-2 border-ink space-y-2">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <div class="flex items-center gap-2">
+          <span id="lightbox-counter" class="px-2 py-0.5 bg-accent text-ink brutal-border text-[10px] font-mono font-black">
+            1 / 1
+          </span>
+          <span id="lightbox-meta" class="text-[10px] font-mono text-ink/60"></span>
+        </div>
+        <div id="lightbox-banner-actions"></div>
       </div>
       <p id="lightbox-caption" class="text-xs sm:text-sm font-mono text-ink leading-relaxed"></p>
     </div>
@@ -647,6 +680,33 @@
     document.getElementById('lightbox-counter').innerText = `${currentLightboxIdx + 1} / ${mediaItems.length}`;
     document.getElementById('lightbox-meta').innerText = `${item.uploader} • ${item.date} (${item.size})`;
     document.getElementById('lightbox-caption').innerText = item.caption || item.file_name;
+
+    const bannerActions = document.getElementById('lightbox-banner-actions');
+    if (bannerActions) {
+      if (item.is_photo) {
+        if (item.is_banner) {
+          bannerActions.innerHTML = `
+            <form action="{{ route('albums.banner.remove') }}" method="POST" class="inline">
+              <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'}">
+              <button type="submit" class="px-2.5 py-1 bg-brand text-white hover:bg-coral brutal-border text-xs font-mono font-black flex items-center gap-1 shadow-brutal-sm">
+                <span>★</span> <span>Banner Beranda Aktif (Lepas)</span>
+              </button>
+            </form>
+          `;
+        } else {
+          bannerActions.innerHTML = `
+            <form action="/albums/media/${item.id}/set-banner" method="POST" class="inline">
+              <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'}">
+              <button type="submit" class="px-2.5 py-1 bg-cream hover:bg-accent text-ink brutal-border text-xs font-mono font-black flex items-center gap-1 shadow-brutal-sm transition-all active:scale-95">
+                <span>☆</span> <span>Jadikan Banner Beranda</span>
+              </button>
+            </form>
+          `;
+        }
+      } else {
+        bannerActions.innerHTML = '';
+      }
+    }
 
     // Prev / Next button states
     document.getElementById('lightbox-btn-prev').style.visibility = currentLightboxIdx > 0 ? 'visible' : 'hidden';

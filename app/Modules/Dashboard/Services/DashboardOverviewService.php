@@ -4,6 +4,7 @@ namespace App\Modules\Dashboard\Services;
 
 use App\Models\Family;
 use App\Models\Note;
+use App\Models\PantryItem;
 use App\Models\TimelineMoment;
 use App\Models\User;
 use App\Modules\Calendar\Repositories\EventRepository;
@@ -35,6 +36,7 @@ class DashboardOverviewService
         $eventPage = ($tab === 'calendar') ? $page : 1;
         $timelinePage = ($tab === 'timeline') ? $page : 1;
 
+        $family->loadMissing('bannerMedia.album');
         $members = $family->users()->orderBy('points', 'desc')->get();
         $allChores = $this->choreRepo->getFamilyChores($familyId);
         $chores = $this->choreRepo->getPaginatedFamilyChores($familyId, 5, 'page', $chorePage);
@@ -151,11 +153,25 @@ class DashboardOverviewService
             ->take(4)
             ->get();
 
+        // 7. Pantry & Inventory Alerts
+        $pantryAlerts = PantryItem::where('family_id', $familyId)
+            ->where(function ($q) {
+                $q->whereColumn('quantity', '<=', 'min_quantity')
+                    ->orWhere(function ($sub) {
+                        $sub->whereNotNull('expired_at')
+                            ->where('expired_at', '<=', now()->addDays(7)->toDateString());
+                    });
+            })
+            ->orderBy('expired_at')
+            ->take(5)
+            ->get();
+
         return [
             'family' => $family,
             'user' => $currentUser,
             'members' => $members,
             'pinnedNotes' => $pinnedNotes,
+            'pantryAlerts' => $pantryAlerts,
             'allChores' => $allChores,
             'chores' => $chores,
             'finance' => $financeData,

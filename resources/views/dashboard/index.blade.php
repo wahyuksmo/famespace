@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Ringkasan — ' . ($family->name ?? 'FamSpace') . ' — FamSpace')
+@section('title', 'Ringkasan — ' . ($family->name ?? 'FamKoji') . ' — FamKoji')
 
 @section('content')
   @include('modules.dashboard.overview')

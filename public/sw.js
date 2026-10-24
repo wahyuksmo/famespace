@@ -77,7 +77,7 @@ self.addEventListener('fetch', (event) => {
             <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Offline — FamSpace</title>
+              <title>Offline — FamKoji</title>
               <style>
                 body {
                   margin: 0; padding: 2rem 1.5rem; background: #FBF8EF; color: #121614;
@@ -102,7 +102,7 @@ self.addEventListener('fetch', (event) => {
               <div class="card">
                 <div class="emoji">📡🌿</div>
                 <h1>Koneksi Sedang Terputus</h1>
-                <p>Aplikasi FamSpace tidak dapat terhubung ke internet. Coba periksa koneksi Wi-Fi atau data seluler kamu.</p>
+                <p>Aplikasi FamKoji tidak dapat terhubung ke internet. Coba periksa koneksi Wi-Fi atau data seluler kamu.</p>
                 <button onclick="window.location.reload()">Coba Muat Ulang</button>
               </div>
             </body>

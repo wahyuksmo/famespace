@@ -1,5 +1,233 @@
 <!-- TAB 1: OVERVIEW / RINGKASAN UTAMA (MENDUKUNG PAKET FREE & PRO DENGAN OVERLAY UPGRADE) -->
-<div id="view-overview" class="space-y-3.5 sm:space-y-4">
+<div id="view-overview" class="space-y-4 sm:space-y-5">
+
+  <!-- SAPAAN HANGAT WAKTU (NEOBRUTALISM WELCOME CARD) -->
+  @php
+    $hour = (int) now()->format('H');
+    if ($hour >= 4 && $hour < 11) {
+      $greetingTime = 'Selamat Pagi';
+      $greetingEmoji = '🌅';
+      $warmQuote = 'Awali hari penuh berkah dan kehangatan bersama keluarga tercinta.';
+      $timeBadgeColor = 'bg-accent text-ink';
+    } elseif ($hour >= 11 && $hour < 15) {
+      $greetingTime = 'Selamat Siang';
+      $greetingEmoji = '☀️';
+      $warmQuote = 'Tetap semangat beraktivitas hari ini, jangan lupa jaga kesehatan dan rehat sejenak.';
+      $timeBadgeColor = 'bg-[#F9D949] text-ink';
+    } elseif ($hour >= 15 && $hour < 18) {
+      $greetingTime = 'Selamat Sore';
+      $greetingEmoji = '🌇';
+      $warmQuote = 'Hari perlahan senja, saatnya bersantai dan berkumpul kembali bersama orang tersayang.';
+      $timeBadgeColor = 'bg-coral text-white';
+    } else {
+      $greetingTime = 'Selamat Malam';
+      $greetingEmoji = '🌙';
+      $warmQuote = 'Selamat beristirahat dengan damai. Terima kasih atas cinta dan kerja kerasmu hari ini.';
+      $timeBadgeColor = 'bg-ink text-white';
+    }
+  @endphp
+
+  <div class="bg-white brutal-card brutal-tilt p-3.5 sm:p-4.5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-all">
+    
+    <!-- SISI KIRI: ICON ANIMASI & TEKS SAPAAN -->
+    <div class="flex items-start sm:items-center gap-3.5 min-w-0">
+      <!-- ICON CUACA / WAKTU HIDUP -->
+      <div class="w-12 h-12 sm:w-14 sm:h-14 bg-cream brutal-border p-2 flex items-center justify-center shrink-0 shadow-brutal-sm">
+        @if($hour >= 4 && $hour < 15)
+          <!-- SVG Matahari Berputar -->
+          <svg class="w-full h-full" viewBox="0 0 36 36" fill="none">
+            <g class="animate-sun-spin">
+              <path d="M18 2V5M18 31V34M2 18H5M31 18H34M6.7 6.7L9 9M27 27L29.3 29.3M6.7 29.3L9 27M27 9L29.3 6.7" stroke="#121614" stroke-width="2.5" stroke-linecap="round"/>
+            </g>
+            <circle cx="18" cy="18" r="8" fill="#F9D949" stroke="#121614" stroke-width="2.5" />
+            <circle cx="15.5" cy="16.5" r="1.2" fill="#121614" />
+            <circle cx="20.5" cy="16.5" r="1.2" fill="#121614" />
+            <path d="M15.5 19.5C16.2 20.8 19.8 20.8 20.5 19.5" stroke="#121614" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        @elseif($hour >= 15 && $hour < 18)
+          <!-- SVG Matahari Senja & Awan -->
+          <svg class="w-full h-full" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="17" r="8" fill="#E07A5F" stroke="#121614" stroke-width="2.5" />
+            <path d="M4 27H32" stroke="#121614" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M8 30.5H28" stroke="#121614" stroke-width="2" stroke-linecap="round"/>
+            <g class="animate-cloud-drift">
+              <path d="M13 20C13 18.5 14.5 17.5 16 18C16.8 16.5 19 16.5 20 18C21.5 18 22.5 19 22.5 20.5C22.5 22 21 22.5 19.5 22.5H14C13 22.5 13 21.5 13 20Z" fill="#FBF8EF" stroke="#121614" stroke-width="2" />
+            </g>
+          </svg>
+        @else
+          <!-- SVG Bulan Sabit & Bintang Berkedip -->
+          <svg class="w-full h-full" viewBox="0 0 36 36" fill="none">
+            <path class="animate-star-twinkle" d="M7 11L8 13L10 14L8 15L7 17L6 15L4 14L6 13L7 11Z" fill="#34D399" stroke="#121614" stroke-width="1.2" />
+            <path class="animate-star-twinkle" style="animation-delay: 1.1s;" d="M28 8L28.8 9.5L30.5 10.2L28.8 11L28 12.5L27.2 11L25.5 10.2L27.2 9.5L28 8Z" fill="#F9D949" stroke="#121614" stroke-width="1.2" />
+            <path class="animate-star-twinkle" style="animation-delay: 0.5s;" d="M29 25L29.6 26.2L31 26.8L29.6 27.4L29 28.6L28.4 27.4L27 26.8L28.4 26.2L29 25Z" fill="#81B0C4" stroke="#121614" stroke-width="1.2" />
+            <g class="pulse-gentle">
+              <path d="M20 9C15 9 11 13 11 18C11 23 15 27 20 27C22.5 27 24.5 26 26 24.5C21.5 24 18 20.5 18 16C18 12.8 19.8 10.2 22.5 9.4C21.7 9.1 20.8 9 20 9Z" fill="#F9D949" stroke="#121614" stroke-width="2.5" stroke-linejoin="round"/>
+              <circle cx="16" cy="17" r="1" fill="#121614"/>
+            </g>
+          </svg>
+        @endif
+      </div>
+
+      <div class="min-w-0 space-y-1">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="text-base sm:text-xl font-black font-display text-ink leading-tight">
+            {{ $greetingTime }}, <span class="text-brand">{{ $user->name }}</span>!
+          </h1>
+          <span class="px-2 py-0.5 {{ $timeBadgeColor }} brutal-border text-[9px] sm:text-[10px] font-mono font-black uppercase shadow-[1.5px_1.5px_0px_#121614] shrink-0 sticker-wiggle cursor-default">
+            {{ $greetingTime }}
+          </span>
+        </div>
+        <p class="text-xs sm:text-sm font-mono text-ink/80 leading-relaxed">
+          {{ $warmQuote }}
+        </p>
+      </div>
+    </div>
+
+    <!-- SISI KANAN: RETRO DIGITAL CLOCK + BADGE KELUARGA & TANGGAL -->
+    <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 self-start lg:self-center shrink-0 pt-2 lg:pt-0 border-t border-ink/10 lg:border-t-0 w-full lg:w-auto justify-between lg:justify-end">
+      
+      <!-- RETRO LCD DIGITAL CLOCK -->
+      <div class="bg-ink text-accent brutal-border px-3 py-1.5 flex items-center gap-2 shadow-[2px_2px_0px_#121614] shrink-0 font-mono select-none" title="Waktu Nyata Lokal (WIB)">
+        <span class="w-2 h-2 rounded-full bg-accent animate-ping"></span>
+        <div class="flex items-baseline text-xs sm:text-sm font-black tracking-widest text-[#34D399]">
+          <span id="greetings-clock-hours">--</span>
+          <span class="animate-colon-blink px-0.5 text-white">:</span>
+          <span id="greetings-clock-minutes">--</span>
+          <span class="animate-colon-blink px-0.5 text-white">:</span>
+          <span id="greetings-clock-seconds" class="text-white text-[11px] sm:text-xs">--</span>
+          <span class="text-[9px] text-accent/80 ml-1.5 font-bold uppercase">WIB</span>
+        </div>
+      </div>
+
+      <!-- RUANG KELUARGA & TANGGAL -->
+      <div class="flex items-center gap-1.5">
+        <div class="px-2.5 py-1.5 bg-cream brutal-border text-[11px] font-mono font-bold text-ink flex items-center gap-1.5 shadow-brutal-sm hover:translate-x-[-1px] hover:translate-y-[-1px] transition-transform">
+          <span>🏡</span>
+          <span class="font-black">{{ $family->name }}</span>
+        </div>
+        <div class="px-2.5 py-1.5 bg-white brutal-border text-[11px] font-mono font-bold text-ink/80 flex items-center gap-1.5 shadow-brutal-sm hover:translate-x-[-1px] hover:translate-y-[-1px] transition-transform">
+          <span>📅</span>
+          <span>{{ now()->locale('id')->isoFormat('D MMM Y') }}</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BANNER FOTO BERANDA DARI ALBUM (BINGKAI NEOBRUTALISM) -->
+  @php
+    $bannerMedia = $family->bannerMedia;
+  @endphp
+
+  @if($bannerMedia && $bannerMedia->isPhoto())
+    <div class="relative bg-white brutal-card brutal-tilt p-2 sm:p-2.5 overflow-hidden group">
+      <!-- BINGKAI FOTO NEOBRUTALISM (INTERAKTIF: KLIK BUKA LIGHTBOX) -->
+      <div onclick="showImagePreview('{{ $bannerMedia->file_url }}', '{{ addslashes($bannerMedia->caption ?? 'Banner Keluarga ' . $family->name) }}')"
+           class="relative w-full h-48 sm:h-60 md:h-72 lg:h-80 brutal-border overflow-hidden bg-ink/5 cursor-zoom-in"
+           title="Klik untuk melihat foto layar penuh">
+        <img src="{{ $bannerMedia->file_url }}" 
+             alt="{{ $bannerMedia->caption ?? 'Banner Beranda Keluarga ' . $family->name }}" 
+             class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out">
+
+        <!-- ZOOM HINT PILL (MUNCUL SAAT HOVER) -->
+        <div class="absolute inset-0 bg-ink/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none z-10">
+          <span class="px-3 py-1.5 bg-white text-ink brutal-border font-mono font-black text-xs uppercase tracking-wider shadow-brutal flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-200">
+            <span>🔍</span>
+            <span>Lihat Foto Penuh</span>
+          </span>
+        </div>
+
+        <!-- DEKORATIF: STAMP / BADGE NEOBRUTALIS DI SUDUT ATAS -->
+        <div class="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex items-center gap-1.5 flex-wrap z-20" onclick="event.stopPropagation()">
+          <span class="px-2.5 py-1 bg-accent text-ink brutal-border text-[10px] sm:text-xs font-mono font-black uppercase tracking-wider shadow-brutal-sm flex items-center gap-1.5 sticker-wiggle cursor-pointer"
+                onclick="showImagePreview('{{ $bannerMedia->file_url }}', '{{ addslashes($bannerMedia->caption ?? 'Banner Keluarga ' . $family->name) }}')"
+                title="Buka pratinjau foto">
+            <span>🖼️</span>
+            <span>Momen Keluarga</span>
+          </span>
+          @if($bannerMedia->album)
+            <a href="{{ route('albums.show', $bannerMedia->album) }}" 
+               class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 bg-white text-ink brutal-border text-[10px] font-mono font-bold hover:bg-cream shadow-brutal-sm transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] active:scale-95"
+               title="Lihat Album Foto">
+              <span>📁</span>
+              <span class="max-w-[150px] truncate">{{ $bannerMedia->album->title }}</span>
+            </a>
+          @endif
+        </div>
+
+        <!-- ACTION BUTTONS: KANAN ATAS -->
+        <div class="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 flex items-center gap-1.5 z-20" onclick="event.stopPropagation()">
+          <a href="{{ route('albums.index') }}" 
+             class="px-2.5 py-1 bg-white hover:bg-cream text-ink brutal-border text-[10px] sm:text-xs font-mono font-black uppercase tracking-wider shadow-brutal-sm flex items-center gap-1 transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] active:scale-95"
+             title="Pilih foto lain dari Album">
+            <span>🔄</span>
+            <span class="hidden sm:inline">Ganti Banner</span>
+          </a>
+          <form action="{{ route('albums.banner.remove') }}" method="POST" class="inline" onsubmit="return confirm('Lepas banner ini dari beranda?');">
+            @csrf
+            <button type="submit" 
+                    class="p-1 sm:px-2 sm:py-1 bg-white hover:bg-coral hover:text-white text-ink brutal-border text-[10px] sm:text-xs font-mono font-black shadow-brutal-sm transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] active:scale-95"
+                    title="Lepas banner beranda">
+              ✕
+            </button>
+          </form>
+        </div>
+
+        <!-- CAPTION STRIP NEOBRUTALIS (GRADIENT & OVERLAY) -->
+        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/90 via-ink/65 to-transparent pt-10 pb-3 sm:pb-3.5 px-3.5 sm:px-5 text-white flex flex-col sm:flex-row sm:items-end justify-between gap-1 z-20 pointer-events-none">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="px-1.5 py-0.2 bg-white/20 text-white brutal-border border-white text-[9px] font-mono font-black uppercase tracking-wider">
+                BERANDA
+              </span>
+              <h2 class="text-base sm:text-lg md:text-xl font-black font-display text-white tracking-wide drop-shadow-sm truncate">
+                Rumah Tangga {{ $family->name }}
+              </h2>
+            </div>
+            @if($bannerMedia->caption)
+              <p class="text-[11px] sm:text-xs font-mono text-white/95 line-clamp-1 drop-shadow-sm mt-0.5">
+                "{{ $bannerMedia->caption }}"
+              </p>
+            @endif
+          </div>
+          <div class="text-[10px] font-mono text-white/80 shrink-0 self-start sm:self-auto flex items-center gap-1.5">
+            <span>Foto oleh <strong class="text-white">{{ $bannerMedia->user->name ?? 'Keluarga' }}</strong></span>
+            <span>&bull;</span>
+            <span>{{ $bannerMedia->created_at->translatedFormat('d M Y') }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  @else
+    <!-- PLACEHOLDER BANNER BERANDA JIKA BELUM ADA FOTO DIPILIH -->
+    <div class="bg-white brutal-card brutal-tilt p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 border-dashed">
+      <div class="flex items-center gap-3.5 text-center sm:text-left">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-accent/40 brutal-border flex items-center justify-center text-2xl sm:text-3xl shrink-0 shadow-brutal-sm pulse-gentle">
+          🖼️
+        </div>
+        <div class="space-y-0.5">
+          <div class="flex items-center gap-2 justify-center sm:justify-start">
+            <span class="px-2 py-0.5 bg-brand-soft text-brand brutal-border font-mono text-[9px] font-black uppercase">
+              Momen Keluarga
+            </span>
+            <span class="text-xs font-mono text-ink/60">Belum ada banner aktif</span>
+          </div>
+          <h2 class="text-sm sm:text-base font-black font-display text-ink">
+            Pajang Foto Favorit Keluarga di Sini
+          </h2>
+          <p class="text-xs font-mono text-ink/70 max-w-xl">
+            Buka album foto keluarga, pilih foto terbaik, dan klik "Jadikan Banner Beranda" agar beranda semakin hangat.
+          </p>
+        </div>
+      </div>
+
+      <a href="{{ route('albums.index') }}" 
+         class="px-4 py-2 bg-brand text-white hover:bg-accent hover:text-ink brutal-btn font-mono font-black text-xs uppercase tracking-wider shrink-0 flex items-center gap-2 shadow-brutal-sm active:scale-95 transition-all">
+        <span>📸 Buka Album Foto</span>
+        <span>&rarr;</span>
+      </a>
+    </div>
+  @endif
 
   <!-- BANNER STATUS PAKET BERLANGGANAN -->
   @if($isPro)
@@ -7,7 +235,7 @@
       <div class="flex items-center gap-2">
         <span class="text-lg sm:text-xl">👑</span>
         <div class="text-xs font-mono">
-          <span class="font-black text-ink">Paket FamSpace Pro Aktif</span>
+          <span class="font-black text-ink">Paket FamKoji Pro Aktif</span>
           <span class="text-ink/70"> &bull; Fitur Kas, Tugas, Kalender, & Linimasa terbuka penuh</span>
         </div>
       </div>
@@ -419,6 +647,58 @@
       </div>
     @endif
   </div>
+
+  <!-- PANTRY & INVENTORY ALERTS (JIKA ADA STOK MENIPIS / EXPIRED) -->
+  @if(isset($pantryAlerts) && $pantryAlerts->count() > 0)
+    <div class="p-4 bg-white brutal-card space-y-3 border-coral">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-base sm:text-lg">🥫</span>
+          <h3 class="font-display font-black text-sm sm:text-base text-ink">
+            Peringatan Stok & Pantry
+          </h3>
+          <span class="px-2 py-0.5 bg-coral text-white brutal-border text-[9px] font-mono font-black uppercase">
+            {{ $pantryAlerts->count() }} Perlu Perhatian
+          </span>
+        </div>
+        <a href="{{ route('pantry.index') }}" class="text-[11px] font-mono font-black text-brand hover:underline flex items-center gap-1">
+          <span>Buka Inventaris</span>
+          <span>&rarr;</span>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        @foreach($pantryAlerts as $alertItem)
+          @php
+            $isLow = $alertItem->isLowStock();
+            $isExp = $alertItem->isExpired();
+            $isSoon = $alertItem->isExpiringSoon();
+          @endphp
+          <a href="{{ route('pantry.index') }}" class="p-3 brutal-border bg-cream hover:bg-accent/40 block transition-all">
+            <div class="flex items-center justify-between text-[10px] font-mono font-bold mb-1">
+              <span class="uppercase text-ink/60">{{ $alertItem->category }}</span>
+              @if($isExp)
+                <span class="px-1.5 py-0.5 bg-coral text-white brutal-border text-[8px] font-black uppercase">Expired</span>
+              @elseif($isSoon)
+                <span class="px-1.5 py-0.5 bg-accent text-ink brutal-border text-[8px] font-black uppercase">Exp Segera</span>
+              @elseif($isLow)
+                <span class="px-1.5 py-0.5 bg-amber-300 text-ink brutal-border text-[8px] font-black uppercase">Stok Tipis</span>
+              @endif
+            </div>
+            <div class="font-display font-black text-xs text-ink truncate">
+              {{ $alertItem->name }}
+            </div>
+            <div class="font-mono text-[11px] text-ink/80 mt-1 flex items-center justify-between">
+              <span>Sisa: <strong>{{ rtrim(rtrim(number_format((float) $alertItem->quantity, 2, '.', ''), '0'), '.') }} {{ $alertItem->unit }}</strong></span>
+              @if($alertItem->expired_at)
+                <span class="text-[10px] text-ink/60">📅 {{ \Carbon\Carbon::parse($alertItem->expired_at)->isoFormat('D MMM') }}</span>
+              @endif
+            </div>
+          </a>
+        @endforeach
+      </div>
+    </div>
+  @endif
 
 </div>
 

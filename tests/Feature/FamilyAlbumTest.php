@@ -238,4 +238,57 @@ class FamilyAlbumTest extends TestCase
         $this->assertEquals(0, $this->family->fresh()->photoCount());
         $this->assertDatabaseMissing('t_album_media', ['id' => $photo->id]);
     }
+
+    public function test_user_can_set_and_remove_dashboard_banner_from_album_photo(): void
+    {
+        $album = Album::create([
+            'family_id' => $this->family->id,
+            'user_id' => $this->user->id,
+            'title' => 'Album Banner',
+        ]);
+
+        $photo = AlbumMedia::create([
+            'album_id' => $album->id,
+            'family_id' => $this->family->id,
+            'user_id' => $this->user->id,
+            'media_type' => 'photo',
+            'file_path' => 'albums/banner_test.jpg',
+            'file_name' => 'banner_test.jpg',
+            'caption' => 'Momen Indah Keluarga',
+            'file_size' => 2000,
+        ]);
+
+        $video = AlbumMedia::create([
+            'album_id' => $album->id,
+            'family_id' => $this->family->id,
+            'user_id' => $this->user->id,
+            'media_type' => 'video',
+            'file_path' => 'albums/video.mp4',
+            'file_name' => 'video.mp4',
+            'file_size' => 5000,
+        ]);
+
+        // Video cannot be set as banner
+        $responseVideo = $this->actingAs($this->user)
+            ->post(route('albums.media.set-banner', $video));
+        $this->assertNull($this->family->fresh()->banner_media_id);
+
+        // Photo can be set as banner
+        $responsePhoto = $this->actingAs($this->user)
+            ->post(route('albums.media.set-banner', $photo));
+        $responsePhoto->assertSessionHas('success');
+        $this->assertEquals($photo->id, $this->family->fresh()->banner_media_id);
+
+        // Dashboard renders banner
+        $dashResponse = $this->actingAs($this->user)->get(route('dashboard'));
+        $dashResponse->assertOk()
+            ->assertSee('Momen Keluarga')
+            ->assertSee('Momen Indah Keluarga');
+
+        // Banner can be removed
+        $removeResponse = $this->actingAs($this->user)
+            ->post(route('albums.banner.remove'));
+        $removeResponse->assertSessionHas('success');
+        $this->assertNull($this->family->fresh()->banner_media_id);
+    }
 }

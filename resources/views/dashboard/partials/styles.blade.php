@@ -124,6 +124,59 @@
     animation: modalBounce 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  /* Neo-brutalist Micro-interactions */
+  @keyframes stickerWiggle {
+    0%, 100% { transform: rotate(-2deg); }
+    50% { transform: rotate(2deg); }
+  }
+  .sticker-wiggle:hover {
+    animation: stickerWiggle 0.4s ease-in-out infinite;
+  }
+  @keyframes gentlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+  .pulse-gentle {
+    animation: gentlePulse 2.8s ease-in-out infinite;
+  }
+  .brutal-tilt {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .brutal-tilt:hover {
+    transform: translate(-3px, -3px) rotate(-0.3deg);
+    box-shadow: 6px 6px 0px 0px #121614;
+  }
+  @keyframes sunSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .animate-sun-spin {
+    animation: sunSpin 18s linear infinite;
+    transform-origin: center center;
+  }
+  @keyframes starTwinkle {
+    0%, 100% { opacity: 0.25; transform: scale(0.85); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+  .animate-star-twinkle {
+    animation: starTwinkle 2.2s ease-in-out infinite;
+    transform-origin: center center;
+  }
+  @keyframes cloudDrift {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(3px); }
+  }
+  .animate-cloud-drift {
+    animation: cloudDrift 4s ease-in-out infinite;
+  }
+  @keyframes colonBlink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0.15; }
+  }
+  .animate-colon-blink {
+    animation: colonBlink 1s infinite;
+  }
+
   /* Neo-brutalist Flatpickr Overrides */
   .flatpickr-calendar {
     border: 2.5px solid #121614 !important;

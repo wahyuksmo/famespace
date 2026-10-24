@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Kalender & Agenda — ' . ($family->name ?? 'FamSpace') . ' — FamSpace')
+@section('title', 'Kalender & Agenda — ' . ($family->name ?? 'FamKoji') . ' — FamKoji')
 
 @section('content')
 <!-- TAB 5: KALENDER & AGENDA REMINDER -->

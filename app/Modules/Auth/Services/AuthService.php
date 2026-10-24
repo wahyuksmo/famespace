@@ -55,7 +55,7 @@ class AuthService
 
             // 3. Buat Paket Default (Free)
             $freePlan = Plan::firstOrCreate(['code' => 'free'], [
-                'name' => 'Famespace Free',
+                'name' => 'FamKoji Free',
                 'price' => 0.00,
                 'duration_days' => 3650,
                 'features' => ['overview', 'chores', 'finance', 'members'],

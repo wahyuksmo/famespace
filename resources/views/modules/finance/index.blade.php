@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Kas & Tabungan — ' . ($family->name ?? 'FamSpace') . ' — FamSpace')
+@section('title', 'Kas & Tabungan — ' . ($family->name ?? 'FamKoji') . ' — FamKoji')
 
 @section('content')
 <!-- TAB 3: KAS & TABUNGAN KELUARGA -->

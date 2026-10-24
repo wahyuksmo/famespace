@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gabung Ruang Keluarga — FamSpace</title>
-  <link rel="icon" type="image/jpeg" href="{{ asset('icons/logo_famspace.jpeg') }}">
+  <title>Gabung Ruang Keluarga — FamKoji</title>
+  <link rel="icon" type="image/png" href="{{ asset('icons/favicon-32x32.png') }}">
+  <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
   <script src="{{ asset('vendor/tailwindcss/tailwind.js') }}"></script>
   <link rel="stylesheet" href="{{ asset('vendor/fonts/fonts.css') }}">
   <script>
@@ -78,8 +79,10 @@
 
   <header class="max-w-md mx-auto w-full flex items-center justify-between py-4">
     <a href="{{ route('landing') }}" class="flex items-center gap-2.5 group">
-      <img src="{{ asset('icons/logo_famspace.jpeg') }}" alt="FamSpace Logo" class="w-9 h-9 brutal-border object-cover rounded-lg group-hover:rotate-6 transition-transform shadow-[2px_2px_0px_#121614] shrink-0">
-      <span class="font-display font-black text-xl tracking-tight text-ink">FamSpace<span class="text-brand">.</span></span>
+      <div class="w-10 h-10 bg-brand-soft brutal-border rounded-xl p-1 flex items-center justify-center shadow-[2px_2px_0px_#121614] group-hover:rotate-6 transition-transform shrink-0">
+        <img src="{{ asset('icons/new_logo.png') }}" alt="FamKoji Logo" class="w-full h-full object-contain">
+      </div>
+      <span class="font-display font-black text-xl tracking-tight text-ink">FamKoji<span class="text-brand">.</span></span>
     </a>
     <a href="{{ route('login') }}" class="text-xs font-bold text-ink hover:text-brand">&larr; Masuk</a>
   </header>
@@ -142,7 +145,7 @@
   </main>
 
   <footer class="max-w-md mx-auto w-full text-center py-4 text-xs font-mono font-bold text-ink/60">
-    &copy; {{ date('Y') }} FamSpace. Seluruh hak cipta dilindungi.
+    &copy; {{ date('Y') }} FamKoji. Seluruh hak cipta dilindungi.
   </footer>
 </body>
 </html>

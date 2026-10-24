@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Koneksi Terputus — FamSpace</title>
+  <title>Koneksi Terputus — FamKoji</title>
   <meta name="theme-color" content="#2F5233">
-  <link rel="icon" type="image/jpeg" href="{{ asset('icons/logo_famspace.jpeg') }}">
+  <link rel="icon" type="image/png" href="{{ asset('icons/favicon-32x32.png') }}">
   <script src="{{ asset('vendor/tailwindcss/tailwind.js') }}"></script>
   <link rel="stylesheet" href="{{ asset('vendor/fonts/fonts.css') }}">
   <style>
@@ -32,8 +32,8 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 selection:bg-[#34D399] selection:text-[#121614]">
   <div class="max-w-md w-full bg-white brutal-border p-6 sm:p-8 text-center shadow-[6px_6px_0px_#121614] rounded-2xl">
-    <div class="w-16 h-16 mx-auto brutal-border rounded-2xl overflow-hidden mb-4 shadow-[3px_3px_0px_#121614]">
-      <img src="{{ asset('icons/logo_famspace.jpeg') }}" alt="FamSpace Logo" class="w-full h-full object-cover">
+    <div class="w-16 h-16 mx-auto bg-brand-soft brutal-border rounded-2xl p-1.5 mb-4 shadow-[3px_3px_0px_#121614] flex items-center justify-center">
+      <img src="{{ asset('icons/new_logo.png') }}" alt="FamKoji Logo" class="w-full h-full object-contain">
     </div>
     <span class="inline-block px-3 py-1 bg-amber-100 brutal-border text-[11px] font-black uppercase font-mono tracking-wider mb-2">
       Mode Offline
@@ -42,7 +42,7 @@
       Koneksi Terputus
     </h1>
     <p class="text-xs sm:text-sm font-semibold text-[#121614]/70 mb-6 leading-relaxed">
-      Aplikasi FamSpace membutuhkan koneksi internet untuk sinkronisasi data keluarga. Periksa kembali Wi-Fi atau paket data seluler Anda.
+      Aplikasi FamKoji membutuhkan koneksi internet untuk sinkronisasi data keluarga. Periksa kembali Wi-Fi atau paket data seluler Anda.
     </p>
     <button onclick="window.location.reload()" class="w-full py-3 bg-[#2F5233] text-white brutal-btn text-xs font-black uppercase tracking-wider">
       🔄 Coba Muat Ulang

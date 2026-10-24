@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -19,6 +20,7 @@ class Family extends Model
         'invite_code',
         'monthly_budget',
         'currency',
+        'banner_media_id',
     ];
 
     protected static function booted(): void
@@ -43,6 +45,16 @@ class Family extends Model
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class, 'family_id');
+    }
+
+    public function bannerMedia(): BelongsTo
+    {
+        return $this->belongsTo(AlbumMedia::class, 'banner_media_id');
+    }
+
+    public function getBannerUrlAttribute(): ?string
+    {
+        return $this->bannerMedia?->file_url;
     }
 
     public function activeSubscription(): HasOne
@@ -123,6 +135,11 @@ class Family extends Model
     public function notes(): HasMany
     {
         return $this->hasMany(Note::class, 'family_id');
+    }
+
+    public function pantryItems(): HasMany
+    {
+        return $this->hasMany(PantryItem::class, 'family_id');
     }
 
     public function photoCount(): int

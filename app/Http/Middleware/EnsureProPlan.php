@@ -21,13 +21,13 @@ class EnsureProPlan
         if (! $isPro) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
-                    'error' => 'Fitur ini membutuhkan paket Famespace Pro.',
+                    'error' => 'Fitur ini membutuhkan paket FamKoji Pro.',
                     'upgrade_url' => route('subscription.invoice'),
                 ], 403);
             }
 
             return redirect()->route('dashboard', ['tab' => 'overview', 'paywall' => '1'])
-                ->with('warning', 'Fitur ini membutuhkan paket Famespace Pro (Rp 20.000/bln).');
+                ->with('warning', 'Fitur ini membutuhkan paket FamKoji Pro (Rp 20.000/bln).');
         }
 
         return $next($request);

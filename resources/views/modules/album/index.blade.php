@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Album Keluarga — ' . ($family->name ?? 'FamSpace'))
+@section('title', 'Album Keluarga — ' . ($family->name ?? 'FamKoji'))
 
 @section('content')
 <div class="space-y-6">

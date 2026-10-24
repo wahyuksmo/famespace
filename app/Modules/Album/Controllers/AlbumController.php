@@ -65,6 +65,7 @@ class AlbumController extends Controller
             'uploader' => $m->user?->name ?? 'Anggota',
             'date' => $m->created_at->translatedFormat('d M Y, H:i'),
             'size' => $m->formatted_size,
+            'is_banner' => $family->banner_media_id === $m->id,
         ])->values();
 
         return view('modules.album.show', [
@@ -292,6 +293,54 @@ class AlbumController extends Controller
         }
 
         return redirect()->back()->with('success', "{$type} berhasil dihapus dari album.");
+    }
+
+    public function setBanner(Request $request, AlbumMedia $media): RedirectResponse|JsonResponse
+    {
+        $user = Auth::user();
+        $family = $user->family;
+
+        if ($media->family_id !== $family->id) {
+            abort(403);
+        }
+
+        if (! $media->isPhoto()) {
+            return $this->errorResponse($request, 'Hanya foto yang dapat dijadikan banner beranda.');
+        }
+
+        $family->update([
+            'banner_media_id' => $media->id,
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Foto berhasil dijadikan banner beranda!',
+                'banner_url' => $media->file_url,
+                'banner_media_id' => $media->id,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Foto berhasil dijadikan banner beranda!');
+    }
+
+    public function removeBanner(Request $request): RedirectResponse|JsonResponse
+    {
+        $user = Auth::user();
+        $family = $user->family;
+
+        $family->update([
+            'banner_media_id' => null,
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Banner beranda berhasil direset.',
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Banner beranda berhasil direset.');
     }
 
     protected function errorResponse(Request $request, string $message, string $code = 'VALIDATION_ERROR'): RedirectResponse|JsonResponse

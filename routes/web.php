@@ -10,6 +10,7 @@ use App\Modules\Dashboard\Controllers\DashboardController;
 use App\Modules\Family\Controllers\MemberController;
 use App\Modules\Finance\Controllers\FinanceController;
 use App\Modules\Note\Controllers\NoteController;
+use App\Modules\Pantry\Controllers\PantryController;
 use App\Modules\Reward\Controllers\RewardController;
 use App\Modules\Subscription\Controllers\SubscriptionController;
 use App\Modules\Timeline\Controllers\TimelineController;
@@ -58,6 +59,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/albums/{album}', [AlbumController::class, 'destroy'])->name('albums.destroy');
     Route::post('/albums/{album}/media', [AlbumController::class, 'uploadMedia'])->name('albums.media.upload');
     Route::delete('/albums/media/{media}', [AlbumController::class, 'destroyMedia'])->name('albums.media.destroy');
+    Route::post('/albums/media/{media}/set-banner', [AlbumController::class, 'setBanner'])->name('albums.media.set-banner');
+    Route::post('/albums/banner/remove', [AlbumController::class, 'removeBanner'])->name('albums.banner.remove');
 
     // Notes (Catatan & Kulkas Digital)
     Route::get('/notes', [NoteController::class, 'index'])->name('notes.index');
@@ -115,6 +118,14 @@ Route::middleware('auth')->group(function () {
 
     // Pro Feature Action Handlers (Protected by 'pro' middleware)
     Route::middleware('pro')->group(function () {
+        // Pantry & Home Inventory (PRO)
+        Route::get('/pantry', [PantryController::class, 'index'])->name('pantry.index');
+        Route::get('/pantry/paginate/{page?}', [PantryController::class, 'paginate'])->name('pantry.paginate');
+        Route::post('/pantry', [PantryController::class, 'store'])->name('pantry.store');
+        Route::put('/pantry/{id}', [PantryController::class, 'update'])->name('pantry.update');
+        Route::patch('/pantry/{id}/adjust', [PantryController::class, 'adjustStock'])->name('pantry.adjust');
+        Route::delete('/pantry/{id}', [PantryController::class, 'destroy'])->name('pantry.destroy');
+
         Route::get('/events', [EventController::class, 'index'])->name('events.index');
         Route::get('/events/paginate/{page?}', [EventController::class, 'paginate'])->name('events.paginate');
         Route::post('/events', [EventController::class, 'store'])->name('events.store');

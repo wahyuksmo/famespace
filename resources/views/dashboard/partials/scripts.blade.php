@@ -290,7 +290,7 @@
       dataType: 'json',
       success: function(data) {
         closePaywallModal();
-        showToast('Selamat! Seluruh fitur FamSpace Pro aktif.');
+        showToast('Selamat! Seluruh fitur FamKoji Pro aktif.');
         setTimeout(function() {
           window.location.reload();
         }, 400);
@@ -1131,7 +1131,7 @@
         if (typeof openPaywallModal === 'function') {
           openPaywallModal('calendar');
         } else {
-          alert('Fitur Agenda Jadwal khusus FamSpace PRO!');
+          alert('Fitur Agenda Jadwal khusus FamKoji PRO!');
         }
       @endif
     } else if (type === 'timeline') {
@@ -1145,7 +1145,7 @@
         if (typeof openPaywallModal === 'function') {
           openPaywallModal('timeline');
         } else {
-          alert('Fitur Linimasa khusus FamSpace PRO!');
+          alert('Fitur Linimasa khusus FamKoji PRO!');
         }
       @endif
     }
@@ -1371,8 +1371,27 @@
     });
   };
 
+  // Greetings Retro Clock Ticker
+  function initGreetingsClock() {
+    function updateClock() {
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const elH = document.getElementById('greetings-clock-hours');
+      const elM = document.getElementById('greetings-clock-minutes');
+      const elS = document.getElementById('greetings-clock-seconds');
+      if (elH) elH.textContent = pad(now.getHours());
+      if (elM) elM.textContent = pad(now.getMinutes());
+      if (elS) elS.textContent = pad(now.getSeconds());
+    }
+    if (document.getElementById('greetings-clock-hours')) {
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+  }
+
   // Auto-init on page load
   window.addEventListener('DOMContentLoaded', () => {
+    initGreetingsClock();
     updateSubscriptionUI();
     initDragAndDrop();
     initMobileScrollShadow();
@@ -1382,7 +1401,7 @@
     // Registrasi PWA Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
-        .then((reg) => console.log('FamSpace PWA Service Worker aktif:', reg.scope))
+        .then((reg) => console.log('FamKoji PWA Service Worker aktif:', reg.scope))
         .catch((err) => console.warn('PWA registration error:', err));
     }
   });

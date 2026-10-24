@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Anggota Keluarga — ' . ($family->name ?? 'FamSpace') . ' — FamSpace')
+@section('title', 'Anggota Keluarga — ' . ($family->name ?? 'FamKoji') . ' — FamKoji')
 
 @section('content')
 <!-- TAB 6: ANGGOTA KELUARGA & KODE UNDANGAN -->
@@ -28,7 +28,7 @@
       <div class="text-xs font-semibold text-ink/70">Bagikan kode ini ke keluarga yang ingin join via halaman Registrasi.</div>
     </div>
     <div class="flex flex-wrap items-center gap-2">
-      <a href="https://wa.me/?text=Halo!%20Ayo%20gabung%20ke%20ruang%20keluarga%20kita%20di%20FamSpace:%20{{ url('/join/' . $family->invite_code) }}" id="btn-wa-invite" target="_blank" class="px-3.5 py-2 bg-brand text-white brutal-btn text-xs font-bold">
+      <a href="https://wa.me/?text=Halo!%20Ayo%20gabung%20ke%20ruang%20keluarga%20kita%20di%20FamKoji:%20{{ url('/join/' . $family->invite_code) }}" id="btn-wa-invite" target="_blank" class="px-3.5 py-2 bg-brand text-white brutal-btn text-xs font-bold">
         💬 Kirim via WhatsApp
       </a>
       @if($user->isAyah())
@@ -256,7 +256,7 @@
 
       const waBtn = document.getElementById('btn-wa-invite');
       if (waBtn) {
-        waBtn.href = `https://wa.me/?text=Halo!%20Ayo%20gabung%20ke%20ruang%20keluarga%20kita%20di%20FamSpace:%20${encodeURIComponent(data.invite_url)}`;
+        waBtn.href = `https://wa.me/?text=Halo!%20Ayo%20gabung%20ke%20ruang%20keluarga%20kita%20di%20FamKoji:%20${encodeURIComponent(data.invite_url)}`;
       }
 
       showToast(data.message, 'success');

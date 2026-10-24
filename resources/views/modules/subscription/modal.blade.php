@@ -1,4 +1,4 @@
-<!-- MODAL: SUBSCRIPTION / PAYWALL (FAMSPACE PRO) -->
+<!-- MODAL: SUBSCRIPTION / PAYWALL (FAMKOJI PRO) -->
 <div id="paywall-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
   <div class="bg-cream brutal-card max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 relative modal-box">
     
@@ -9,7 +9,7 @@
           👑
         </div>
         <div>
-          <span class="text-[10px] font-black font-mono uppercase text-brand tracking-widest block">Langganan FamSpace</span>
+          <span class="text-[10px] font-black font-mono uppercase text-brand tracking-widest block">Langganan FamKoji</span>
           <h3 class="font-black font-display text-xl text-ink leading-tight">Upgrade ke Paket Pro</h3>
         </div>
       </div>
