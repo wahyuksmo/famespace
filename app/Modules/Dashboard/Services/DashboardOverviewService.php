@@ -3,6 +3,7 @@
 namespace App\Modules\Dashboard\Services;
 
 use App\Models\Family;
+use App\Models\Note;
 use App\Models\TimelineMoment;
 use App\Models\User;
 use App\Modules\Calendar\Repositories\EventRepository;
@@ -142,10 +143,19 @@ class DashboardOverviewService
         $allMoments = TimelineMoment::where('family_id', $familyId)->orderBy('event_date', 'desc')->get();
         $latestMoment = $allMoments->first();
 
+        // 6. Sticky & Pinned Notes for Family Fridge
+        $pinnedNotes = Note::where('family_id', $familyId)
+            ->where('is_pinned', true)
+            ->with('user')
+            ->latest()
+            ->take(4)
+            ->get();
+
         return [
             'family' => $family,
             'user' => $currentUser,
             'members' => $members,
+            'pinnedNotes' => $pinnedNotes,
             'allChores' => $allChores,
             'chores' => $chores,
             'finance' => $financeData,

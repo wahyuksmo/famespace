@@ -2,6 +2,7 @@
 
 namespace App\Modules\Timeline\Controllers;
 
+use App\Events\TimelineEvent;
 use App\Http\Controllers\Controller;
 use App\Modules\Timeline\Repositories\TimelineRepository;
 use App\Modules\Timeline\Services\TimelineService;
@@ -23,17 +24,20 @@ class TimelineController extends Controller
         $pageNumber = (int) $request->input('page', 1);
         $moments = $this->timelineRepo->getPaginatedFamilyMoments($familyId, 4, 'page', $pageNumber);
         $mapMoments = $this->timelineRepo->getMomentsWithCoordinates($familyId);
+        $categories = $this->timelineRepo->getCategories($familyId);
 
         return view('modules.timeline.index', [
             'moments' => $moments,
             'mapMoments' => $mapMoments,
+            'categories' => $categories,
         ]);
     }
 
-    public function mapPoints()
+    public function mapPoints(Request $request)
     {
         $familyId = Auth::user()->family_id;
-        $moments = $this->timelineRepo->getMomentsWithCoordinates($familyId);
+        $search = $request->input('search');
+        $moments = $this->timelineRepo->getMomentsWithCoordinates($familyId, $search);
 
         $points = $moments->map(function ($m) {
             return [
@@ -41,6 +45,9 @@ class TimelineController extends Controller
                 'title' => $m->title,
                 'story' => $m->story,
                 'location_name' => $m->location_name,
+                'category_id' => $m->category_id,
+                'category_name' => $m->category?->name,
+                'category_icon' => $m->category?->icon ?? '📸',
                 'latitude' => (float) $m->latitude,
                 'longitude' => (float) $m->longitude,
                 'formatted_date' => Carbon::parse($m->event_date)->locale('id')->isoFormat('D MMMM Y'),
@@ -74,6 +81,9 @@ class TimelineController extends Controller
                     'title' => $m->title,
                     'story' => $m->story,
                     'location_name' => $m->location_name,
+                    'category_id' => $m->category_id,
+                    'category_name' => $m->category?->name,
+                    'category_icon' => $m->category?->icon ?? '📸',
                     'latitude' => $m->latitude,
                     'longitude' => $m->longitude,
                     'event_date' => $m->event_date,
@@ -116,17 +126,28 @@ class TimelineController extends Controller
             'title' => 'required|string|max:150',
             'story' => 'nullable|string',
             'location_name' => 'nullable|string|max:150',
+            'category_id' => 'nullable',
+            'category' => 'nullable',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
             'event_date' => 'required|date',
-            'image' => 'nullable|image|max:5120',
+            'image' => 'nullable|image',
         ]);
 
         $familyId = Auth::user()->family_id;
         $userId = Auth::id();
 
         try {
-            $this->timelineService->createMoment($familyId, $userId, $validated, $request->file('image'));
+            $moment = $this->timelineService->createMoment($familyId, $userId, $validated, $request->file('image'));
+
+            broadcast(new TimelineEvent(
+                familyId: (string) $familyId,
+                action: 'created',
+                userId: (int) $userId,
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' mengabadikan momen baru: '.$validated['title'],
+                data: ['id' => $moment->id]
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Momen kenangan berhasil diabadikan!']);
@@ -148,16 +169,27 @@ class TimelineController extends Controller
             'title' => 'required|string|max:150',
             'story' => 'nullable|string',
             'location_name' => 'nullable|string|max:150',
+            'category_id' => 'nullable',
+            'category' => 'nullable',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
             'event_date' => 'required|date',
-            'image' => 'nullable|image|max:5120',
+            'image' => 'nullable|image',
         ]);
 
         $familyId = Auth::user()->family_id;
 
         try {
-            $this->timelineService->updateMoment($id, $familyId, $validated, $request->file('image'));
+            $moment = $this->timelineService->updateMoment($id, $familyId, $validated, $request->file('image'));
+
+            broadcast(new TimelineEvent(
+                familyId: (string) $familyId,
+                action: 'updated',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' memperbarui momen: '.$validated['title'],
+                data: ['id' => $id]
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Momen kenangan berhasil diperbarui!']);
@@ -180,11 +212,56 @@ class TimelineController extends Controller
         try {
             $this->timelineService->deleteMoment($id, $familyId);
 
+            broadcast(new TimelineEvent(
+                familyId: (string) $familyId,
+                action: 'deleted',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' menghapus momen.',
+                data: ['id' => $id]
+            ))->toOthers();
+
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Momen kenangan berhasil dihapus!']);
             }
 
             return redirect()->route('timeline.index')->with('success', 'Momen kenangan berhasil dihapus!');
+        } catch (Throwable $e) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+
+            return redirect()->route('timeline.index')->with('error', $e->getMessage());
+        }
+    }
+
+    public function storeCategory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:50',
+            'icon' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:20',
+        ]);
+
+        $familyId = Auth::user()->family_id;
+
+        try {
+            $cat = $this->timelineService->saveCategory($familyId, $validated);
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Kategori linimasa berhasil ditambahkan!',
+                    'category' => [
+                        'id' => $cat->id,
+                        'name' => $cat->name,
+                        'icon' => $cat->icon,
+                        'color' => $cat->color,
+                    ],
+                ]);
+            }
+
+            return redirect()->route('timeline.index')->with('success', 'Kategori linimasa berhasil ditambahkan!');
         } catch (Throwable $e) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 422);

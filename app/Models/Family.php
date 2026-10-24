@@ -21,6 +21,13 @@ class Family extends Model
         'currency',
     ];
 
+    protected static function booted(): void
+    {
+        static::created(function (Family $family) {
+            Category::seedDefaultsForFamily($family->id);
+        });
+    }
+
     protected function casts(): array
     {
         return [
@@ -91,5 +98,75 @@ class Family extends Model
     public function categoryBudgets(): HasMany
     {
         return $this->hasMany(CategoryBudget::class, 'family_id');
+    }
+
+    public function rewards(): HasMany
+    {
+        return $this->hasMany(Reward::class, 'family_id');
+    }
+
+    public function rewardClaims(): HasMany
+    {
+        return $this->hasMany(RewardClaim::class, 'family_id');
+    }
+
+    public function albums(): HasMany
+    {
+        return $this->hasMany(Album::class, 'family_id');
+    }
+
+    public function albumMedia(): HasMany
+    {
+        return $this->hasMany(AlbumMedia::class, 'family_id');
+    }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(Note::class, 'family_id');
+    }
+
+    public function photoCount(): int
+    {
+        return $this->albumMedia()->where('media_type', 'photo')->count();
+    }
+
+    public function videoCount(): int
+    {
+        return $this->albumMedia()->where('media_type', 'video')->count();
+    }
+
+    public function canUploadPhoto(int $additional = 1): bool
+    {
+        if ($this->isPro()) {
+            return true;
+        }
+
+        return ($this->photoCount() + $additional) <= 10;
+    }
+
+    public function canUploadVideo(int $additional = 1): bool
+    {
+        if ($this->isPro()) {
+            return true;
+        }
+
+        return ($this->videoCount() + $additional) <= 1;
+    }
+
+    public function albumQuotaInfo(): array
+    {
+        $isPro = $this->isPro();
+        $photos = $this->photoCount();
+        $videos = $this->videoCount();
+
+        return [
+            'is_pro' => $isPro,
+            'photos_used' => $photos,
+            'photos_limit' => $isPro ? null : 10,
+            'videos_used' => $videos,
+            'videos_limit' => $isPro ? null : 1,
+            'can_upload_photo' => $isPro || $photos < 10,
+            'can_upload_video' => $isPro || $videos < 1,
+        ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Timeline\Services;
 
+use App\Models\Category;
 use App\Models\TimelineMoment;
 use App\Modules\Timeline\Repositories\TimelineRepository;
 use Exception;
@@ -15,6 +16,39 @@ class TimelineService
         protected TimelineRepository $timelineRepo
     ) {}
 
+    public function resolveCategoryId(string $familyId, mixed $categoryInput): ?int
+    {
+        if (blank($categoryInput)) {
+            return null;
+        }
+
+        if (is_numeric($categoryInput)) {
+            $cat = Category::where('id', (int) $categoryInput)
+                ->where(function ($q) use ($familyId) {
+                    $q->where('family_id', $familyId)->orWhereNull('family_id');
+                })
+                ->first();
+
+            return $cat?->id;
+        }
+
+        $trimmed = trim((string) $categoryInput);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $cat = Category::firstOrCreate([
+            'family_id' => $familyId,
+            'name' => $trimmed,
+            'type' => 'timeline',
+        ], [
+            'icon' => '📸',
+            'color' => '#2F5233',
+        ]);
+
+        return $cat->id;
+    }
+
     public function createMoment(string $familyId, int $userId, array $data, ?UploadedFile $image = null): TimelineMoment
     {
         return DB::transaction(function () use ($familyId, $userId, $data, $image) {
@@ -23,9 +57,13 @@ class TimelineService
                 $imagePath = $image->store('moments', 'public');
             }
 
+            $catInput = $data['category_id'] ?? ($data['category'] ?? null);
+            $categoryId = $this->resolveCategoryId($familyId, $catInput);
+
             return $this->timelineRepo->create([
                 'family_id' => $familyId,
                 'user_id' => $userId,
+                'category_id' => $categoryId,
                 'title' => $data['title'],
                 'story' => $data['story'] ?? null,
                 'location_name' => $data['location_name'] ?? null,
@@ -54,6 +92,11 @@ class TimelineService
                 'event_date' => $data['event_date'] ?? $moment->event_date,
             ];
 
+            if (array_key_exists('category_id', $data) || array_key_exists('category', $data)) {
+                $catInput = $data['category_id'] ?? ($data['category'] ?? null);
+                $updateData['category_id'] = $this->resolveCategoryId($familyId, $catInput);
+            }
+
             if ($image && $image->isValid()) {
                 if ($moment->image_path && ! str_starts_with($moment->image_path, 'http')) {
                     Storage::disk('public')->delete($moment->image_path);
@@ -79,5 +122,19 @@ class TimelineService
 
             $this->timelineRepo->delete($moment);
         });
+    }
+
+    public function saveCategory(string $familyId, array $data): Category
+    {
+        $name = trim($data['name']);
+
+        return Category::firstOrCreate([
+            'family_id' => $familyId,
+            'name' => $name,
+            'type' => 'timeline',
+        ], [
+            'icon' => $data['icon'] ?? '📸',
+            'color' => $data['color'] ?? '#2F5233',
+        ]);
     }
 }

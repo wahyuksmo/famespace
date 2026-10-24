@@ -95,15 +95,16 @@ class ChoreService
             ]);
 
             // Award or deduct points to assigned user
+            $pointsAwarded = 0;
             if ($chore->assigned_to_user_id && $chore->assignee) {
-                $delta = $wasPending ? $chore->points : -$chore->points;
-                $this->userRepo->updatePoints($chore->assignee, $delta);
+                $pointsAwarded = $wasPending ? $chore->points : -$chore->points;
+                $this->userRepo->updatePoints($chore->assignee, $pointsAwarded);
             }
 
             return [
                 'chore' => $chore,
                 'new_status' => $newStatus,
-                'points_awarded' => $wasPending ? $chore->points : -$chore->points,
+                'points_awarded' => $pointsAwarded,
             ];
         });
     }

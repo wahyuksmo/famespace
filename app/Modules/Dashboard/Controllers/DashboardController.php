@@ -19,10 +19,35 @@ class DashboardController extends Controller
         $family = $user->family;
 
         if (! $family) {
-            return redirect()->route('register');
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akun Anda tidak lagi terdaftar dalam ruang keluarga.',
+                ], 403);
+            }
+
+            return redirect()->route('login')->withErrors(['email' => 'Akun Anda tidak lagi terdaftar dalam ruang keluarga.']);
         }
 
         $data = $this->overviewService->getData($family, $user, 'overview', 1);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'pending_chores' => $data['choresPending'],
+                    'completion_rate' => $data['choreCompletionRate'],
+                    'balance' => $data['currentBalance'],
+                    'total_income' => $data['totalIncome'],
+                    'total_expense' => $data['totalExpense'],
+                    'user_points' => $user->fresh()?->points ?? 0,
+                ],
+            ]);
+        }
 
         return view('dashboard.index', $data);
     }

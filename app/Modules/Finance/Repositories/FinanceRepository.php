@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class FinanceRepository
 {
-    public function getFamilyTransactions(string $familyId, int $limit = 50, ?int $userId = null): Collection
+    public function getFamilyTransactions(string $familyId, int $limit = 50, ?int $userId = null, ?string $type = null): Collection
     {
         $query = Finance::with(['user', 'category'])
             ->where('family_id', $familyId);
@@ -22,19 +22,27 @@ class FinanceRepository
             $query->where('user_id', $userId);
         }
 
+        if ($type !== null) {
+            $query->where('type', $type);
+        }
+
         return $query->orderBy('transaction_date', 'desc')
             ->orderBy('id', 'desc')
             ->limit($limit)
             ->get();
     }
 
-    public function getPaginatedFamilyTransactions(string $familyId, int $perPage = 5, string $pageName = 'page', ?int $page = null, ?int $userId = null): LengthAwarePaginator
+    public function getPaginatedFamilyTransactions(string $familyId, int $perPage = 5, string $pageName = 'page', ?int $page = null, ?int $userId = null, ?string $type = null): LengthAwarePaginator
     {
         $query = Finance::with(['user', 'category'])
             ->where('family_id', $familyId);
 
         if ($userId !== null) {
             $query->where('user_id', $userId);
+        }
+
+        if ($type !== null) {
+            $query->where('type', $type);
         }
 
         return $query->orderBy('transaction_date', 'desc')
@@ -51,7 +59,7 @@ class FinanceRepository
             $query->where('user_id', $userId);
         }
 
-        if (! empty($type) && in_array($type, ['income', 'expense'])) {
+        if (! empty($type) && in_array($type, ['income', 'expense', 'saving'])) {
             $query->where('type', $type);
         }
 
@@ -96,12 +104,14 @@ class FinanceRepository
 
         $totals = $query->selectRaw("
             COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as total_income,
-            COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expense
+            COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expense,
+            COALESCE(SUM(CASE WHEN type = 'saving' THEN amount ELSE 0 END), 0) as total_saving
         ")->first();
 
         return [
             'income' => (float) ($totals->total_income ?? 0),
             'expense' => (float) ($totals->total_expense ?? 0),
+            'saving' => (float) ($totals->total_saving ?? 0),
         ];
     }
 
@@ -122,7 +132,7 @@ class FinanceRepository
     {
         return Category::where(function ($q) use ($familyId) {
             $q->where('family_id', $familyId)->orWhereNull('family_id');
-        })->orderBy('name', 'asc')->get();
+        })->whereIn('type', ['income', 'expense', 'saving'])->orderBy('name', 'asc')->get();
     }
 
     public function findCategoryInFamily(int $id, string $familyId): ?Category
@@ -310,8 +320,10 @@ class FinanceRepository
             $q->where('family_id', $familyId)->orWhereNull('family_id');
         });
 
-        if (! empty($type) && in_array($type, ['income', 'expense'])) {
+        if (! empty($type) && in_array($type, ['income', 'expense', 'saving'])) {
             $query->where('type', $type);
+        } else {
+            $query->whereIn('type', ['income', 'expense']);
         }
 
         $recordsTotal = (clone $query)->count();
@@ -349,6 +361,83 @@ class FinanceRepository
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data' => $data,
+        ];
+    }
+
+    public function getReportData(string $familyId, string $startDate, string $endDate): array
+    {
+        $totals = DB::table('t_finances')
+            ->where('family_id', $familyId)
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->selectRaw("
+                COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as total_income,
+                COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expense,
+                COALESCE(SUM(CASE WHEN type = 'saving' THEN amount ELSE 0 END), 0) as total_saving
+            ")
+            ->first();
+
+        $totalIncome = (float) ($totals->total_income ?? 0);
+        $totalExpense = (float) ($totals->total_expense ?? 0);
+        $totalSaving = (float) ($totals->total_saving ?? 0);
+        $netBalance = $totalIncome - $totalExpense - $totalSaving;
+
+        $categoryExpenses = DB::table('t_finances')
+            ->leftJoin('m_categories', 't_finances.category_id', '=', 'm_categories.id')
+            ->where('t_finances.family_id', $familyId)
+            ->where('t_finances.type', 'expense')
+            ->whereBetween('t_finances.transaction_date', [$startDate, $endDate])
+            ->selectRaw("
+                t_finances.category_id,
+                COALESCE(m_categories.name, 'Tanpa Kategori') as category_name,
+                COALESCE(m_categories.icon, '🏷️') as category_icon,
+                COALESCE(m_categories.color, '#2F5233') as category_color,
+                SUM(t_finances.amount) as total_amount,
+                COUNT(t_finances.id) as transaction_count
+            ")
+            ->groupBy('t_finances.category_id', 'm_categories.name', 'm_categories.icon', 'm_categories.color')
+            ->orderByDesc('total_amount')
+            ->get();
+
+        $categoriesList = $categoryExpenses->map(function ($cat) use ($totalIncome, $totalExpense) {
+            $amount = (float) $cat->total_amount;
+            $pctOfIncome = $totalIncome > 0 ? round(($amount / $totalIncome) * 100, 1) : 0;
+            $pctOfExpense = $totalExpense > 0 ? round(($amount / $totalExpense) * 100, 1) : 0;
+
+            return [
+                'id' => $cat->category_id,
+                'name' => $cat->category_name,
+                'icon' => $cat->category_icon,
+                'color' => $cat->category_color,
+                'amount' => $amount,
+                'formatted_amount' => 'Rp '.number_format($amount, 0, ',', '.'),
+                'transaction_count' => (int) $cat->transaction_count,
+                'pct_of_income' => $pctOfIncome,
+                'pct_of_expense' => $pctOfExpense,
+            ];
+        });
+
+        $pctSavingOfIncome = $totalIncome > 0 ? round(($totalSaving / $totalIncome) * 100, 1) : 0;
+        $pctExpenseOfIncome = $totalIncome > 0 ? round(($totalExpense / $totalIncome) * 100, 1) : 0;
+        $pctRemainingOfIncome = $totalIncome > 0 ? max(0, round(($netBalance / $totalIncome) * 100, 1)) : 0;
+
+        $topCategory = $categoriesList->first();
+
+        return [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'total_income' => $totalIncome,
+            'formatted_total_income' => 'Rp '.number_format($totalIncome, 0, ',', '.'),
+            'total_expense' => $totalExpense,
+            'formatted_total_expense' => 'Rp '.number_format($totalExpense, 0, ',', '.'),
+            'total_saving' => $totalSaving,
+            'formatted_total_saving' => 'Rp '.number_format($totalSaving, 0, ',', '.'),
+            'net_balance' => $netBalance,
+            'formatted_net_balance' => 'Rp '.number_format($netBalance, 0, ',', '.'),
+            'pct_saving_of_income' => $pctSavingOfIncome,
+            'pct_expense_of_income' => $pctExpenseOfIncome,
+            'pct_remaining_of_income' => $pctRemainingOfIncome,
+            'categories' => $categoriesList,
+            'top_category' => $topCategory,
         ];
     }
 

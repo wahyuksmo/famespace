@@ -2,6 +2,7 @@
 
 namespace App\Modules\Calendar\Controllers;
 
+use App\Events\CalendarEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Wkcal;
 use App\Modules\Calendar\Repositories\EventRepository;
@@ -146,7 +147,16 @@ class EventController extends Controller
         $userId = Auth::id();
 
         try {
-            $this->eventService->createEvent($familyId, $userId, $validated);
+            $event = $this->eventService->createEvent($familyId, $userId, $validated);
+
+            broadcast(new CalendarEvent(
+                familyId: (string) $familyId,
+                action: 'created',
+                userId: (int) $userId,
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' menambahkan agenda: '.$validated['title'],
+                data: ['id' => $event->id]
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Agenda bersama berhasil ditambahkan!']);
@@ -175,7 +185,16 @@ class EventController extends Controller
         $familyId = Auth::user()->family_id;
 
         try {
-            $this->eventService->updateEvent($id, $familyId, $validated);
+            $event = $this->eventService->updateEvent($id, $familyId, $validated);
+
+            broadcast(new CalendarEvent(
+                familyId: (string) $familyId,
+                action: 'updated',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' memperbarui agenda: '.$validated['title'],
+                data: ['id' => $id]
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Agenda berhasil diperbarui!']);
@@ -197,6 +216,15 @@ class EventController extends Controller
 
         try {
             $this->eventService->deleteEvent($id, $familyId);
+
+            broadcast(new CalendarEvent(
+                familyId: (string) $familyId,
+                action: 'deleted',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' menghapus agenda.',
+                data: ['id' => $id]
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Agenda berhasil dihapus!']);

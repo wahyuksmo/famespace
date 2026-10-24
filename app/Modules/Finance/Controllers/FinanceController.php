@@ -2,6 +2,7 @@
 
 namespace App\Modules\Finance\Controllers;
 
+use App\Events\FinanceEvent;
 use App\Http\Controllers\Controller;
 use App\Modules\Finance\Repositories\FinanceRepository;
 use App\Modules\Finance\Services\FinanceService;
@@ -26,6 +27,7 @@ class FinanceController extends Controller
         $filterUserId = $user->canViewAllFinances() ? null : $user->id;
         $overview = $this->financeService->calculateOverview($familyId, 5, 'page', $pageNumber, $period, $filterUserId);
         $categories = $this->financeRepo->getCategories($familyId);
+        $report = $this->financeService->getFinancialReport($familyId, 'monthly', $overview['selected_period'] ?? now()->format('Y-m'));
         $members = $user->canViewAllFinances()
             ? ($user->family ? $user->family->users()->orderBy('points', 'desc')->get() : collect([$user]))
             : collect([$user]);
@@ -33,9 +35,10 @@ class FinanceController extends Controller
         return view('modules.finance.index', [
             'finance' => $overview,
             'categories' => $categories,
+            'report' => $report,
             'members' => $members,
-            'categoryBudgets' => $overview['category_budgets'] ?? collect(),
-            'goals' => $overview['goals'] ?? collect(),
+            'categoryBudgets' => $user->canViewAllFinances() ? ($overview['category_budgets'] ?? collect()) : collect(),
+            'goals' => $user->canViewAllFinances() ? ($overview['goals'] ?? collect()) : collect(),
             'selectedPeriod' => $overview['selected_period'] ?? now()->format('Y-m'),
             'selectedPeriodLabel' => $overview['selected_period_label'] ?? now()->locale('id')->isoFormat('MMMM Y'),
             'availablePeriods' => $overview['available_periods'] ?? [],
@@ -57,6 +60,10 @@ class FinanceController extends Controller
             $search = is_array($searchParam) ? (string) ($searchParam['value'] ?? '') : (string) ($searchParam ?? '');
             $type = (string) $request->input('type', '');
 
+            if (! $user->canViewAllFinances()) {
+                $type = 'expense';
+            }
+
             $dt = $this->financeRepo->getDataTablesTransactions($familyId, $start, $length, $search, $type, $filterUserId);
 
             $formatted = $dt['data']->map(function ($trx) {
@@ -68,8 +75,8 @@ class FinanceController extends Controller
                     'description' => $trx->description,
                     'amount' => (int) $trx->amount,
                     'formatted_amount' => ($trx->type === 'income' ? '+ ' : '- ').'Rp '.number_format($trx->amount, 0, ',', '.'),
-                    'category' => $trx->category ? $trx->category->name : ($trx->type === 'income' ? 'Pemasukan' : 'Pengeluaran'),
-                    'category_icon' => $trx->category ? $trx->category->icon : ($trx->type === 'income' ? '💰' : '📦'),
+                    'category' => $trx->category ? $trx->category->name : ($trx->type === 'income' ? 'Pemasukan' : ($trx->type === 'saving' ? 'Tabungan' : 'Pengeluaran')),
+                    'category_icon' => $trx->category ? $trx->category->icon : ($trx->type === 'income' ? '💰' : ($trx->type === 'saving' ? '🐷' : '📦')),
                     'category_id' => $trx->category_id,
                     'user' => $trx->user ? $trx->user->name : 'Keluarga',
                     'user_id' => $trx->user_id,
@@ -108,6 +115,10 @@ class FinanceController extends Controller
     public function paginateBudgets(Request $request)
     {
         $user = Auth::user();
+        if (! $user->canViewAllFinances()) {
+            return response()->json(['error' => 'Akses terbatas.'], 403);
+        }
+
         $familyId = $user->family_id;
 
         $draw = (int) $request->input('draw', 1);
@@ -136,6 +147,10 @@ class FinanceController extends Controller
     public function paginateCategories(Request $request)
     {
         $user = Auth::user();
+        if (! $user->canViewAllFinances()) {
+            return response()->json(['error' => 'Akses terbatas.'], 403);
+        }
+
         $familyId = $user->family_id;
 
         $draw = (int) $request->input('draw', 1);
@@ -155,26 +170,91 @@ class FinanceController extends Controller
         ]);
     }
 
+    public function summary(Request $request)
+    {
+        $user = Auth::user();
+        $familyId = $user->family_id;
+        $period = $request->input('period');
+        $filterUserId = $user->canViewAllFinances() ? null : $user->id;
+        $overview = $this->financeService->calculateOverview($familyId, 5, 'page', 1, $period, $filterUserId);
+        $categories = $this->financeRepo->getCategories($familyId);
+
+        return response()->json([
+            'success' => true,
+            'balance' => $overview['balance'],
+            'formatted_balance' => 'Rp '.number_format($overview['balance'], 0, ',', '.'),
+            'income' => $overview['income'],
+            'formatted_income' => 'Rp '.number_format($overview['income'], 0, ',', '.'),
+            'expense' => $overview['expense'],
+            'formatted_expense' => 'Rp '.number_format($overview['expense'], 0, ',', '.'),
+            'saving' => $overview['saving'] ?? 0,
+            'formatted_saving' => 'Rp '.number_format($overview['saving'] ?? 0, 0, ',', '.'),
+            'goals' => $overview['goals'] ?? [],
+            'category_budgets' => $overview['category_budgets'] ?? [],
+            'categories' => $categories->map(function ($cat) {
+                return [
+                    'id' => $cat->id,
+                    'name' => $cat->name,
+                    'type' => $cat->type,
+                    'icon' => $cat->icon ?: '🏷️',
+                    'color' => $cat->color ?: '#2F5233',
+                    'monthly_budget' => (float) ($cat->monthly_budget ?? 0),
+                ];
+            }),
+        ]);
+    }
+
+    public function reportData(Request $request)
+    {
+        $user = Auth::user();
+        $familyId = $user->family_id;
+
+        $mode = (string) $request->input('mode', 'monthly');
+        $period = $request->input('period');
+        $year = $request->input('year') ? (int) $request->input('year') : null;
+        $startMonth = $request->input('start_month');
+        $endMonth = $request->input('end_month');
+
+        $report = $this->financeService->getFinancialReport($familyId, $mode, $period, $year, $startMonth, $endMonth);
+
+        return response()->json([
+            'success' => true,
+            'report' => $report,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'type' => 'required|in:income,expense',
+            'type' => 'required|in:income,expense,saving',
             'amount' => 'required',
             'description' => 'required|string|max:255',
             'category_id' => 'nullable',
             'user_id' => 'nullable|exists:m_users,id',
             'transaction_date' => 'required|date',
-            'receipt' => 'nullable|image|max:5120',
+            'receipt' => 'nullable|image',
         ]);
 
         $user = Auth::user();
         $familyId = $user->family_id;
-        $userId = $user->canViewAllFinances() && ! empty($validated['user_id'])
-            ? (int) $validated['user_id']
-            : $user->id;
+        if (! $user->canViewAllFinances()) {
+            $validated['type'] = 'expense';
+            unset($validated['user_id']);
+            $userId = $user->id;
+        } else {
+            $userId = ! empty($validated['user_id']) ? (int) $validated['user_id'] : $user->id;
+        }
 
         try {
             $this->financeService->recordTransaction($familyId, (int) $userId, $validated, $request->file('receipt'));
+
+            broadcast(new FinanceEvent(
+                familyId: (string) $familyId,
+                action: 'transaction_created',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: $user->name.' mencatat transaksi kas baru: '.$validated['description']
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Transaksi kas berhasil dicatat!']);
@@ -193,14 +273,14 @@ class FinanceController extends Controller
     public function update(int $id, Request $request)
     {
         $validated = $request->validate([
-            'type' => 'required|in:income,expense',
+            'type' => 'required|in:income,expense,saving',
             'amount' => 'required',
             'description' => 'required|string|max:255',
             'category_id' => 'nullable',
             'user_id' => 'nullable|exists:m_users,id',
             'remove_receipt' => 'nullable',
             'transaction_date' => 'required|date',
-            'receipt' => 'nullable|image|max:5120',
+            'receipt' => 'nullable|image',
         ]);
 
         $user = Auth::user();
@@ -210,8 +290,17 @@ class FinanceController extends Controller
         try {
             if (! $user->canViewAllFinances()) {
                 unset($validated['user_id']);
+                $validated['type'] = 'expense';
             }
             $this->financeService->updateTransaction($id, $familyId, $validated, $request->file('receipt'), $authUserId);
+
+            broadcast(new FinanceEvent(
+                familyId: (string) $familyId,
+                action: 'transaction_updated',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: $user->name.' memperbarui transaksi kas: '.$validated['description']
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Transaksi kas berhasil diperbarui!']);
@@ -236,6 +325,14 @@ class FinanceController extends Controller
         try {
             $this->financeService->deleteTransaction($id, $familyId, $authUserId);
 
+            broadcast(new FinanceEvent(
+                familyId: (string) $familyId,
+                action: 'transaction_deleted',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: $user->name.' menghapus transaksi kas.'
+            ))->toOthers();
+
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Transaksi kas berhasil dihapus!']);
             }
@@ -252,6 +349,10 @@ class FinanceController extends Controller
 
     public function storeCategory(Request $request)
     {
+        if (! Auth::user()->canViewAllFinances()) {
+            abort(403, 'Akses terbatas.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:50',
             'type' => 'required|in:income,expense',
@@ -264,6 +365,14 @@ class FinanceController extends Controller
 
         try {
             $cat = $this->financeService->saveCategory($familyId, $validated);
+
+            broadcast(new FinanceEvent(
+                familyId: (string) $familyId,
+                action: 'category_created',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' menambahkan kategori anggaran baru.'
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Kategori berhasil ditambahkan!', 'category' => $cat]);
@@ -281,6 +390,10 @@ class FinanceController extends Controller
 
     public function updateCategory(int $id, Request $request)
     {
+        if (! Auth::user()->canViewAllFinances()) {
+            abort(403, 'Akses terbatas.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:50',
             'type' => 'required|in:income,expense',
@@ -293,6 +406,14 @@ class FinanceController extends Controller
 
         try {
             $cat = $this->financeService->saveCategory($familyId, $validated, $id);
+
+            broadcast(new FinanceEvent(
+                familyId: (string) $familyId,
+                action: 'category_updated',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' memperbarui kategori anggaran.'
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Kategori berhasil diperbarui!', 'category' => $cat]);
@@ -310,10 +431,22 @@ class FinanceController extends Controller
 
     public function destroyCategory(int $id, Request $request)
     {
+        if (! Auth::user()->canViewAllFinances()) {
+            abort(403, 'Akses terbatas.');
+        }
+
         $familyId = Auth::user()->family_id;
 
         try {
             $this->financeService->deleteCategory($id, $familyId);
+
+            broadcast(new FinanceEvent(
+                familyId: (string) $familyId,
+                action: 'category_deleted',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' menghapus kategori anggaran.'
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Kategori berhasil dihapus!']);
@@ -331,6 +464,10 @@ class FinanceController extends Controller
 
     public function storeGoal(Request $request)
     {
+        if (! Auth::user()->canViewAllFinances()) {
+            abort(403, 'Akses terbatas.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:150',
             'target_amount' => 'required',
@@ -345,6 +482,15 @@ class FinanceController extends Controller
 
         try {
             $goal = $this->financeService->saveGoal($familyId, $validated);
+
+            broadcast(new FinanceEvent(
+                familyId: (string) $familyId,
+                action: 'goal_created',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' membuat target tabungan baru: '.$validated['title'],
+                data: ['goal' => $goal]
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Target tabungan berhasil dibuat!', 'goal' => $goal]);
@@ -362,6 +508,10 @@ class FinanceController extends Controller
 
     public function updateGoal(int $id, Request $request)
     {
+        if (! Auth::user()->canViewAllFinances()) {
+            abort(403, 'Akses terbatas.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:150',
             'target_amount' => 'required',
@@ -377,6 +527,15 @@ class FinanceController extends Controller
 
         try {
             $goal = $this->financeService->saveGoal($familyId, $validated, $id);
+
+            broadcast(new FinanceEvent(
+                familyId: (string) $familyId,
+                action: 'goal_updated',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' memperbarui target tabungan: '.$validated['title'],
+                data: ['goal' => $goal]
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Target tabungan berhasil diperbarui!', 'goal' => $goal]);
@@ -394,10 +553,22 @@ class FinanceController extends Controller
 
     public function destroyGoal(int $id, Request $request)
     {
+        if (! Auth::user()->canViewAllFinances()) {
+            abort(403, 'Akses terbatas.');
+        }
+
         $familyId = Auth::user()->family_id;
 
         try {
             $this->financeService->deleteGoal($id, $familyId);
+
+            broadcast(new FinanceEvent(
+                familyId: (string) $familyId,
+                action: 'goal_deleted',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' menghapus target tabungan.'
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Target tabungan berhasil dihapus!']);
@@ -415,6 +586,10 @@ class FinanceController extends Controller
 
     public function depositGoal(int $id, Request $request)
     {
+        if (! Auth::user()->canViewAllFinances()) {
+            abort(403, 'Akses terbatas.');
+        }
+
         $validated = $request->validate([
             'amount' => 'required',
             'note' => 'nullable|string|max:255',
@@ -426,6 +601,15 @@ class FinanceController extends Controller
 
         try {
             $goal = $this->financeService->depositToGoal($id, $familyId, $userId, $amount, $validated['note'] ?? null);
+
+            broadcast(new FinanceEvent(
+                familyId: (string) $familyId,
+                action: 'goal_deposited',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' menyetor tabungan: Rp '.number_format($amount, 0, ',', '.'),
+                data: ['goal' => $goal]
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Setoran tabungan berhasil dicatat!', 'goal' => $goal]);
@@ -443,6 +627,10 @@ class FinanceController extends Controller
 
     public function storePeriodBudget(Request $request)
     {
+        if (! Auth::user()->canViewAllFinances()) {
+            abort(403, 'Akses terbatas.');
+        }
+
         $validated = $request->validate([
             'category_id' => 'required|exists:m_categories,id',
             'period' => 'required|date_format:Y-m',
@@ -454,6 +642,14 @@ class FinanceController extends Controller
 
         try {
             $budget = $this->financeService->savePeriodBudget($familyId, $validated);
+
+            broadcast(new FinanceEvent(
+                familyId: (string) $familyId,
+                action: 'budget_updated',
+                userId: (int) Auth::id(),
+                userName: (string) Auth::user()->name,
+                message: Auth::user()->name.' memperbarui anggaran periode '.$validated['period'].'.'
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Anggaran periode berhasil disimpan!', 'budget' => $budget]);

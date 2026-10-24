@@ -31,11 +31,11 @@ class ChoreRepository
         $query = Chore::with('assignee')
             ->where('family_id', $familyId);
 
+        $recordsTotal = (clone $query)->count();
+
         if (! empty($status) && in_array($status, ['pending', 'completed'])) {
             $query->where('status', $status);
         }
-
-        $recordsTotal = (clone $query)->count();
 
         if ($search !== null && trim($search) !== '') {
             $term = trim($search);

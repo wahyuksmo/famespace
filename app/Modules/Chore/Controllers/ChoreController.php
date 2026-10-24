@@ -2,9 +2,11 @@
 
 namespace App\Modules\Chore\Controllers;
 
+use App\Events\ChoreEvent;
 use App\Http\Controllers\Controller;
 use App\Modules\Chore\Repositories\ChoreRepository;
 use App\Modules\Chore\Services\ChoreService;
+use App\Modules\Reward\Repositories\RewardRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +16,8 @@ class ChoreController extends Controller
 {
     public function __construct(
         protected ChoreService $choreService,
-        protected ChoreRepository $choreRepo
+        protected ChoreRepository $choreRepo,
+        protected RewardRepository $rewardRepo
     ) {}
 
     public function index(Request $request)
@@ -26,6 +29,9 @@ class ChoreController extends Controller
         $user = Auth::user();
         $family = $user->family;
         $members = $family ? $family->users()->orderBy('points', 'desc')->get() : collect();
+        $rewards = $this->rewardRepo->getFamilyRewards($familyId);
+        $claims = $this->rewardRepo->getFamilyClaims($familyId);
+        $pendingClaimsCount = $this->rewardRepo->getPendingClaimsCount($familyId);
 
         return view('modules.chore.index', [
             'chores' => $chores,
@@ -33,6 +39,9 @@ class ChoreController extends Controller
             'members' => $members,
             'user' => $user,
             'family' => $family,
+            'rewards' => $rewards,
+            'claims' => $claims,
+            'pendingClaimsCount' => $pendingClaimsCount,
         ]);
     }
 
@@ -100,7 +109,7 @@ class ChoreController extends Controller
             'assigned_to_user_id' => 'nullable|exists:m_users,id',
             'points' => 'required|integer|min:1|max:500',
             'due_date' => 'nullable|date',
-            'attachment' => 'nullable|image|max:5120',
+            'attachment' => 'nullable|image',
         ]);
 
         $familyId = Auth::user()->family_id;
@@ -108,6 +117,15 @@ class ChoreController extends Controller
         try {
             $this->choreService->createChore($familyId, $validated, $request->file('attachment'));
             $pendingCount = $this->choreRepo->getPendingCount($familyId);
+
+            broadcast(new ChoreEvent(
+                familyId: (string) $familyId,
+                action: 'created',
+                userId: (int) Auth::id(),
+                userName: (string) (Auth::user()->name ?? 'Anggota'),
+                message: (Auth::user()->name ?? 'Anggota').' menambahkan tugas baru: '.$validated['title'],
+                data: ['pending_count' => $pendingCount]
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -136,7 +154,7 @@ class ChoreController extends Controller
             'points' => 'required|integer|min:1|max:500',
             'due_date' => 'nullable|date',
             'remove_attachment' => 'nullable',
-            'attachment' => 'nullable|image|max:5120',
+            'attachment' => 'nullable|image',
         ]);
 
         $familyId = Auth::user()->family_id;
@@ -144,6 +162,15 @@ class ChoreController extends Controller
         try {
             $this->choreService->updateChore($id, $familyId, $validated, $request->file('attachment'));
             $pendingCount = $this->choreRepo->getPendingCount($familyId);
+
+            broadcast(new ChoreEvent(
+                familyId: (string) $familyId,
+                action: 'updated',
+                userId: (int) Auth::id(),
+                userName: (string) (Auth::user()->name ?? 'Anggota'),
+                message: (Auth::user()->name ?? 'Anggota').' memperbarui tugas: '.$validated['title'],
+                data: ['id' => $id, 'pending_count' => $pendingCount]
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -171,6 +198,15 @@ class ChoreController extends Controller
             $this->choreService->deleteChore($id, $familyId);
             $pendingCount = $this->choreRepo->getPendingCount($familyId);
 
+            broadcast(new ChoreEvent(
+                familyId: (string) $familyId,
+                action: 'deleted',
+                userId: (int) Auth::id(),
+                userName: (string) (Auth::user()->name ?? 'Anggota'),
+                message: (Auth::user()->name ?? 'Anggota').' menghapus tugas.',
+                data: ['id' => $id, 'pending_count' => $pendingCount]
+            ))->toOthers();
+
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
@@ -195,6 +231,26 @@ class ChoreController extends Controller
             $result = $this->choreService->toggleChoreStatus($id);
             $familyId = Auth::user()->family_id;
             $pendingCount = $this->choreRepo->getPendingCount($familyId);
+
+            $chore = $result['chore'];
+            $assignee = $chore->assigned_to_user_id ? $chore->assignee?->fresh() : null;
+            $currentUser = Auth::user()->fresh();
+
+            broadcast(new ChoreEvent(
+                familyId: (string) $familyId,
+                action: 'toggled',
+                userId: (int) Auth::id(),
+                userName: (string) (Auth::user()->name ?? 'Anggota'),
+                message: (Auth::user()->name ?? 'Anggota').' menandai tugas '.($result['new_status'] === 'completed' ? 'selesai' : 'tertunda').'.',
+                data: [
+                    'id' => $id,
+                    'status' => $result['new_status'],
+                    'pending_count' => $pendingCount,
+                    'user_points' => $currentUser?->points ?? 0,
+                    'assignee_id' => $chore->assigned_to_user_id,
+                    'assignee_points' => $assignee?->points ?? 0,
+                ]
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([

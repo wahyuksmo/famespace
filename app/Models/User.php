@@ -40,6 +40,16 @@ class User extends Authenticatable
         ];
     }
 
+    public function getAvatarUrlAttribute(): ?string
+    {
+        $val = $this->attributes['avatar_url'] ?? null;
+        if (! $val) {
+            return null;
+        }
+
+        return str_starts_with($val, 'http') ? $val : asset('storage/'.$val);
+    }
+
     public function canViewAllFinances(): bool
     {
         return strtolower((string) $this->role) === 'ayah' || (bool) $this->can_view_all_finances;
@@ -48,6 +58,11 @@ class User extends Authenticatable
     public function isAyah(): bool
     {
         return strtolower((string) $this->role) === 'ayah';
+    }
+
+    public function isParent(): bool
+    {
+        return in_array(strtolower((string) $this->role), ['ayah', 'ibu']);
     }
 
     public function family(): BelongsTo
@@ -73,5 +88,20 @@ class User extends Authenticatable
     public function events(): HasMany
     {
         return $this->hasMany(Event::class, 'created_by_user_id');
+    }
+
+    public function rewardClaims(): HasMany
+    {
+        return $this->hasMany(RewardClaim::class, 'user_id');
+    }
+
+    public function albums(): HasMany
+    {
+        return $this->hasMany(Album::class, 'user_id');
+    }
+
+    public function albumMedia(): HasMany
+    {
+        return $this->hasMany(AlbumMedia::class, 'user_id');
     }
 }

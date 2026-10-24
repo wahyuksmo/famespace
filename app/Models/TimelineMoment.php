@@ -15,6 +15,7 @@ class TimelineMoment extends Model
     protected $fillable = [
         'family_id',
         'user_id',
+        'category_id',
         'title',
         'story',
         'location_name',
@@ -41,5 +42,10 @@ class TimelineMoment extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Auth\Controllers;
 
+use App\Events\FamilyMemberEvent;
 use App\Http\Controllers\Controller;
 use App\Modules\Auth\Services\AuthService;
 use App\Modules\Family\Repositories\FamilyRepository;
@@ -84,6 +85,19 @@ class RegisterController extends Controller
 
         try {
             $user = $this->authService->joinFamily($family->id, $validated);
+
+            broadcast(new FamilyMemberEvent(
+                familyId: (string) $family->id,
+                action: 'member_joined',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: "{$user->name} baru saja bergabung ke ruang keluarga!",
+                data: [
+                    'member_id' => $user->id,
+                    'member_name' => $user->name,
+                    'role' => $user->role,
+                ]
+            ))->toOthers();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([

@@ -123,10 +123,11 @@ class FinanceService
         });
     }
 
-    public function calculateOverview(string $familyId, int $perPage = 5, string $pageName = 'page', ?int $page = null, ?string $period = null, ?int $userId = null): array
+    public function calculateOverview(string $familyId, int $perPage = 5, string $pageName = 'page', ?int $page = null, ?string $period = null, ?int $userId = null, ?string $type = null): array
     {
-        $all = $this->financeRepo->getFamilyTransactions($familyId, 100, $userId);
-        $paginated = $this->financeRepo->getPaginatedFamilyTransactions($familyId, $perPage, $pageName, $page, $userId);
+        $resolvedType = $type ?? ($userId !== null ? 'expense' : null);
+        $all = $this->financeRepo->getFamilyTransactions($familyId, 100, $userId, $resolvedType);
+        $paginated = $this->financeRepo->getPaginatedFamilyTransactions($familyId, $perPage, $pageName, $page, $userId, $resolvedType);
 
         $wkcalPeriods = Wkcal::query()
             ->select('calendar_year', 'calendar_month')
@@ -162,7 +163,8 @@ class FinanceService
         $incomeExpense = $this->financeRepo->getFamilyIncomeExpense($familyId, $userId);
         $income = $incomeExpense['income'];
         $expense = $incomeExpense['expense'];
-        $balance = $income - $expense;
+        $saving = $incomeExpense['saving'] ?? 0;
+        $balance = $income - $expense - $saving;
 
         $categories = $this->financeRepo->getCategories($familyId);
 
@@ -249,6 +251,7 @@ class FinanceService
         return [
             'income' => $income,
             'expense' => $expense,
+            'saving' => $saving,
             'balance' => $balance,
             'transactions' => $paginated,
             'recent_transactions' => $all->take(3),
@@ -379,12 +382,12 @@ class FinanceService
                 'status' => $newStatus,
             ]);
 
-            // Catat pengeluaran alokasi celengan di kas
+            // Catat alokasi tabungan di kas: mengurangi kas operasional tapi bukan pengeluaran
             $cat = Category::firstOrCreate([
                 'family_id' => $familyId,
                 'name' => 'Tabungan & Impian',
             ], [
-                'type' => 'expense',
+                'type' => 'saving',
                 'icon' => '🐷',
                 'color' => '#10B981',
                 'monthly_budget' => 0,
@@ -394,7 +397,7 @@ class FinanceService
                 'family_id' => $familyId,
                 'user_id' => $userId,
                 'category_id' => $cat->id,
-                'type' => 'expense',
+                'type' => 'saving',
                 'amount' => $amount,
                 'description' => "Nabung Target: {$goal->title}".($note ? " - {$note}" : ''),
                 'transaction_date' => now()->toDateString(),
@@ -402,5 +405,44 @@ class FinanceService
 
             return $goal;
         });
+    }
+
+    public function getFinancialReport(string $familyId, ?string $mode = 'monthly', ?string $period = null, ?int $year = null, ?string $startMonth = null, ?string $endMonth = null): array
+    {
+        $mode = $mode ?: 'monthly';
+
+        if ($mode === 'yearly') {
+            $year = $year ?: (int) now()->format('Y');
+            $startDate = "{$year}-01-01";
+            $endDate = "{$year}-12-31";
+            $periodLabel = "Tahun {$year}";
+        } elseif ($mode === 'range') {
+            $startMonth = ($startMonth && preg_match('/^\d{4}-\d{2}$/', $startMonth)) ? $startMonth : now()->startOfYear()->format('Y-m');
+            $endMonth = ($endMonth && preg_match('/^\d{4}-\d{2}$/', $endMonth)) ? $endMonth : now()->format('Y-m');
+
+            if ($startMonth > $endMonth) {
+                [$startMonth, $endMonth] = [$endMonth, $startMonth];
+            }
+
+            $startDate = Carbon::createFromFormat('Y-m', $startMonth)->startOfMonth()->toDateString();
+            $endDate = Carbon::createFromFormat('Y-m', $endMonth)->endOfMonth()->toDateString();
+            $periodLabel = Carbon::parse($startDate)->locale('id')->isoFormat('MMMM Y').' — '.Carbon::parse($endDate)->locale('id')->isoFormat('MMMM Y');
+        } else {
+            $period = ($period && preg_match('/^\d{4}-\d{2}$/', $period)) ? $period : now()->format('Y-m');
+            $date = Carbon::createFromFormat('Y-m', $period);
+            $startDate = $date->copy()->startOfMonth()->toDateString();
+            $endDate = $date->copy()->endOfMonth()->toDateString();
+            $periodLabel = $date->locale('id')->isoFormat('MMMM Y');
+        }
+
+        $report = $this->financeRepo->getReportData($familyId, $startDate, $endDate);
+        $report['mode'] = $mode;
+        $report['period_label'] = $periodLabel;
+        $report['selected_period'] = $period ?? now()->format('Y-m');
+        $report['selected_year'] = $year ?? (int) now()->format('Y');
+        $report['start_month'] = $startMonth ?? now()->startOfYear()->format('Y-m');
+        $report['end_month'] = $endMonth ?? now()->format('Y-m');
+
+        return $report;
     }
 }

@@ -32,6 +32,24 @@ class AuthController extends Controller
         $remember = $request->boolean('remember');
 
         if ($this->authService->login($credentials['email'], $credentials['password'], $remember)) {
+            $user = Auth::user();
+            if (! $user->family_id) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                $message = 'Akun Anda tidak lagi terdaftar dalam ruang keluarga manapun.';
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                        'errors' => ['email' => [$message]],
+                    ], 403);
+                }
+
+                return back()->withErrors(['email' => $message]);
+            }
+
             $request->session()->regenerate();
 
             if ($request->expectsJson() || $request->ajax()) {
