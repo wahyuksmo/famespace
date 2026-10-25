@@ -1,5 +1,5 @@
 <!-- MODAL: REWARD (TAMBAH / EDIT HADIAH) -->
-<div id="reward-manage-modal" class="fixed inset-0 bg-ink/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+<div id="reward-manage-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-[60] flex items-center justify-center p-3 sm:p-4 hidden">
   <div class="bg-white brutal-card max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 relative modal-box">
     
     <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4">
@@ -127,7 +127,7 @@
 </div>
 
 <!-- MODAL: KONFIRMASI KLAIM REWARD -->
-<div id="reward-claim-confirm-modal" class="fixed inset-0 bg-ink/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+<div id="reward-claim-confirm-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-[70] flex items-center justify-center p-3 sm:p-4 hidden">
   <div class="bg-white brutal-card max-w-md w-full p-5 sm:p-6 relative modal-box text-center">
     <div id="claim-confirm-icon" class="w-16 h-16 mx-auto bg-brand-soft brutal-border flex items-center justify-center text-3xl shadow-[3px_3px_0px_#121614] mb-3">
       🎁
@@ -174,7 +174,7 @@
 </div>
 
 <!-- MODAL: TOLAK KLAIM DENGAN ALASAN (UNTUK ORANG TUA) -->
-<div id="reward-reject-modal" class="fixed inset-0 bg-ink/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+<div id="reward-reject-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-[70] flex items-center justify-center p-3 sm:p-4 hidden">
   <div class="bg-white brutal-card max-w-md w-full p-5 sm:p-6 relative modal-box">
     <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-3">
       <div class="flex items-center gap-2">
@@ -226,7 +226,7 @@
 </div>
 
 <!-- MODAL: KONFIRMASI PERSETUJUAN KLAIM HADIAH (ORANG TUA) -->
-<div id="reward-approve-confirm-modal" class="fixed inset-0 bg-ink/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeApproveModal()">
+<div id="reward-approve-confirm-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-[70] flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeApproveModal()">
   <div class="bg-white brutal-card max-w-md w-full p-5 sm:p-6 relative modal-box text-center">
     <div class="w-14 h-14 mx-auto bg-brand-soft brutal-border flex items-center justify-center text-3xl shadow-[3px_3px_0px_#121614] mb-3">
       🎉

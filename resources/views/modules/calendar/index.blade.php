@@ -455,7 +455,7 @@
 
 @push('modals')
 <!-- MODAL DETAIL HARI (POPUP RINCIAN TANGGAL & AGENDA) -->
-<div id="day-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-ink/60 hidden">
+<div id="day-detail-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-ink/75 backdrop-blur-sm hidden">
   <div class="bg-white brutal-card max-w-lg w-full p-4 sm:p-6 space-y-3.5 sm:space-y-4 max-h-[90vh] overflow-y-auto">
     
     <!-- HEADER DETAIL MODAL -->

@@ -44,10 +44,13 @@ class AuthController extends Controller
                         'success' => false,
                         'message' => $message,
                         'errors' => ['email' => [$message]],
+                        'redirect_join' => route('join.family'),
                     ], 403);
                 }
 
-                return back()->withErrors(['email' => $message]);
+                $webMessage = 'Akun Anda tidak lagi terdaftar dalam ruang keluarga manapun. <a href="'.route('join.family').'" class="underline font-black text-brand hover:text-ink">Gabung ke keluarga dengan kode &rarr;</a>';
+
+                return back()->withErrors(['email' => $webMessage]);
             }
 
             $request->session()->regenerate();

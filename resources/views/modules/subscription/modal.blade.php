@@ -1,5 +1,5 @@
 <!-- MODAL: SUBSCRIPTION / PAYWALL (FAMKOJI PRO) -->
-<div id="paywall-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+<div id="paywall-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-[70] flex items-center justify-center p-3 sm:p-4 hidden">
   <div class="bg-cream brutal-card max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 relative modal-box">
     
     <!-- HEADER -->

@@ -1,5 +1,5 @@
 <!-- MODAL: PANTRY (CATAT / EDIT BARANG INVENTARIS) -->
-<div id="pantry-modal" class="fixed inset-0 bg-ink/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closePantryModal()">
+<div id="pantry-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-[60] flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closePantryModal()">
   <div class="bg-white brutal-card max-w-xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 relative modal-box">
     
     <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4">

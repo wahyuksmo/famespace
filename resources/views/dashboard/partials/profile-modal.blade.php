@@ -1,5 +1,5 @@
 <!-- MODAL: EDIT PROFIL & FOTO (NEO-BRUTALIST) -->
-<div id="profile-modal" class="fixed inset-0 bg-ink/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeProfileModal()">
+<div id="profile-modal" class="fixed inset-0 bg-ink/80 backdrop-blur-sm z-[70] flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeProfileModal()">
   <div class="bg-cream brutal-card max-w-md w-full p-5 sm:p-6 relative space-y-4 my-auto max-h-[92vh] overflow-y-auto">
     
     <!-- HEADER -->

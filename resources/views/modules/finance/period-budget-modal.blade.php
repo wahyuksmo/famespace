@@ -1,5 +1,5 @@
 <!-- MODAL: ANGGARAN BULANAN HISTORIS -->
-<div id="period-budget-modal" class="fixed inset-0 bg-ink/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+<div id="period-budget-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-[60] flex items-center justify-center p-3 sm:p-4 hidden">
   <div class="bg-white brutal-card max-w-lg w-full max-h-[92vh] overflow-y-auto p-4 sm:p-6 relative modal-box">
     
     <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4">

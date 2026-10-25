@@ -1,5 +1,5 @@
 <!-- MODAL: PREVIEW GAMBAR / STRUK / LAMPIRAN (NEO-BRUTALIST) -->
-<div id="image-preview-modal" class="fixed inset-0 bg-ink/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeImagePreviewModal()">
+<div id="image-preview-modal" class="fixed inset-0 bg-ink/85 backdrop-blur-md z-[80] flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeImagePreviewModal()">
   <div class="bg-cream brutal-card max-w-2xl w-full p-4 sm:p-5 relative space-y-3 my-auto max-h-[92vh] flex flex-col">
     
     <!-- HEADER -->

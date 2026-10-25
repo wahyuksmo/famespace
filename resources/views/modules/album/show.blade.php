@@ -236,9 +236,11 @@
   @endif
 
 </div>
+@endsection
 
+@push('modals')
 <!-- LIGHTBOX / FULLSCREEN VIEWER (PWA READY) -->
-<div id="lightbox-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 backdrop-blur-sm hidden p-2 sm:p-4 select-none">
+<div id="lightbox-modal" class="fixed inset-0 z-[80] flex items-center justify-center bg-ink/90 backdrop-blur-sm hidden p-2 sm:p-4 select-none">
   <!-- CLOSE BUTTON -->
   <button type="button" 
           onclick="closeLightbox()" 
@@ -290,7 +292,7 @@
 </div>
 
 <!-- MODAL: UNGGAH MEDIA BARU -->
-<div id="upload-media-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-ink/60 backdrop-blur-[2px] hidden">
+<div id="upload-media-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-ink/75 backdrop-blur-sm hidden">
   <div class="w-full max-w-md bg-white brutal-card p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto">
     
     <div class="flex items-center justify-between border-b-2 border-ink pb-3">
@@ -411,7 +413,7 @@
 </div>
 
 <!-- MODAL: EDIT ALBUM DETAIL -->
-<div id="album-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-ink/60 backdrop-blur-[2px] hidden">
+<div id="album-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-ink/75 backdrop-blur-sm hidden">
   <div class="w-full max-w-md bg-white brutal-card p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto">
     <div class="flex items-center justify-between border-b-2 border-ink pb-3">
       <div class="flex items-center gap-2">
@@ -488,7 +490,7 @@
     </form>
   </div>
 </div>
-@endsection
+@endpush
 
 @push('scripts')
 <script>

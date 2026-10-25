@@ -137,7 +137,7 @@
       @if ($errors->any())
         <div class="mb-4 p-3 bg-coral/20 brutal-border text-xs font-bold text-coral space-y-1">
           @foreach ($errors->all() as $err)
-            <div>• {{ $err }}</div>
+            <div>• {!! $err !!}</div>
           @endforeach
         </div>
       @endif
@@ -189,14 +189,24 @@
         </button>
       </form>
 
-      <!-- SWITCH TO REGISTER -->
-      <div class="mt-6 pt-5 border-t-2 border-ink text-center">
-        <p class="text-xs font-bold text-ink/80">
-          Belum punya ruang keluarga?
-        </p>
-        <a href="{{ route('register') }}" class="inline-block mt-2 px-4 py-2 bg-cream hover:bg-accent brutal-btn text-xs font-black uppercase tracking-wide">
-          + Buat Ruang Keluarga Baru
-        </a>
+      <!-- SWITCH TO REGISTER & JOIN -->
+      <div class="mt-6 pt-5 border-t-2 border-ink text-center space-y-3">
+        <div>
+          <p class="text-xs font-bold text-ink/80">
+            Sudah punya akun & mau masuk keluarga baru?
+          </p>
+          <a href="{{ route('join.family') }}" class="inline-block mt-1.5 px-4 py-2 bg-brand-soft hover:bg-accent brutal-btn text-xs font-black uppercase tracking-wide">
+            🔑 Masuk Keluarga dengan Kode
+          </a>
+        </div>
+        <div class="pt-2 border-t border-ink/20">
+          <p class="text-xs font-bold text-ink/80">
+            Belum punya ruang keluarga?
+          </p>
+          <a href="{{ route('register') }}" class="inline-block mt-1.5 px-4 py-2 bg-cream hover:bg-accent brutal-btn text-xs font-black uppercase tracking-wide">
+            + Buat Ruang Keluarga Baru
+          </a>
+        </div>
       </div>
 
     </div>

@@ -227,9 +227,11 @@
   @endif
 
 </div>
+@endsection
 
+@push('modals')
 <!-- MODAL: BUAT / EDIT ALBUM -->
-<div id="album-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-ink/60 backdrop-blur-[2px] hidden">
+<div id="album-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-ink/75 backdrop-blur-sm hidden">
   <div class="w-full max-w-md bg-white brutal-card p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto">
     
     <div class="flex items-center justify-between border-b-2 border-ink pb-3">
@@ -316,7 +318,7 @@
 
   </div>
 </div>
-@endsection
+@endpush
 
 @push('scripts')
 <script>

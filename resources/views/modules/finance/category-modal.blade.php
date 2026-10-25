@@ -1,5 +1,5 @@
 <!-- MODAL: KELOLA KATEGORI & ANGGARAN -->
-<div id="category-manage-modal" class="fixed inset-0 bg-ink/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+<div id="category-manage-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-[70] flex items-center justify-center p-3 sm:p-4 hidden">
   <div class="bg-white brutal-card max-w-2xl w-full max-h-[92vh] flex flex-col p-4 sm:p-6 relative modal-box">
     
     <!-- HEADER -->

@@ -172,7 +172,7 @@
 
 @push('modals')
 <!-- MODAL: KONFIRMASI KICK ANGGOTA (NEOBRUTALIST) -->
-<div id="confirm-kick-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeKickModal()">
+<div id="confirm-kick-modal" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-[70] flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeKickModal()">
   <div class="bg-cream brutal-card max-w-sm sm:max-w-md w-full p-5 sm:p-6 relative modal-box space-y-4">
     
     <!-- HEADER -->
@@ -219,7 +219,7 @@
 </div>
 
 <!-- MODAL: UBAH PASSWORD ANGGOTA (NEOBRUTALIST) -->
-<div id="modal-change-password" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closePasswordModal()">
+<div id="modal-change-password" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-[70] flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closePasswordModal()">
   <div class="bg-cream brutal-card max-w-sm sm:max-w-md w-full p-5 sm:p-6 relative modal-box space-y-4">
     <!-- HEADER -->
     <div class="flex items-start justify-between pb-3 border-b-2 border-ink">
@@ -267,7 +267,7 @@
 </div>
 
 <!-- MODAL: UBAH PERAN ANGGOTA (NEOBRUTALIST) -->
-<div id="modal-change-role" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeRoleModal()">
+<div id="modal-change-role" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-[70] flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeRoleModal()">
   <div class="bg-cream brutal-card max-w-sm sm:max-w-md w-full p-5 sm:p-6 relative modal-box space-y-4">
     <!-- HEADER -->
     <div class="flex items-start justify-between pb-3 border-b-2 border-ink">

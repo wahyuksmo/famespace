@@ -36,6 +36,9 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/join/{code}', [RegisterController::class, 'showJoin'])->name('join.show');
     Route::post('/join/{code}', [RegisterController::class, 'processJoin'])->name('join.process');
+
+    Route::get('/join-family', [RegisterController::class, 'showJoinFamily'])->name('join.family');
+    Route::post('/join-family', [RegisterController::class, 'processJoinFamily'])->name('join.family.process');
 });
 
 // Authenticated Routes
