@@ -64,7 +64,7 @@
                    style="width: {{ $quota['is_pro'] ? '100%' : min(100, ($quota['photos_used'] / 10) * 100) }}%"></div>
             </div>
             <div class="text-[9px] font-mono text-ink/60 flex justify-between">
-              <span>{{ $quota['is_pro'] ? 'Tanpa batas upload' : 'Maksimal 10 foto (JPG/PNG/WEBP maks 5MB)' }}</span>
+              <span>{{ $quota['is_pro'] ? 'Tanpa batas upload' : 'Maksimal 10 foto (JPG/PNG/WEBP)' }}</span>
               @if(!$quota['is_pro'] && $quota['photos_used'] >= 10)
                 <span class="font-black text-coral">Penuh</span>
               @endif
@@ -87,7 +87,7 @@
                    style="width: {{ $quota['is_pro'] ? '100%' : min(100, ($quota['videos_used'] / 1) * 100) }}%"></div>
             </div>
             <div class="text-[9px] font-mono text-ink/60 flex justify-between">
-              <span>{{ $quota['is_pro'] ? 'Tanpa batas video' : 'Maksimal 1 video (MP4/MOV maks 25MB)' }}</span>
+              <span>{{ $quota['is_pro'] ? 'Tanpa batas video' : 'Maksimal 1 video (MP4/MOV)' }}</span>
               @if(!$quota['is_pro'] && $quota['videos_used'] >= 1)
                 <span class="font-black text-coral">Penuh</span>
               @endif
@@ -297,7 +297,7 @@
             <span class="hidden sm:inline">Kamera</span>
           </button>
         </div>
-        <p class="text-[10px] font-mono text-ink/60">Foto JPG/PNG/WEBP maks 5MB.</p>
+        <p class="text-[10px] font-mono text-ink/60">Foto JPG/PNG/WEBP.</p>
       </div>
 
       <div class="flex items-center justify-end gap-2 pt-2 border-t-2 border-ink">

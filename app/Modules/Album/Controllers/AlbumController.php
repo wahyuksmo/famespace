@@ -87,7 +87,7 @@ class AlbumController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:150',
             'description' => 'nullable|string|max:1000',
-            'cover_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
+            'cover_image' => 'nullable|image|mimes:jpeg,jpg,png,webp',
         ]);
 
         $coverPath = null;
@@ -129,7 +129,7 @@ class AlbumController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:150',
             'description' => 'nullable|string|max:1000',
-            'cover_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
+            'cover_image' => 'nullable|image|mimes:jpeg,jpg,png,webp',
         ]);
 
         if ($request->hasFile('cover_image')) {
@@ -215,10 +215,6 @@ class AlbumController extends Controller
         }
 
         if ($isPhoto) {
-            if ($file->getSize() > 5 * 1024 * 1024) {
-                return $this->errorResponse($request, 'Ukuran foto melebihi batas 5MB.');
-            }
-
             if (! $family->canUploadPhoto()) {
                 return $this->errorResponse(
                     $request,
@@ -227,10 +223,6 @@ class AlbumController extends Controller
                 );
             }
         } else {
-            if ($file->getSize() > 25 * 1024 * 1024) {
-                return $this->errorResponse($request, 'Ukuran video melebihi batas 25MB.');
-            }
-
             if (! $family->canUploadVideo()) {
                 return $this->errorResponse(
                     $request,

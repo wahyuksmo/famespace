@@ -82,8 +82,8 @@ class UserProfilePhotoTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['avatar']);
 
-        // Exceeds 2MB (2049KB)
-        $bigImage = UploadedFile::fake()->create('big.jpg', 2049, 'image/jpeg');
+        // Large images are accepted without file size limit
+        $bigImage = UploadedFile::fake()->create('big.jpg', 5120, 'image/jpeg');
 
         $responseOversize = $this->actingAs($this->user)
             ->postJson(route('profile.update'), [
@@ -91,8 +91,8 @@ class UserProfilePhotoTest extends TestCase
                 'avatar' => $bigImage,
             ]);
 
-        $responseOversize->assertStatus(422)
-            ->assertJsonValidationErrors(['avatar']);
+        $responseOversize->assertStatus(200)
+            ->assertJson(['success' => true]);
     }
 
     public function test_user_can_remove_profile_photo(): void

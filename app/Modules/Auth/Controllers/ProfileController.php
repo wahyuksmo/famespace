@@ -19,14 +19,13 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:2048',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif',
             'remove_avatar' => 'nullable|boolean',
         ], [
             'name.required' => 'Nama wajib diisi.',
             'name.max' => 'Nama maksimal 255 karakter.',
             'avatar.image' => 'File yang diunggah harus berupa gambar.',
             'avatar.mimes' => 'Format foto harus berupa JPG, PNG, WEBP, atau GIF.',
-            'avatar.max' => 'Ukuran foto maksimal 2MB.',
         ]);
 
         $user->name = $validated['name'];

@@ -111,10 +111,11 @@
   </div>
 
 </div>
-
-@include('modules.pantry.modal')
-
 @endsection
+
+@push('modals')
+  @include('modules.pantry.modal')
+@endpush
 
 @push('scripts')
 <script>

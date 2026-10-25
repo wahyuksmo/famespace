@@ -351,7 +351,7 @@
                 <span>Pilih Berkas / Galeri</span>
               </button>
             </div>
-            <div class="text-[10px] font-mono text-ink/60">Foto JPG/PNG/WEBP (maks 5MB) atau Video MP4/MOV (maks 25MB)</div>
+            <div class="text-[10px] font-mono text-ink/60">Foto JPG/PNG/WEBP atau Video MP4/MOV</div>
           </div>
 
           <!-- PREVIEW SELECTED FILE -->
@@ -573,21 +573,6 @@
 
     if (!isImage && !isVideo) {
       errorText.innerText = 'Format berkas tidak didukung. Harap pilih gambar (JPG/PNG/WEBP) atau video (MP4/MOV).';
-      errorAlert.classList.remove('hidden');
-      submitBtn.disabled = true;
-      return;
-    }
-
-    // Size check
-    if (isImage && file.size > 5 * 1024 * 1024) {
-      errorText.innerText = 'Ukuran foto melebihi batas 5MB (' + (file.size / 1048576).toFixed(1) + ' MB).';
-      errorAlert.classList.remove('hidden');
-      submitBtn.disabled = true;
-      return;
-    }
-
-    if (isVideo && file.size > 25 * 1024 * 1024) {
-      errorText.innerText = 'Ukuran video melebihi batas 25MB (' + (file.size / 1048576).toFixed(1) + ' MB).';
       errorAlert.classList.remove('hidden');
       submitBtn.disabled = true;
       return;

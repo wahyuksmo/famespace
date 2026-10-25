@@ -69,7 +69,7 @@
               </button>
             </div>
             <p class="text-[10px] font-mono text-ink/60 leading-tight">
-              Kamera HP atau file gambar (JPG, PNG, WEBP, maks 2MB).
+              Kamera HP atau file gambar (JPG, PNG, WEBP).
             </p>
           </div>
         </div>

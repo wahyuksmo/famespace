@@ -3,7 +3,7 @@
 
   <!-- SAPAAN HANGAT WAKTU (NEOBRUTALISM WELCOME CARD) -->
   @php
-    $hour = (int) now()->format('H');
+    $hour = (int) now(config('app.timezone', 'Asia/Jakarta'))->format('H');
     if ($hour >= 4 && $hour < 11) {
       $greetingTime = 'Selamat Pagi';
       $greetingEmoji = '🌅';

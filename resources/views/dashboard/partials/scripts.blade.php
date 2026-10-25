@@ -1255,11 +1255,6 @@
         const cameraInput = document.getElementById('profile-camera-input');
         if (cameraInput) cameraInput.value = '';
       }
-      if (file.size > 2 * 1024 * 1024) {
-        showToast('Ukuran foto terlalu besar. Maksimal 2MB!', 'error');
-        input.value = '';
-        return;
-      }
       const reader = new FileReader();
       reader.onload = function(e) {
         $('#profile-modal-avatar-img').attr('src', e.target.result).removeClass('hidden');
