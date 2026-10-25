@@ -144,7 +144,7 @@ class FamilyMemberManagementTest extends TestCase
         $response->assertStatus(422);
         $response->assertJson([
             'success' => false,
-            'message' => 'Tidak dapat mengeluarkan akun Ayah (Admin Utama).',
+            'message' => 'Tidak dapat mengeluarkan akun Orang Tua (Admin Utama).',
         ]);
 
         $anotherAyah->refresh();
@@ -187,7 +187,7 @@ class FamilyMemberManagementTest extends TestCase
         $response->assertStatus(403);
         $response->assertJson([
             'success' => false,
-            'message' => 'Hanya Ayah (Admin Keluarga) yang berhak mengeluarkan anggota keluarga.',
+            'message' => 'Hanya Orang Tua (Admin Keluarga) yang berhak mengeluarkan anggota keluarga.',
         ]);
 
         $this->intruder->refresh();
@@ -336,7 +336,7 @@ class FamilyMemberManagementTest extends TestCase
         $response->assertStatus(422);
         $response->assertJson([
             'success' => false,
-            'message' => 'Peran akun Ayah (Admin Utama) tidak dapat diubah.',
+            'message' => 'Peran akun Orang Tua (Admin Utama) tidak dapat diubah.',
         ]);
     }
 
@@ -347,5 +347,78 @@ class FamilyMemberManagementTest extends TestCase
         ]);
 
         $response->assertStatus(422);
+    }
+
+    public function test_ibu_can_manage_members_and_regenerate_invite_code(): void
+    {
+        $ibu = User::create([
+            'family_id' => $this->family->id,
+            'name' => 'Ibu Siti',
+            'email' => 'ibu.siti@test.com',
+            'password' => bcrypt('secret123'),
+            'role' => 'Ibu',
+        ]);
+
+        $targetAnak = User::create([
+            'family_id' => $this->family->id,
+            'name' => 'Anak Dua',
+            'email' => 'anak2@test.com',
+            'password' => bcrypt('secret123'),
+            'role' => 'Anak',
+        ]);
+
+        // Ibu can update role of Anak
+        $roleResp = $this->actingAs($ibu)->patchJson(route('members.update_role', $targetAnak->id), [
+            'role' => 'ART',
+        ]);
+        $roleResp->assertStatus(200);
+        $this->assertEquals('ART', $targetAnak->fresh()->role);
+
+        // Ibu can toggle finance access of non-parent
+        $finResp = $this->actingAs($ibu)->patchJson(route('members.toggle_finance', $targetAnak->id), [
+            'can_view_all_finances' => true,
+        ]);
+        $finResp->assertStatus(200);
+        $this->assertTrue($targetAnak->fresh()->can_view_all_finances);
+
+        // Ibu can regenerate invite code
+        $regenResp = $this->actingAs($ibu)->postJson(route('members.regenerate_invite'));
+        $regenResp->assertStatus(200);
+
+        // Ibu can kick non-parent member
+        $kickResp = $this->actingAs($ibu)->deleteJson(route('members.kick', $targetAnak->id));
+        $kickResp->assertStatus(200);
+        $this->assertNull($targetAnak->fresh()->family_id);
+    }
+
+    public function test_ibu_and_ayah_are_mutually_protected(): void
+    {
+        $ibu = User::create([
+            'family_id' => $this->family->id,
+            'name' => 'Ibu Siti',
+            'email' => 'ibu.siti@test.com',
+            'password' => bcrypt('secret123'),
+            'role' => 'Ibu',
+        ]);
+
+        // Ibu cannot kick Ayah
+        $respKickAyah = $this->actingAs($ibu)->deleteJson(route('members.kick', $this->ayah->id));
+        $respKickAyah->assertStatus(422);
+
+        // Ayah cannot kick Ibu
+        $respKickIbu = $this->actingAs($this->ayah)->deleteJson(route('members.kick', $ibu->id));
+        $respKickIbu->assertStatus(422);
+
+        // Ibu cannot demote Ayah
+        $respDemoteAyah = $this->actingAs($ibu)->patchJson(route('members.update_role', $this->ayah->id), [
+            'role' => 'Anak',
+        ]);
+        $respDemoteAyah->assertStatus(422);
+
+        // Ayah cannot demote Ibu
+        $respDemoteIbu = $this->actingAs($this->ayah)->patchJson(route('members.update_role', $ibu->id), [
+            'role' => 'Anak',
+        ]);
+        $respDemoteIbu->assertStatus(422);
     }
 }

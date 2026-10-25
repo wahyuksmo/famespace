@@ -52,7 +52,7 @@ class User extends Authenticatable
 
     public function canViewAllFinances(): bool
     {
-        return strtolower((string) $this->role) === 'ayah' || (bool) $this->can_view_all_finances;
+        return $this->isParent() || (bool) $this->can_view_all_finances;
     }
 
     public function isAyah(): bool

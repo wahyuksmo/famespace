@@ -31,7 +31,7 @@
       <a href="https://wa.me/?text=Halo!%20Ayo%20gabung%20ke%20ruang%20keluarga%20kita%20di%20FamKoji:%20{{ url('/join/' . $family->invite_code) }}" id="btn-wa-invite" target="_blank" class="px-3.5 py-2 bg-brand text-white brutal-btn text-xs font-bold">
         💬 Kirim via WhatsApp
       </a>
-      @if($user->isAyah())
+      @if($user->isParent())
         <button type="button" onclick="regenerateInviteCode()" id="btn-regen-invite" class="px-3.5 py-2 bg-white text-ink hover:bg-cream brutal-btn text-xs font-bold flex items-center gap-1.5" title="Acak ulang kode jika ada yang mencurigakan mencoba menyusup">
           <span>🔄 Acak Ulang Kode</span>
         </button>
@@ -95,12 +95,12 @@
             <span class="text-brand font-mono">{{ $m->points }} Poin</span>
           </div>
 
-          @if($m->isAyah())
+          @if($m->isParent())
             <div class="pt-2 border-t-2 border-ink flex items-center justify-between text-xs font-black">
               <span>Data Keuangan:</span>
-              <span class="px-2 py-0.5 bg-brand text-white brutal-border font-mono text-[9px] uppercase font-bold">Penuh (Ayah)</span>
+              <span class="px-2 py-0.5 bg-brand text-white brutal-border font-mono text-[9px] uppercase font-bold">Penuh (Orang Tua)</span>
             </div>
-          @elseif($user->isAyah())
+          @elseif($user->isParent())
             <div class="pt-2 border-t-2 border-ink flex items-center justify-between text-xs font-black">
               <div class="flex flex-col pr-2">
                 <span class="text-ink">Lihat Seluruh Kas:</span>
@@ -125,16 +125,16 @@
             </div>
           @endif
 
-          @if($user->isAyah() || $m->id === $user->id)
+          @if($user->isParent() || $m->id === $user->id)
             <div class="pt-2 border-t-2 border-ink space-y-1.5">
-              <div class="grid {{ ($user->isAyah() && !$m->isAyah()) ? 'grid-cols-2' : 'grid-cols-1' }} gap-1.5">
+              <div class="grid {{ ($user->isParent() && !$m->isParent()) ? 'grid-cols-2' : 'grid-cols-1' }} gap-1.5">
                 <button type="button" 
                         onclick="openPasswordModal({{ $m->id }}, '{{ addslashes($m->name) }}')"
                         class="py-1.5 px-2 bg-cream hover:bg-accent text-ink brutal-border font-mono text-[11px] font-bold flex items-center justify-center gap-1 transition-all shadow-[2px_2px_0px_#121614] active:translate-x-[1px] active:translate-y-[1px]">
                   <span>🔑</span>
                   <span>Ubah Password</span>
                 </button>
-                @if($user->isAyah() && !$m->isAyah())
+                @if($user->isParent() && !$m->isParent())
                   <button type="button" 
                           onclick="openRoleModal({{ $m->id }}, '{{ addslashes($m->name) }}', '{{ addslashes($m->role) }}')"
                           class="py-1.5 px-2 bg-cream hover:bg-mustard text-ink brutal-border font-mono text-[11px] font-bold flex items-center justify-center gap-1 transition-all shadow-[2px_2px_0px_#121614] active:translate-x-[1px] active:translate-y-[1px]">
@@ -144,7 +144,7 @@
                 @endif
               </div>
 
-              @if($user->isAyah() && $m->id !== $user->id && !$m->isAyah())
+              @if($user->isParent() && $m->id !== $user->id && !$m->isParent())
                 <button type="button" 
                         onclick="openKickModal({{ $m->id }}, '{{ addslashes($m->name) }}', '{{ addslashes($m->role) }}')" 
                         class="w-full py-1.5 px-2 bg-red-50 hover:bg-coral text-coral hover:text-white brutal-border font-mono text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 transition-all shadow-[2px_2px_0px_#121614] active:translate-x-[1px] active:translate-y-[1px]">

@@ -211,4 +211,22 @@ class FinanceAccessPrivacyTest extends TestCase
             'amount' => 50000,
         ]);
     }
+
+    public function test_ibu_automatically_has_full_finance_access(): void
+    {
+        $ibu = User::create([
+            'family_id' => $this->family->id,
+            'name' => 'Siti Ibu',
+            'email' => 'ibu@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'Ibu',
+            'can_view_all_finances' => false,
+        ]);
+
+        $this->assertTrue($ibu->canViewAllFinances());
+
+        $responseIbu = $this->actingAs($ibu)->get(route('finances.index'));
+        $responseIbu->assertStatus(200);
+        $responseIbu->assertSee('Total Saldo Kas Tersedia');
+    }
 }

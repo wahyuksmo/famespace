@@ -47,7 +47,7 @@ class MemberController extends Controller
             ], 404);
         }
 
-        if (! $currentUser->isAyah() && $currentUser->id !== $targetUser->id) {
+        if (! $currentUser->isParent() && $currentUser->id !== $targetUser->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak memiliki izin untuk mengubah password anggota ini.',
@@ -80,10 +80,10 @@ class MemberController extends Controller
     {
         $currentUser = Auth::user();
 
-        if (! $currentUser->isAyah()) {
+        if (! $currentUser->isParent()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Hanya Ayah (Admin Keluarga) yang berhak mengubah peran anggota keluarga.',
+                'message' => 'Hanya Orang Tua (Admin Keluarga) yang berhak mengubah peran anggota keluarga.',
             ], 403);
         }
 
@@ -98,10 +98,10 @@ class MemberController extends Controller
             ], 404);
         }
 
-        if ($targetUser->isAyah()) {
+        if ($targetUser->isParent()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Peran akun Ayah (Admin Utama) tidak dapat diubah.',
+                'message' => 'Peran akun Orang Tua (Admin Utama) tidak dapat diubah.',
             ], 422);
         }
 
@@ -139,10 +139,10 @@ class MemberController extends Controller
     {
         $currentUser = Auth::user();
 
-        if (! $currentUser->isAyah()) {
+        if (! $currentUser->isParent()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Hanya Ayah yang berhak mengatur izin akses keuangan keluarga.',
+                'message' => 'Hanya Orang Tua (Admin Keluarga) yang berhak mengatur izin akses keuangan keluarga.',
             ], 403);
         }
 
@@ -157,10 +157,10 @@ class MemberController extends Controller
             ], 404);
         }
 
-        if ($targetUser->isAyah()) {
+        if ($targetUser->isParent()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Izin akun Ayah selalu aktif penuh dan tidak dapat diubah.',
+                'message' => 'Izin akun Orang Tua selalu aktif penuh dan tidak dapat diubah.',
             ], 422);
         }
 
@@ -197,10 +197,10 @@ class MemberController extends Controller
     {
         $currentUser = Auth::user();
 
-        if (! $currentUser->isAyah()) {
+        if (! $currentUser->isParent()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Hanya Ayah (Admin Keluarga) yang berhak mengeluarkan anggota keluarga.',
+                'message' => 'Hanya Orang Tua (Admin Keluarga) yang berhak mengeluarkan anggota keluarga.',
             ], 403);
         }
 
@@ -222,10 +222,10 @@ class MemberController extends Controller
             ], 404);
         }
 
-        if ($targetUser->isAyah()) {
+        if ($targetUser->isParent()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak dapat mengeluarkan akun Ayah (Admin Utama).',
+                'message' => 'Tidak dapat mengeluarkan akun Orang Tua (Admin Utama).',
             ], 422);
         }
 
@@ -270,10 +270,10 @@ class MemberController extends Controller
     {
         $currentUser = Auth::user();
 
-        if (! $currentUser->isAyah()) {
+        if (! $currentUser->isParent()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Hanya Ayah yang berhak memperbarui kode undangan keluarga.',
+                'message' => 'Hanya Orang Tua (Admin Keluarga) yang berhak memperbarui kode undangan keluarga.',
             ], 403);
         }
 
