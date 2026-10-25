@@ -43,10 +43,71 @@ class SubscriptionController extends Controller
         }
     }
 
+    public function qrisPay(Request $request)
+    {
+        $request->validate([
+            'plan_code' => 'required|string|in:pro_monthly,lifetime',
+            'transfer_time' => 'nullable|string|max:50',
+            'proof_image' => 'required|image|max:5120',
+        ], [
+            'proof_image.required' => 'Eits, struk bukti transfernya di-upload dulu dong kak! Biar admin nggak bingung ngecek mutasi 📸',
+        ]);
+
+        $familyId = Auth::user()->family_id;
+        $userId = Auth::id();
+        $planCode = $request->input('plan_code', 'pro_monthly');
+
+        try {
+            $invoice = $this->subService->generateInvoice($familyId, $userId, $planCode);
+
+            $proofPath = null;
+            if ($request->hasFile('proof_image')) {
+                $proofPath = $request->file('proof_image')->store('payment-proofs', 'public');
+            }
+
+            $transferTime = $request->input('transfer_time') ?: now()->format('H:i').' WIB';
+
+            $result = $this->subService->simulatePayment($invoice->invoice_number, $transferTime, $proofPath);
+            $user = Auth::user();
+
+            broadcast(new SubscriptionEvent(
+                familyId: (string) $user->family_id,
+                action: 'plan_upgraded',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: 'Selamat! Seluruh anggota keluarga sekarang menikmati Fitur FamKoji Pro! 👑',
+                data: ['plan' => 'pro', 'is_pro' => true]
+            ));
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Horeee! Akun keluarga kamu sekarang resmi jadi PRO! 👑 Admin bakal cek mutasi santai sambil ngopi. Selamat seru-seruan bareng keluarga!',
+                    'data' => $result,
+                ]);
+            }
+
+            return redirect()->route('dashboard')->with('success', 'Horeee! Akun keluarga kamu sekarang resmi jadi PRO! 👑 Selamat menikmati semua fiturnya!');
+        } catch (Throwable $e) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+
+            return redirect()->route('dashboard')->with('error', $e->getMessage());
+        }
+    }
+
     public function simulatePay(Request $request, string $invoiceNumber)
     {
         try {
-            $result = $this->subService->simulatePayment($invoiceNumber);
+            $proofPath = null;
+            if ($request->hasFile('proof_image')) {
+                $proofPath = $request->file('proof_image')->store('payment-proofs', 'public');
+            }
+
+            $transferTime = $request->input('transfer_time');
+
+            $result = $this->subService->simulatePayment($invoiceNumber, $transferTime, $proofPath);
             $user = Auth::user();
 
             broadcast(new SubscriptionEvent(

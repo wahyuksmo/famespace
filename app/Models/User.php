@@ -55,6 +55,11 @@ class User extends Authenticatable
         return $this->isParent() || (bool) $this->can_view_all_finances;
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return strtolower((string) $this->role) === 'super_admin' || $this->email === 'wahyuganteng@admin.com';
+    }
+
     public function isAyah(): bool
     {
         return strtolower((string) $this->role) === 'ayah';

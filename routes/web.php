@@ -1,5 +1,9 @@
 <?php
 
+use App\Modules\Admin\Controllers\AdminDashboardController;
+use App\Modules\Admin\Controllers\AdminPaymentController;
+use App\Modules\Admin\Controllers\AdminPlanController;
+use App\Modules\Admin\Controllers\AdminUserController;
 use App\Modules\Album\Controllers\AlbumController;
 use App\Modules\Auth\Controllers\AuthController;
 use App\Modules\Auth\Controllers\ProfileController;
@@ -118,6 +122,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/finances/goals/{id}/deposit', [FinanceController::class, 'depositGoal'])->name('finances.goals.deposit');
 
     // Subscription & Pro Tiering
+    Route::post('/subscriptions/qris-pay', [SubscriptionController::class, 'qrisPay'])->name('subscription.qris_pay');
     Route::post('/subscriptions/invoice', [SubscriptionController::class, 'createInvoice'])->name('subscription.invoice');
     Route::post('/subscriptions/simulate-pay/{invoice}', [SubscriptionController::class, 'simulatePay'])->name('subscription.simulate_pay');
     Route::post('/subscriptions/dev-toggle', [SubscriptionController::class, 'toggleDev'])->name('subscription.dev_toggle');
@@ -149,4 +154,23 @@ Route::middleware('auth')->group(function () {
         Route::put('/timeline/categories/{id}', [TimelineController::class, 'updateCategory'])->name('timeline.categories.update');
         Route::delete('/timeline/categories/{id}', [TimelineController::class, 'destroyCategory'])->name('timeline.categories.destroy');
     });
+});
+
+// SUPER ADMINISTRATOR PORTAL
+Route::middleware(['auth', 'super_admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index']);
+
+    // Payments & QRIS Verification
+    Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
+    Route::post('/payments/{id}/verify', [AdminPaymentController::class, 'verify'])->name('payments.verify');
+    Route::post('/payments/{id}/revert', [AdminPaymentController::class, 'revert'])->name('payments.revert');
+
+    // Products / Plans Management
+    Route::get('/plans', [AdminPlanController::class, 'index'])->name('plans.index');
+    Route::put('/plans/{id}', [AdminPlanController::class, 'update'])->name('plans.update');
+
+    // Members & Families Directory
+    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::post('/families/{id}/override-plan', [AdminUserController::class, 'overridePlan'])->name('families.override_plan');
 });

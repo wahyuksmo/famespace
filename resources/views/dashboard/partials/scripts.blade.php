@@ -234,6 +234,7 @@
     const btnLifetime = document.getElementById('plan-card-lifetime');
     const devToggleInput = document.getElementById('dev-toggle-plan-code');
     const btnSubmitText = document.getElementById('btn-pay-text');
+    const qrisDisplay = document.getElementById('qris-display-amount');
 
     if (devToggleInput) devToggleInput.value = planCode;
 
@@ -244,7 +245,8 @@
       if (btnMonthly) {
         btnMonthly.className = 'p-3 bg-white text-ink brutal-border text-left relative transition-all cursor-pointer';
       }
-      if (btnSubmitText) btnSubmitText.innerText = 'Bayar Rp 150.000 Sekarang';
+      if (btnSubmitText) btnSubmitText.innerText = 'Udah Transfer Rp 150.000, Aktifin Lifetime Dong! 👑';
+      if (qrisDisplay) qrisDisplay.innerText = 'Rp 150.000';
     } else {
       if (btnMonthly) {
         btnMonthly.className = 'p-3 bg-brand text-white brutal-border text-left relative transition-all cursor-pointer';
@@ -252,7 +254,8 @@
       if (btnLifetime) {
         btnLifetime.className = 'p-3 bg-white text-ink brutal-border text-left relative transition-all cursor-pointer';
       }
-      if (btnSubmitText) btnSubmitText.innerText = 'Bayar Rp 20.000 Sekarang';
+      if (btnSubmitText) btnSubmitText.innerText = 'Udah Transfer Rp 20.000, Aktifin Pro Dong! 🚀';
+      if (qrisDisplay) qrisDisplay.innerText = 'Rp 20.000';
     }
   }
 
@@ -272,36 +275,51 @@
     });
   }
 
-  function simulatePayment() {
+  function submitQrisPayment() {
+    const proofInput = document.getElementById('qris-proof-file');
+    if (!proofInput || proofInput.files.length === 0) {
+      alert('Eits, struk transfernya di-upload dulu dong kak! 📸 Buat jaga-jaga kalau mutasi m-banking lagi lelet/telat masuk.');
+      return;
+    }
+
     const $btn = $('#btn-pay-submit');
     const originalText = $btn.html();
-    const amountText = (selectedPlanCode === 'lifetime') ? 'Rp 150.000' : 'Rp 20.000';
-    $btn.prop('disabled', true).html('<span class="inline-block animate-spin mr-1.5">⚡</span> Memproses Pembayaran ' + amountText + '...');
-    showLoading('Memproses pembayaran...');
-    fireConfetti();
+    
+    $btn.prop('disabled', true).html('<span class="inline-block animate-spin mr-1.5">⚡</span> Sebentar yaa, lagi nyiapin akses Pro... 🚀');
+    showLoading('Lagi nyiapin akses Pro buat keluarga kamu...');
+
+    const formData = new FormData();
+    formData.append('_token', '{{ csrf_token() }}');
+    formData.append('plan_code', selectedPlanCode);
+    formData.append('transfer_time', $('#qris-transfer-time').val() || '');
+    formData.append('proof_image', proofInput.files[0]);
 
     $.ajax({
-      url: "{{ route('subscription.dev_toggle') }}",
+      url: "{{ route('subscription.qris_pay') }}",
       type: 'POST',
-      data: {
-        _token: '{{ csrf_token() }}',
-        plan_code: selectedPlanCode
-      },
+      data: formData,
+      processData: false,
+      contentType: false,
       dataType: 'json',
-      success: function(data) {
+      success: function(res) {
+        fireConfetti();
         closePaywallModal();
-        showToast('Selamat! Seluruh fitur FamKoji Pro aktif.');
+        showToast(res.message || 'Horeee! Akun keluarga kamu resmi jadi PRO! 👑');
         setTimeout(function() {
           window.location.reload();
-        }, 400);
+        }, 600);
       },
-      error: function() {
-        $('#form-dev-toggle').submit();
-      },
-      complete: function() {
+      error: function(xhr) {
+        hideLoading();
         $btn.prop('disabled', false).html(originalText);
+        const err = xhr.responseJSON ? xhr.responseJSON.message : 'Yah, gagal memproses konfirmasi. Coba sebentar lagi ya!';
+        alert(err);
       }
     });
+  }
+
+  function simulatePayment() {
+    submitQrisPayment();
   }
 
   // Canvas confetti celebration

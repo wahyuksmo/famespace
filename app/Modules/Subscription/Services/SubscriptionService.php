@@ -32,15 +32,15 @@ class SubscriptionService
                 'user_id' => $userId,
                 'plan_id' => $plan->id,
                 'amount' => $plan->price,
-                'payment_method' => 'Simulasi Cepat 1-Klik',
+                'payment_method' => 'QRIS Statis',
                 'status' => 'pending',
             ]);
         });
     }
 
-    public function simulatePayment(string $invoiceNumber): array
+    public function simulatePayment(string $invoiceNumber, ?string $transferTime = null, ?string $proofPath = null): array
     {
-        return DB::transaction(function () use ($invoiceNumber) {
+        return DB::transaction(function () use ($invoiceNumber, $transferTime, $proofPath) {
             $invoice = $this->paymentRepo->findByInvoiceNumber($invoiceNumber);
             if (! $invoice) {
                 throw new \Exception('Invoice tidak ditemukan.');
@@ -58,7 +58,9 @@ class SubscriptionService
                 'subscription_id' => $subscription->id,
                 'status' => 'paid',
                 'paid_at' => now(),
-                'reference_code' => 'SIM-'.strtoupper(Str::random(8)),
+                'reference_code' => 'QRIS-'.strtoupper(Str::random(8)),
+                'transfer_time' => $transferTime ?: now()->format('H:i').' WIB',
+                'proof_image' => $proofPath,
             ]);
 
             return [

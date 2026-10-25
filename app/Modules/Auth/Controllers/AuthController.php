@@ -16,7 +16,9 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            return Auth::user()->isSuperAdmin()
+                ? redirect()->route('admin.dashboard')
+                : redirect()->route('dashboard');
         }
 
         return view('modules.auth.login');
@@ -33,6 +35,16 @@ class AuthController extends Controller
 
         if ($this->authService->login($credentials['email'], $credentials['password'], $remember)) {
             $user = Auth::user();
+
+            if ($user->isSuperAdmin()) {
+                $request->session()->regenerate();
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json(['success' => true, 'redirect' => route('admin.dashboard')]);
+                }
+
+                return redirect()->intended(route('admin.dashboard'));
+            }
+
             if (! $user->family_id) {
                 Auth::logout();
                 $request->session()->invalidate();

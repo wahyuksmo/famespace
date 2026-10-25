@@ -89,39 +89,58 @@
       </div>
     </div>
 
-    <!-- PAYMENT METHOD SELECTION -->
-    <div class="space-y-2 mb-5">
-      <label class="block text-xs font-black font-mono uppercase text-ink">
-        Pilih Metode Pembayaran:
-      </label>
-      <div class="grid grid-cols-2 gap-2 text-xs font-bold">
-        <button type="button" onclick="selectPayMethod('qris')" id="pay-qris" class="p-2.5 bg-accent brutal-border text-left flex items-center justify-between">
-          <span>⚡ QRIS Instant</span>
-          <span class="text-[10px] font-mono">Bebas Biaya</span>
-        </button>
-        <button type="button" onclick="selectPayMethod('gopay')" id="pay-gopay" class="p-2.5 bg-white brutal-border text-left flex items-center justify-between">
-          <span>🟢 GoPay / OVO</span>
-          <span class="text-[10px] font-mono">E-Wallet</span>
-        </button>
-        <button type="button" onclick="selectPayMethod('bca')" id="pay-bca" class="p-2.5 bg-white brutal-border text-left flex items-center justify-between">
-          <span>🏦 BCA VA</span>
-          <span class="text-[10px] font-mono">Transfer</span>
-        </button>
-        <button type="button" onclick="selectPayMethod('mandiri')" id="pay-mandiri" class="p-2.5 bg-white brutal-border text-left flex items-center justify-between">
-          <span>💳 Mandiri VA</span>
-          <span class="text-[10px] font-mono">Transfer</span>
-        </button>
+    <!-- QRIS STATIS SECTION -->
+    <div class="space-y-3 mb-5 p-3.5 bg-white brutal-border">
+      <div class="flex items-center justify-between pb-2 border-b-2 border-ink">
+        <span class="text-xs font-black font-mono uppercase text-ink flex items-center gap-1.5">
+          <span>⚡</span> Scan QRIS Santai & Langsung Aktif!
+        </span>
+        <span class="px-2 py-0.5 bg-accent text-ink text-[10px] font-mono font-black brutal-border">
+          Bebas Biaya Admin ☕
+        </span>
+      </div>
+
+      <!-- QRIS IMAGE PREVIEW -->
+      <div class="text-center py-1">
+        <img src="{{ asset('images/qris-static.svg') }}" alt="QRIS FamSpace" class="w-48 sm:w-56 mx-auto brutal-border bg-white p-2 shadow-[3px_3px_0px_#111]">
+        <div class="mt-2 text-[11px] font-bold text-ink/80">
+          Scan QRIS di atas pakai BCA, Mandiri, GoPay, OVO, ShopeePay, atau bank kesayangan kamu.
+        </div>
+        <div class="mt-1 p-2 bg-cream brutal-border inline-block">
+          <span class="text-xs font-mono font-bold text-ink/70">Total Transfer: </span>
+          <span id="qris-display-amount" class="text-sm font-black font-mono text-brand">Rp 20.000</span>
+          <span class="text-[10px] text-ink/60 font-mono block">(Pas yaa, jangan dilebihin nanti admin bingung 🤭)</span>
+        </div>
+      </div>
+
+      <!-- VERIFICATION INPUT FORM -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t-2 border-ink">
+        <div>
+          <label class="block text-[10px] font-black font-mono uppercase text-ink mb-1">
+            Jam Berapa Pas Transfer?
+          </label>
+          <input type="text" id="qris-transfer-time" class="w-full text-xs font-mono font-bold p-2 bg-cream brutal-border focus:bg-white outline-none" value="{{ now()->format('H:i') }} WIB" placeholder="Contoh: 14:35 WIB">
+          <span class="text-[9px] text-ink/60 font-mono block mt-0.5">Biar admin gampang nyocokin mutasi di m-banking.</span>
+        </div>
+        <div>
+          <label class="block text-[10px] font-black font-mono uppercase text-ink mb-1 flex items-center justify-between">
+            <span>Struk Bukti Transfer:</span>
+            <span class="px-1.5 py-0.5 bg-coral text-white text-[8px] font-black brutal-border">Wajib Banget! 📸</span>
+          </label>
+          <input type="file" id="qris-proof-file" accept="image/*" class="w-full text-[11px] font-mono p-1 bg-cream brutal-border file:mr-2 file:py-1 file:px-2 file:brutal-border file:bg-white file:text-[10px] file:font-black">
+          <span class="text-[9px] text-coral font-bold font-mono block mt-0.5">*Wajib diunggah buat pegangan kalau mutasi bank lagi lelet. Kalau bohong ntar dibalikin ke Free lho! 😜</span>
+        </div>
       </div>
     </div>
 
     <!-- PAY BUTTON -->
-    <button type="button" id="btn-pay-submit" onclick="simulatePayment()" class="w-full py-3.5 bg-brand text-white hover:bg-accent hover:text-ink font-black text-sm uppercase tracking-wider brutal-btn flex items-center justify-center gap-2">
-      <span id="btn-pay-text">Bayar Rp 20.000 Sekarang</span>
+    <button type="button" id="btn-pay-submit" onclick="submitQrisPayment()" class="w-full py-3.5 bg-brand text-white hover:bg-accent hover:text-ink font-black text-sm uppercase tracking-wider brutal-btn flex items-center justify-center gap-2">
+      <span id="btn-pay-text">Udah Transfer Nih, Aktifin Pro-nya Dong! 🚀</span>
       <span>&rarr;</span>
     </button>
 
     <p class="text-center text-[10px] font-mono font-medium text-ink/60 mt-3">
-      Pembayaran instan & terverifikasi otomatis &bull; Langganan aktif untuk seluruh anggota keluarga
+      ⚡ <b>Langsung Aktif Seketika!</b> Kami percaya kamu orang jujur. Admin bakal ngecek mutasi berkala sambil ngopi ☕.
     </p>
 
   </div>

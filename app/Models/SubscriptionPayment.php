@@ -23,6 +23,11 @@ class SubscriptionPayment extends Model
         'status',
         'paid_at',
         'reference_code',
+        'proof_image',
+        'transfer_time',
+        'admin_notes',
+        'verified_at',
+        'verified_by',
     ];
 
     protected function casts(): array
@@ -30,7 +35,13 @@ class SubscriptionPayment extends Model
         return [
             'amount' => 'decimal:2',
             'paid_at' => 'datetime',
+            'verified_at' => 'datetime',
         ];
+    }
+
+    public function verifier(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'verified_by');
     }
 
     public function family(): BelongsTo
