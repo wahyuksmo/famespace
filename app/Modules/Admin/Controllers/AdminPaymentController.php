@@ -3,10 +3,12 @@
 namespace App\Modules\Admin\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use App\Models\SubscriptionPayment;
 use App\Modules\Admin\Services\AdminPaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class AdminPaymentController extends Controller
@@ -44,7 +46,52 @@ class AdminPaymentController extends Controller
             'reverted' => SubscriptionPayment::where('status', 'reverted')->count(),
         ];
 
-        return view('modules.admin.payments.index', compact('payments', 'stats', 'status', 'search'));
+        $qrisImage = Setting::get('qris_image_path');
+        $merchantName = Setting::get('qris_merchant_name', 'FamSpace Official');
+        $nmid = Setting::get('qris_nmid', 'ID1020030040050');
+
+        return view('modules.admin.payments.index', compact('payments', 'stats', 'status', 'search', 'qrisImage', 'merchantName', 'nmid'));
+    }
+
+    public function updateQris(Request $request)
+    {
+        $request->validate([
+            'qris_image' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
+            'merchant_name' => 'nullable|string|max:100',
+            'nmid' => 'nullable|string|max:50',
+        ]);
+
+        if ($request->hasFile('qris_image')) {
+            $oldPath = Setting::get('qris_image_path');
+            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            $path = $request->file('qris_image')->store('qris', 'public');
+            Setting::set('qris_image_path', $path);
+        }
+
+        if ($request->has('merchant_name')) {
+            Setting::set('qris_merchant_name', $request->input('merchant_name'));
+        }
+
+        if ($request->has('nmid')) {
+            Setting::set('qris_nmid', $request->input('nmid'));
+        }
+
+        return back()->with('success', 'Pengaturan QRIS Statis berhasil diperbarui!');
+    }
+
+    public function resetQris()
+    {
+        $oldPath = Setting::get('qris_image_path');
+        if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        Setting::set('qris_image_path', null);
+
+        return back()->with('success', 'Gambar QRIS berhasil dikembalikan ke default SVG.');
     }
 
     public function verify(Request $request, int $id)

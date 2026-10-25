@@ -101,9 +101,19 @@
       </div>
 
       <!-- QRIS IMAGE PREVIEW -->
+      @php
+        $activeQrisImage = \App\Models\Setting::get('qris_image_path');
+        $activeMerchantName = \App\Models\Setting::get('qris_merchant_name', 'FamSpace Official');
+        $activeNmid = \App\Models\Setting::get('qris_nmid');
+      @endphp
       <div class="text-center py-1">
-        <img src="{{ asset('images/qris-static.svg') }}" alt="QRIS FamSpace" class="w-48 sm:w-56 mx-auto brutal-border bg-white p-2 shadow-[3px_3px_0px_#111]">
-        <div class="mt-2 text-[11px] font-bold text-ink/80">
+        <img src="{{ $activeQrisImage ? asset('storage/' . $activeQrisImage) : asset('images/qris-static.svg') }}" alt="QRIS {{ $activeMerchantName }}" class="w-48 sm:w-56 mx-auto brutal-border bg-white p-2 shadow-[3px_3px_0px_#111]">
+        @if($activeMerchantName || $activeNmid)
+          <div class="mt-1.5 text-[11px] font-mono font-black text-ink">
+            {{ $activeMerchantName }} @if($activeNmid)<span class="text-ink/60 font-medium">({{ $activeNmid }})</span>@endif
+          </div>
+        @endif
+        <div class="mt-1 text-[11px] font-bold text-ink/80">
           Scan QRIS di atas pakai BCA, Mandiri, GoPay, OVO, ShopeePay, atau bank kesayangan kamu.
         </div>
         <div class="mt-1 p-2 bg-cream brutal-border inline-block">

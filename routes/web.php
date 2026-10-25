@@ -163,6 +163,8 @@ Route::middleware(['auth', 'super_admin'])->prefix('admin')->name('admin.')->gro
 
     // Payments & QRIS Verification
     Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
+    Route::post('/payments/qris-settings', [AdminPaymentController::class, 'updateQris'])->name('payments.update_qris');
+    Route::post('/payments/qris-settings/reset', [AdminPaymentController::class, 'resetQris'])->name('payments.reset_qris');
     Route::post('/payments/{id}/verify', [AdminPaymentController::class, 'verify'])->name('payments.verify');
     Route::post('/payments/{id}/revert', [AdminPaymentController::class, 'revert'])->name('payments.revert');
 

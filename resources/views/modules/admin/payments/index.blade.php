@@ -9,7 +9,95 @@
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b-3 border-ink">
     <div>
       <span class="text-xs font-mono font-black uppercase text-brand tracking-wider">Verifikasi Mutasi & Audit</span>
-      <h1 class="text-2xl sm:text-3xl font-black font-display text-ink">Daftar Transaksi QRIS</h1>
+      <h1 class="text-2xl sm:text-3xl font-black font-display text-ink">Daftar Transaksi & QRIS</h1>
+    </div>
+  </div>
+
+  <!-- QRIS STATIC CONFIGURATION CARD -->
+  <div class="bg-white brutal-card p-4 sm:p-5">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-4 border-b-2 border-ink">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">⚡</span>
+        <div>
+          <h2 class="font-black font-display text-base text-ink">Pengaturan QRIS Statis Checkout</h2>
+          <p class="text-[11px] font-mono text-ink/70">Ubah barcode QRIS & identitas merchant yang tampil pada modal pembayaran user.</p>
+        </div>
+      </div>
+      <div>
+        @if($qrisImage)
+          <span class="px-2.5 py-1 bg-brand text-white font-mono text-[10px] font-black uppercase brutal-border">
+            Custom QRIS Aktif
+          </span>
+        @else
+          <span class="px-2.5 py-1 bg-cream text-ink font-mono text-[10px] font-black uppercase brutal-border">
+            Default SVG Sistem
+          </span>
+        @endif
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+      <!-- QRIS PREVIEW (LEFT) -->
+      <div class="md:col-span-4 bg-cream/50 brutal-border p-3.5 text-center flex flex-col items-center justify-center">
+        <span class="text-[10px] font-mono font-black uppercase text-ink/70 mb-2">Tampilan di Modal User</span>
+        <div class="bg-white p-2 brutal-border shadow-[3px_3px_0px_#111] max-w-[200px] w-full">
+          <img src="{{ $qrisImage ? asset('storage/' . $qrisImage) : asset('images/qris-static.svg') }}" 
+               alt="QRIS FamSpace" 
+               class="w-full h-auto object-contain mx-auto aspect-square">
+        </div>
+        <div class="mt-2 text-xs font-black font-mono text-ink">
+          {{ $merchantName }}
+        </div>
+        @if($nmid)
+          <div class="text-[10px] font-mono text-ink/70">
+            NMID: {{ $nmid }}
+          </div>
+        @endif
+
+        @if($qrisImage)
+          <form action="{{ route('admin.payments.reset_qris') }}" method="POST" class="mt-3 w-full" onsubmit="return confirm('Kembalikan ke gambar QRIS default SVG bawaan sistem?');">
+            @csrf
+            <button type="submit" class="w-full py-1.5 px-2 bg-coral text-white font-mono font-black text-[10px] uppercase brutal-border hover:bg-ink transition-colors">
+              ↺ Reset ke Default SVG
+            </button>
+          </form>
+        @endif
+      </div>
+
+      <!-- QRIS FORM (RIGHT) -->
+      <form action="{{ route('admin.payments.update_qris') }}" method="POST" enctype="multipart/form-data" class="md:col-span-8 space-y-3">
+        @csrf
+        
+        <div>
+          <label class="block text-xs font-black font-mono uppercase text-ink mb-1">
+            Unggah Barcode QRIS Baru
+          </label>
+          <input type="file" name="qris_image" accept="image/*" class="w-full text-xs font-mono p-1.5 bg-cream brutal-border file:mr-3 file:py-1.5 file:px-3 file:brutal-border file:bg-white file:text-xs file:font-black file:cursor-pointer hover:file:bg-accent transition-colors">
+          <span class="text-[10px] font-mono text-ink/60 mt-1 block">Format: JPG, PNG, atau SVG (Maks. 2MB). Biarkan kosong jika tidak ingin mengganti gambar.</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-black font-mono uppercase text-ink mb-1">
+              Nama Merchant / Toko
+            </label>
+            <input type="text" name="merchant_name" value="{{ old('merchant_name', $merchantName) }}" placeholder="Contoh: FamSpace Official" class="w-full text-xs font-mono font-bold p-2 bg-cream brutal-border focus:bg-white outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-black font-mono uppercase text-ink mb-1">
+              NMID / Catatan Rekening
+            </label>
+            <input type="text" name="nmid" value="{{ old('nmid', $nmid) }}" placeholder="Contoh: ID1020030040050" class="w-full text-xs font-mono font-bold p-2 bg-cream brutal-border focus:bg-white outline-none">
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end">
+          <button type="submit" class="px-4 py-2 bg-brand text-white hover:bg-ink font-mono font-black text-xs uppercase brutal-border transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_#111]">
+            <span>💾</span> Simpan Pengaturan QRIS
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 

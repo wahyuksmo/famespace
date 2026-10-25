@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Family;
 use App\Models\Plan;
+use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use App\Models\User;
@@ -224,5 +225,33 @@ class SuperAdminFeatureTest extends TestCase
         $response->assertSessionHas('success');
         $latestSub = Subscription::with('plan')->where('family_id', $family->id)->latest('id')->first();
         $this->assertEquals('lifetime', $latestSub->plan->code);
+    }
+
+    public function test_super_admin_can_update_and_reset_qris_settings(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::where('email', 'wahyuganteng@admin.com')->first();
+        $fakeQr = UploadedFile::fake()->image('custom-qris.png', 400, 400);
+
+        $response = $this->actingAs($admin)->post(route('admin.payments.update_qris'), [
+            'qris_image' => $fakeQr,
+            'merchant_name' => 'FamSpace Store Official',
+            'nmid' => 'ID999888777',
+        ]);
+
+        $response->assertSessionHas('success');
+
+        $this->assertEquals('FamSpace Store Official', Setting::get('qris_merchant_name'));
+        $this->assertEquals('ID999888777', Setting::get('qris_nmid'));
+        $storedPath = Setting::get('qris_image_path');
+        $this->assertNotNull($storedPath);
+        Storage::disk('public')->assertExists($storedPath);
+
+        // Test reset to default
+        $resetResponse = $this->actingAs($admin)->post(route('admin.payments.reset_qris'));
+        $resetResponse->assertSessionHas('success');
+        $this->assertNull(Setting::get('qris_image_path'));
+        Storage::disk('public')->assertMissing($storedPath);
     }
 }
