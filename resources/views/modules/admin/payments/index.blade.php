@@ -152,7 +152,7 @@
                 <!-- AKSI -->
                 <td class="p-3 text-right space-y-1">
                   @if($p->status !== 'verified')
-                    <form action="{{ route('admin.payments.verify', $p->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Konfirmasi bahwa uang Rp {{ number_format($p->amount, 0, \', \', \'.\') }} sudah masuk ke rekening?')">
+                    <form action="{{ route('admin.payments.verify', $p->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Konfirmasi bahwa pembayaran Rp {{ number_format($p->amount, 0, ',', '.') }} sudah masuk ke rekening?')">
                       @csrf
                       <button type="submit" class="px-2.5 py-1 bg-brand hover:bg-ink text-white font-black text-[10px] uppercase brutal-border transition-colors">
                         ✅ Verifikasi

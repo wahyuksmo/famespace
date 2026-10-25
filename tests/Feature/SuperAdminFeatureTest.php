@@ -36,6 +36,21 @@ class SuperAdminFeatureTest extends TestCase
         $this->assertTrue(auth()->user()->isSuperAdmin());
     }
 
+    public function test_super_admin_can_render_dashboard(): void
+    {
+        $admin = User::where('email', 'wahyuganteng@admin.com')->first();
+        $family = Family::create(['name' => 'Keluarga Dashboard', 'invite_code' => 'DASH01']);
+
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
+        $response->assertStatus(200);
+        $response->assertSee('Dashboard Super Administrator');
+        $response->assertSee('Keluarga Dashboard');
+
+        $this->actingAs($admin)->get(route('admin.payments.index'))->assertStatus(200);
+        $this->actingAs($admin)->get(route('admin.plans.index'))->assertStatus(200);
+        $this->actingAs($admin)->get(route('admin.users.index'))->assertStatus(200);
+    }
+
     public function test_regular_user_cannot_access_admin_portal(): void
     {
         $family = Family::create(['name' => 'Keluarga Budi', 'invite_code' => 'BUDI12']);

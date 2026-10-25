@@ -49,6 +49,11 @@ class Family extends Model
         return $this->hasMany(Subscription::class, 'family_id');
     }
 
+    public function subscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class, 'family_id')->latestOfMany();
+    }
+
     public function bannerMedia(): BelongsTo
     {
         return $this->belongsTo(AlbumMedia::class, 'banner_media_id');
