@@ -300,9 +300,15 @@ class AlbumController extends Controller
             return $this->errorResponse($request, 'Hanya foto yang dapat dijadikan banner beranda.');
         }
 
-        $family->update([
-            'banner_media_id' => $media->id,
-        ]);
+        $updateData = ['banner_media_id' => $media->id];
+        if ($request->filled('position')) {
+            $updateData['banner_position'] = $request->string('position');
+        }
+        if ($request->filled('fit')) {
+            $updateData['banner_fit'] = $request->string('fit');
+        }
+
+        $family->update($updateData);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -310,10 +316,39 @@ class AlbumController extends Controller
                 'message' => 'Foto berhasil dijadikan banner beranda!',
                 'banner_url' => $media->file_url,
                 'banner_media_id' => $media->id,
+                'banner_position' => $family->banner_position,
+                'banner_fit' => $family->banner_fit,
             ]);
         }
 
         return redirect()->back()->with('success', 'Foto berhasil dijadikan banner beranda!');
+    }
+
+    public function updateBannerPosition(Request $request): RedirectResponse|JsonResponse
+    {
+        $user = Auth::user();
+        $family = $user->family;
+
+        $validated = $request->validate([
+            'position' => ['nullable', 'string', 'max:50'],
+            'fit' => ['nullable', 'string', 'in:cover,contain'],
+        ]);
+
+        $family->update([
+            'banner_position' => $validated['position'] ?? $family->banner_position ?? '50% 50%',
+            'banner_fit' => $validated['fit'] ?? $family->banner_fit ?? 'cover',
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Posisi banner berhasil disimpan.',
+                'banner_position' => $family->banner_position,
+                'banner_fit' => $family->banner_fit,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Posisi banner berhasil diperbarui.');
     }
 
     public function removeBanner(Request $request): RedirectResponse|JsonResponse
@@ -323,6 +358,8 @@ class AlbumController extends Controller
 
         $family->update([
             'banner_media_id' => null,
+            'banner_position' => '50% 50%',
+            'banner_fit' => 'cover',
         ]);
 
         if ($request->wantsJson() || $request->ajax()) {

@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class FamilyMemberManagementTest extends TestCase
@@ -242,5 +243,109 @@ class FamilyMemberManagementTest extends TestCase
             'message' => 'Akun Anda tidak lagi terdaftar dalam ruang keluarga manapun.',
         ]);
         $this->assertGuest();
+    }
+
+    public function test_ayah_can_update_member_password(): void
+    {
+        $response = $this->actingAs($this->ayah)->patchJson(route('members.update_password', $this->anak->id), [
+            'password' => 'newsecret123',
+            'password_confirmation' => 'newsecret123',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $this->anak->refresh();
+        $this->assertTrue(Hash::check('newsecret123', $this->anak->password));
+    }
+
+    public function test_member_can_update_own_password(): void
+    {
+        $response = $this->actingAs($this->anak)->patchJson(route('members.update_password', $this->anak->id), [
+            'password' => 'anakpass123',
+            'password_confirmation' => 'anakpass123',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $this->anak->refresh();
+        $this->assertTrue(Hash::check('anakpass123', $this->anak->password));
+    }
+
+    public function test_member_cannot_update_another_member_password(): void
+    {
+        $response = $this->actingAs($this->anak)->patchJson(route('members.update_password', $this->intruder->id), [
+            'password' => 'hacked123',
+            'password_confirmation' => 'hacked123',
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_password_update_requires_confirmation_and_min_length(): void
+    {
+        $response = $this->actingAs($this->ayah)->patchJson(route('members.update_password', $this->anak->id), [
+            'password' => 'short',
+            'password_confirmation' => 'short',
+        ]);
+
+        $response->assertStatus(422);
+
+        $response = $this->actingAs($this->ayah)->patchJson(route('members.update_password', $this->anak->id), [
+            'password' => 'mismatch1',
+            'password_confirmation' => 'mismatch2',
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_ayah_can_update_member_role(): void
+    {
+        Event::fake([FamilyMemberEvent::class]);
+
+        $response = $this->actingAs($this->ayah)->patchJson(route('members.update_role', $this->anak->id), [
+            'role' => 'Ibu',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'role' => 'Ibu',
+        ]);
+
+        $this->anak->refresh();
+        $this->assertEquals('Ibu', $this->anak->role);
+    }
+
+    public function test_non_ayah_cannot_update_member_role(): void
+    {
+        $response = $this->actingAs($this->anak)->patchJson(route('members.update_role', $this->intruder->id), [
+            'role' => 'Ibu',
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_cannot_update_role_of_ayah(): void
+    {
+        $response = $this->actingAs($this->ayah)->patchJson(route('members.update_role', $this->ayah->id), [
+            'role' => 'Anak',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'success' => false,
+            'message' => 'Peran akun Ayah (Admin Utama) tidak dapat diubah.',
+        ]);
+    }
+
+    public function test_role_update_validates_allowed_roles(): void
+    {
+        $response = $this->actingAs($this->ayah)->patchJson(route('members.update_role', $this->anak->id), [
+            'role' => 'SuperadminHacker',
+        ]);
+
+        $response->assertStatus(422);
     }
 }

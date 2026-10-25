@@ -117,20 +117,115 @@
   <!-- BANNER FOTO BERANDA DARI ALBUM (BINGKAI NEOBRUTALISM) -->
   @php
     $bannerMedia = $family->bannerMedia;
+    $bannerPos = $family->banner_position ?? '50% 50%';
+    $bannerFit = $family->banner_fit ?? 'cover';
+    $initY = 50;
+    if (preg_match('/(\d+)%$/', $bannerPos, $m)) {
+        $initY = (int) $m[1];
+    } elseif ($bannerPos === 'top') {
+        $initY = 15;
+    } elseif ($bannerPos === 'bottom') {
+        $initY = 85;
+    }
   @endphp
 
   @if($bannerMedia && $bannerMedia->isPhoto())
-    <div class="relative bg-white brutal-card brutal-tilt p-2 sm:p-2.5 overflow-hidden group">
+    <div id="dashboard-banner-card" class="relative bg-white brutal-card brutal-tilt p-2 sm:p-2.5 overflow-hidden group">
+      
+      <!-- CONTROLS TOOLBAR UNTUK PENYESUAIAN POSISI (MUNCUL SAAT KLIK 'ATUR POSISI') -->
+      <div id="banner-adjust-toolbar" class="hidden mb-2 p-2.5 bg-cream brutal-border shadow-brutal-sm space-y-2 select-none">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-ink/10 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">📐</span>
+            <span class="font-mono font-black text-xs uppercase text-ink">Penyesuaian Posisi & Tampilan Banner</span>
+            <span class="text-[10px] font-mono text-ink/60 hidden sm:inline">(Geser foto atau pakai slider agar tidak kepotong)</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button type="button" 
+                    onclick="cancelBannerAdjust()" 
+                    class="px-2.5 py-1 bg-white hover:bg-gray-100 text-ink brutal-border font-mono font-black text-[11px] shadow-brutal-sm active:scale-95">
+              Batal
+            </button>
+            <button type="button" 
+                    id="btn-save-banner-pos"
+                    onclick="saveBannerAdjust()" 
+                    class="px-3 py-1 bg-brand text-white hover:bg-accent hover:text-ink brutal-border font-mono font-black text-[11px] shadow-brutal-sm flex items-center gap-1 active:scale-95">
+              <span>✓</span>
+              <span>Simpan Posisi</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+          <!-- MODE TAMPILAN (FIT) -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-ink/70 font-bold text-[11px]">Tampilan:</span>
+            <div class="inline-flex brutal-border bg-white p-0.5 shadow-[1px_1px_0px_#121614]">
+              <button type="button" 
+                      id="btn-fit-cover"
+                      onclick="setBannerFitMode('cover')"
+                      class="px-2 py-0.5 text-[10px] font-black uppercase transition-colors {{ $bannerFit === 'cover' ? 'bg-ink text-white' : 'text-ink hover:bg-cream' }}">
+                Penuh (Cover)
+              </button>
+              <button type="button" 
+                      id="btn-fit-contain"
+                      onclick="setBannerFitMode('contain')"
+                      class="px-2 py-0.5 text-[10px] font-black uppercase transition-colors {{ $bannerFit === 'contain' ? 'bg-ink text-white' : 'text-ink hover:bg-cream' }}">
+                Utuh (Tanpa Potong)
+              </button>
+            </div>
+          </div>
+
+          <!-- KONTROL VERTICAL POSITION (HANYA AKTIF SAAT MODE COVER) -->
+          <div id="banner-pos-controls" class="flex items-center gap-2 flex-wrap {{ $bannerFit === 'contain' ? 'opacity-40 pointer-events-none' : '' }}">
+            <span class="text-ink/70 font-bold text-[11px]">Posisi:</span>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="setBannerPreset(15)" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-bold">Atas</button>
+              <button type="button" onclick="setBannerPreset(50)" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-bold">Tengah</button>
+              <button type="button" onclick="setBannerPreset(85)" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-bold">Bawah</button>
+            </div>
+            <div class="flex items-center gap-1.5 pl-1">
+              <input type="range" 
+                     id="banner-pos-slider" 
+                     min="0" 
+                     max="100" 
+                     value="{{ $initY }}" 
+                     oninput="handleBannerSlider(this.value)" 
+                     class="w-24 sm:w-32 accent-brand cursor-pointer">
+              <span id="banner-pos-label" class="text-[10px] font-mono font-black text-ink w-8 text-right">{{ $initY }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- BINGKAI FOTO NEOBRUTALISM (INTERAKTIF: KLIK BUKA LIGHTBOX) -->
-      <div onclick="showImagePreview('{{ $bannerMedia->file_url }}', '{{ addslashes($bannerMedia->caption ?? 'Banner Keluarga ' . $family->name) }}')"
-           class="relative w-full h-48 sm:h-60 md:h-72 lg:h-80 brutal-border overflow-hidden bg-ink/5 cursor-zoom-in"
+      <div id="banner-container-frame"
+           onclick="handleBannerFrameClick(event)"
+           class="relative w-full h-48 sm:h-60 md:h-72 lg:h-80 brutal-border overflow-hidden bg-ink/5 cursor-zoom-in select-none"
            title="Klik untuk melihat foto layar penuh">
-        <img src="{{ $bannerMedia->file_url }}" 
+
+        <!-- LATAR BLUR KHUSUS JIKA MODE TAMPILAN UTUH (CONTAIN) -->
+        <div id="banner-contain-backdrop" 
+             class="absolute inset-0 bg-cover bg-center filter blur-md opacity-35 scale-110 pointer-events-none {{ $bannerFit === 'contain' ? '' : 'hidden' }}" 
+             style="background-image: url('{{ $bannerMedia->file_url }}')"></div>
+
+        <img id="dashboard-banner-img"
+             src="{{ $bannerMedia->file_url }}" 
              alt="{{ $bannerMedia->caption ?? 'Banner Beranda Keluarga ' . $family->name }}" 
-             class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out">
+             draggable="false"
+             class="relative z-10 w-full h-full {{ $bannerFit === 'contain' ? 'object-contain' : 'object-cover' }} transition-all duration-150 ease-out"
+             style="object-position: {{ $bannerPos }};">
+
+        <!-- DRAG HINT BADGE (SAAT ADJUST MODE AKTIF) -->
+        <div id="banner-drag-guide" class="absolute inset-0 z-30 pointer-events-none items-center justify-center hidden">
+          <span class="px-3.5 py-1.5 bg-ink text-white brutal-border font-mono font-black text-xs uppercase tracking-wider shadow-brutal flex items-center gap-2">
+            <span>↕️</span>
+            <span>Tahan & Geser Foto ke Atas / Bawah</span>
+          </span>
+        </div>
 
         <!-- ZOOM HINT PILL (MUNCUL SAAT HOVER) -->
-        <div class="absolute inset-0 bg-ink/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none z-10">
+        <div id="banner-zoom-hint" class="absolute inset-0 bg-ink/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none z-10">
           <span class="px-3 py-1.5 bg-white text-ink brutal-border font-mono font-black text-xs uppercase tracking-wider shadow-brutal flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-200">
             <span>🔍</span>
             <span>Lihat Foto Penuh</span>
@@ -157,6 +252,14 @@
 
         <!-- ACTION BUTTONS: KANAN ATAS -->
         <div class="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 flex items-center gap-1.5 z-20" onclick="event.stopPropagation()">
+          <button type="button" 
+                  id="btn-open-adjust-banner"
+                  onclick="toggleBannerAdjustMode()" 
+                  class="px-2.5 py-1 bg-white hover:bg-cream text-ink brutal-border text-[10px] sm:text-xs font-mono font-black uppercase tracking-wider shadow-brutal-sm flex items-center gap-1 transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] active:scale-95"
+                  title="Sesuaikan posisi foto agar tidak terpotong">
+            <span>📐</span>
+            <span class="hidden sm:inline">Atur Posisi</span>
+          </button>
           <a href="{{ route('albums.index') }}" 
              class="px-2.5 py-1 bg-white hover:bg-cream text-ink brutal-border text-[10px] sm:text-xs font-mono font-black uppercase tracking-wider shadow-brutal-sm flex items-center gap-1 transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] active:scale-95"
              title="Pilih foto lain dari Album">
@@ -993,6 +1096,230 @@
         cutout: '70%'
       }
     });
+  }
+
+  // BANNER REPOSITION & FIT MANAGEMENT
+  let isBannerAdjustMode = false;
+  let bannerCurrentY = {{ $initY ?? 50 }};
+  let bannerCurrentFit = '{{ $bannerFit ?? "cover" }}';
+  let bannerInitialY = {{ $initY ?? 50 }};
+  let bannerInitialFit = '{{ $bannerFit ?? "cover" }}';
+  const bannerMediaUrl = '{{ $bannerMedia ? $bannerMedia->file_url : "" }}';
+  const bannerCaption = '{{ addslashes($bannerMedia ? ($bannerMedia->caption ?? "Banner Keluarga " . $family->name) : "") }}';
+
+  function handleBannerFrameClick(e) {
+    if (isBannerAdjustMode) return;
+    if (typeof showImagePreview === 'function' && bannerMediaUrl) {
+      showImagePreview(bannerMediaUrl, bannerCaption);
+    }
+  }
+
+  function toggleBannerAdjustMode() {
+    isBannerAdjustMode = !isBannerAdjustMode;
+    const toolbar = document.getElementById('banner-adjust-toolbar');
+    const frame = document.getElementById('banner-container-frame');
+    const dragGuide = document.getElementById('banner-drag-guide');
+    const zoomHint = document.getElementById('banner-zoom-hint');
+    const openBtn = document.getElementById('btn-open-adjust-banner');
+
+    if (isBannerAdjustMode) {
+      if (toolbar) toolbar.classList.remove('hidden');
+      if (frame) {
+        frame.classList.remove('cursor-zoom-in');
+        frame.classList.add('cursor-grab');
+      }
+      if (dragGuide && bannerCurrentFit === 'cover') {
+        dragGuide.classList.remove('hidden');
+        dragGuide.classList.add('flex');
+        setTimeout(() => {
+          dragGuide.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+          setTimeout(() => {
+            dragGuide.classList.add('hidden');
+            dragGuide.classList.remove('flex', 'opacity-0');
+          }, 500);
+        }, 1800);
+      }
+      if (zoomHint) zoomHint.classList.add('hidden');
+      if (openBtn) openBtn.classList.add('bg-accent');
+      initBannerDrag();
+    } else {
+      cancelBannerAdjust();
+    }
+  }
+
+  function handleBannerSlider(val) {
+    bannerCurrentY = parseInt(val, 10);
+    applyBannerStyle();
+  }
+
+  function setBannerPreset(val) {
+    bannerCurrentY = val;
+    applyBannerStyle();
+  }
+
+  function setBannerFitMode(mode) {
+    bannerCurrentFit = mode;
+    const btnCover = document.getElementById('btn-fit-cover');
+    const btnContain = document.getElementById('btn-fit-contain');
+    const posControls = document.getElementById('banner-pos-controls');
+    const backdrop = document.getElementById('banner-contain-backdrop');
+
+    if (mode === 'cover') {
+      if (btnCover) {
+        btnCover.className = 'px-2 py-0.5 text-[10px] font-black uppercase transition-colors bg-ink text-white';
+      }
+      if (btnContain) {
+        btnContain.className = 'px-2 py-0.5 text-[10px] font-black uppercase transition-colors text-ink hover:bg-cream';
+      }
+      if (posControls) {
+        posControls.classList.remove('opacity-40', 'pointer-events-none');
+      }
+      if (backdrop) backdrop.classList.add('hidden');
+    } else {
+      if (btnCover) {
+        btnCover.className = 'px-2 py-0.5 text-[10px] font-black uppercase transition-colors text-ink hover:bg-cream';
+      }
+      if (btnContain) {
+        btnContain.className = 'px-2 py-0.5 text-[10px] font-black uppercase transition-colors bg-ink text-white';
+      }
+      if (posControls) {
+        posControls.classList.add('opacity-40', 'pointer-events-none');
+      }
+      if (backdrop) backdrop.classList.remove('hidden');
+    }
+    applyBannerStyle();
+  }
+
+  function applyBannerStyle() {
+    const img = document.getElementById('dashboard-banner-img');
+    const label = document.getElementById('banner-pos-label');
+    const slider = document.getElementById('banner-pos-slider');
+
+    if (slider) slider.value = bannerCurrentY;
+    if (label) label.textContent = bannerCurrentY + '%';
+
+    if (img) {
+      img.className = 'relative z-10 w-full h-full ' + (bannerCurrentFit === 'contain' ? 'object-contain' : 'object-cover') + ' transition-all duration-150 ease-out';
+      img.style.objectPosition = '50% ' + bannerCurrentY + '%';
+    }
+  }
+
+  function cancelBannerAdjust() {
+    bannerCurrentY = bannerInitialY;
+    setBannerFitMode(bannerInitialFit);
+    applyBannerStyle();
+    closeBannerAdjustUI();
+  }
+
+  function closeBannerAdjustUI() {
+    isBannerAdjustMode = false;
+    const toolbar = document.getElementById('banner-adjust-toolbar');
+    const frame = document.getElementById('banner-container-frame');
+    const zoomHint = document.getElementById('banner-zoom-hint');
+    const openBtn = document.getElementById('btn-open-adjust-banner');
+
+    if (toolbar) toolbar.classList.add('hidden');
+    if (frame) {
+      frame.classList.remove('cursor-grab', 'cursor-grabbing');
+      frame.classList.add('cursor-zoom-in');
+    }
+    if (zoomHint) zoomHint.classList.remove('hidden');
+    if (openBtn) openBtn.classList.remove('bg-accent');
+  }
+
+  async function saveBannerAdjust() {
+    const btn = document.getElementById('btn-save-banner-pos');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span> <span>Menyimpan...</span>';
+    }
+
+    try {
+      const res = await fetch('{{ route('albums.banner.position') }}', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          position: `50% ${bannerCurrentY}%`,
+          fit: bannerCurrentFit,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.status !== 'success') {
+        throw new Error(data.message || 'Gagal menyimpan posisi banner.');
+      }
+
+      if (typeof showToast === 'function') {
+        showToast(data.message || 'Posisi banner berhasil disimpan!');
+      }
+
+      closeBannerAdjustUI();
+      bannerInitialY = bannerCurrentY;
+      bannerInitialFit = bannerCurrentFit;
+    } catch (err) {
+      if (typeof showToast === 'function') {
+        showToast(err.message, 'error');
+      } else {
+        alert(err.message);
+      }
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>✓</span> <span>Simpan Posisi</span>';
+      }
+    }
+  }
+
+  let isDraggingBanner = false;
+  let dragStartY = 0;
+  let dragStartVal = 50;
+
+  function initBannerDrag() {
+    const frame = document.getElementById('banner-container-frame');
+    if (!frame || frame._dragInitialized) return;
+    frame._dragInitialized = true;
+
+    function onPointerDown(e) {
+      if (!isBannerAdjustMode || bannerCurrentFit === 'contain') return;
+      isDraggingBanner = true;
+      dragStartY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+      dragStartVal = bannerCurrentY;
+      frame.classList.remove('cursor-grab');
+      frame.classList.add('cursor-grabbing');
+      e.preventDefault();
+    }
+
+    function onPointerMove(e) {
+      if (!isDraggingBanner) return;
+      const clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+      const deltaY = clientY - dragStartY;
+      const frameHeight = frame.offsetHeight || 250;
+      const deltaPercent = (deltaY / frameHeight) * 100;
+      let newY = Math.round(dragStartVal - deltaPercent);
+      if (newY < 0) newY = 0;
+      if (newY > 100) newY = 100;
+      bannerCurrentY = newY;
+      applyBannerStyle();
+    }
+
+    function onPointerUp() {
+      if (!isDraggingBanner) return;
+      isDraggingBanner = false;
+      frame.classList.remove('cursor-grabbing');
+      frame.classList.add('cursor-grab');
+    }
+
+    frame.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    frame.addEventListener('touchstart', onPointerDown, { passive: false });
+    window.addEventListener('touchmove', onPointerMove, { passive: true });
+    window.addEventListener('touchend', onPointerUp);
   }
 
   $(document).ready(function() {

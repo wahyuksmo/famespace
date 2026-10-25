@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class MemberController extends Controller
@@ -29,6 +30,109 @@ class MemberController extends Controller
         $members = $family->users()->orderBy('points', 'desc')->get();
 
         return view('modules.family.index', compact('user', 'family', 'members'));
+    }
+
+    public function updatePassword(Request $request, int $id): JsonResponse
+    {
+        $currentUser = Auth::user();
+
+        $targetUser = User::where('id', $id)
+            ->where('family_id', $currentUser->family_id)
+            ->first();
+
+        if (! $targetUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anggota keluarga tidak ditemukan.',
+            ], 404);
+        }
+
+        if (! $currentUser->isAyah() && $currentUser->id !== $targetUser->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki izin untuk mengubah password anggota ini.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'password' => 'required|string|min:6|confirmed',
+        ], [
+            'password.required' => 'Password baru wajib diisi.',
+            'password.min' => 'Password minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+        ]);
+
+        $targetUser->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        if ($currentUser->id !== $targetUser->id) {
+            DB::table('sessions')->where('user_id', $targetUser->id)->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Password {$targetUser->name} berhasil diperbarui.",
+        ]);
+    }
+
+    public function updateRole(Request $request, int $id): JsonResponse
+    {
+        $currentUser = Auth::user();
+
+        if (! $currentUser->isAyah()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya Ayah (Admin Keluarga) yang berhak mengubah peran anggota keluarga.',
+            ], 403);
+        }
+
+        $targetUser = User::where('id', $id)
+            ->where('family_id', $currentUser->family_id)
+            ->first();
+
+        if (! $targetUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anggota keluarga tidak ditemukan.',
+            ], 404);
+        }
+
+        if ($targetUser->isAyah()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Peran akun Ayah (Admin Utama) tidak dapat diubah.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'role' => 'required|string|max:30|in:Ayah,Ibu,Anak,Kakek/Nenek,ART,Lainnya',
+        ], [
+            'role.required' => 'Peran anggota wajib dipilih.',
+            'role.in' => 'Peran yang dipilih tidak valid.',
+        ]);
+
+        $targetUser->update([
+            'role' => $validated['role'],
+        ]);
+
+        broadcast(new FamilyMemberEvent(
+            familyId: (string) $currentUser->family_id,
+            action: 'role_changed',
+            userId: (int) $currentUser->id,
+            userName: (string) $currentUser->name,
+            message: "Peran {$targetUser->name} telah diubah menjadi {$targetUser->role} oleh {$currentUser->name}.",
+            data: [
+                'target_user_id' => $targetUser->id,
+                'role' => $targetUser->role,
+            ]
+        ))->toOthers();
+
+        return response()->json([
+            'success' => true,
+            'role' => $targetUser->role,
+            'message' => "Peran {$targetUser->name} berhasil diubah menjadi {$targetUser->role}.",
+        ]);
     }
 
     public function toggleFinanceAccess(Request $request, int $id): JsonResponse

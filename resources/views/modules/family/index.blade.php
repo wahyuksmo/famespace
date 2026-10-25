@@ -80,14 +80,14 @@
                   ✏️ Edit
                 </button>
               @endif
-              <span class="px-2 py-0.5 {{ $m->role === 'Ayah' ? 'bg-brand text-white' : ($m->role === 'Ibu' ? 'bg-accent text-ink' : 'bg-white text-ink') }} brutal-border font-mono text-[10px] font-bold">
+              <span id="member-badge-{{ $m->id }}" class="px-2 py-0.5 {{ $m->role === 'Ayah' ? 'bg-brand text-white' : ($m->role === 'Ibu' ? 'bg-accent text-ink' : 'bg-white text-ink') }} brutal-border font-mono text-[10px] font-bold">
                 {{ $badgeText }}
               </span>
             </div>
           </div>
           <div>
             <div class="font-black text-base text-ink" id="member-name-{{ $m->id }}">{{ $m->name }}</div>
-            <div class="text-xs font-mono font-bold text-brand">{{ $m->role ?? 'Anggota' }}</div>
+            <div class="text-xs font-mono font-bold text-brand" id="member-role-{{ $m->id }}">{{ $m->role ?? 'Anggota' }}</div>
             <div class="text-[11px] text-ink/60 mt-1 truncate">{{ $m->email }}</div>
           </div>
           <div class="pt-2 border-t-2 border-ink flex items-center justify-between text-xs font-black">
@@ -125,14 +125,33 @@
             </div>
           @endif
 
-          @if($user->isAyah() && $m->id !== $user->id && !$m->isAyah())
-            <div class="pt-2 border-t-2 border-ink">
-              <button type="button" 
-                      onclick="openKickModal({{ $m->id }}, '{{ addslashes($m->name) }}', '{{ addslashes($m->role) }}')" 
-                      class="w-full py-1.5 px-3 bg-red-50 hover:bg-coral text-coral hover:text-white brutal-border font-mono text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-[2px_2px_0px_#121614] active:translate-x-[1px] active:translate-y-[1px]">
-                <span>🚫</span>
-                <span>Keluarkan dari Keluarga</span>
-              </button>
+          @if($user->isAyah() || $m->id === $user->id)
+            <div class="pt-2 border-t-2 border-ink space-y-1.5">
+              <div class="grid {{ ($user->isAyah() && !$m->isAyah()) ? 'grid-cols-2' : 'grid-cols-1' }} gap-1.5">
+                <button type="button" 
+                        onclick="openPasswordModal({{ $m->id }}, '{{ addslashes($m->name) }}')"
+                        class="py-1.5 px-2 bg-cream hover:bg-accent text-ink brutal-border font-mono text-[11px] font-bold flex items-center justify-center gap-1 transition-all shadow-[2px_2px_0px_#121614] active:translate-x-[1px] active:translate-y-[1px]">
+                  <span>🔑</span>
+                  <span>Ubah Password</span>
+                </button>
+                @if($user->isAyah() && !$m->isAyah())
+                  <button type="button" 
+                          onclick="openRoleModal({{ $m->id }}, '{{ addslashes($m->name) }}', '{{ addslashes($m->role) }}')"
+                          class="py-1.5 px-2 bg-cream hover:bg-mustard text-ink brutal-border font-mono text-[11px] font-bold flex items-center justify-center gap-1 transition-all shadow-[2px_2px_0px_#121614] active:translate-x-[1px] active:translate-y-[1px]">
+                    <span>🎭</span>
+                    <span>Ubah Peran</span>
+                  </button>
+                @endif
+              </div>
+
+              @if($user->isAyah() && $m->id !== $user->id && !$m->isAyah())
+                <button type="button" 
+                        onclick="openKickModal({{ $m->id }}, '{{ addslashes($m->name) }}', '{{ addslashes($m->role) }}')" 
+                        class="w-full py-1.5 px-2 bg-red-50 hover:bg-coral text-coral hover:text-white brutal-border font-mono text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 transition-all shadow-[2px_2px_0px_#121614] active:translate-x-[1px] active:translate-y-[1px]">
+                  <span>🚫</span>
+                  <span>Keluarkan dari Keluarga</span>
+                </button>
+              @endif
             </div>
           @endif
         </div>
@@ -198,12 +217,260 @@
 
   </div>
 </div>
+
+<!-- MODAL: UBAH PASSWORD ANGGOTA (NEOBRUTALIST) -->
+<div id="modal-change-password" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closePasswordModal()">
+  <div class="bg-cream brutal-card max-w-sm sm:max-w-md w-full p-5 sm:p-6 relative modal-box space-y-4">
+    <!-- HEADER -->
+    <div class="flex items-start justify-between pb-3 border-b-2 border-ink">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 bg-accent text-ink brutal-border flex items-center justify-center font-black text-lg shadow-[2px_2px_0px_#121614]">
+          🔑
+        </div>
+        <div>
+          <span class="text-[10px] font-black font-mono uppercase text-brand tracking-widest block">Keamanan Akun</span>
+          <h3 class="font-black font-display text-lg sm:text-xl text-ink leading-tight">Ubah Password</h3>
+        </div>
+      </div>
+      <button type="button" onclick="closePasswordModal()" class="w-8 h-8 bg-white hover:bg-coral hover:text-white brutal-border font-black flex items-center justify-center transition-colors">
+        ✕
+      </button>
+    </div>
+
+    <!-- FORM BODY -->
+    <form id="form-change-password" onsubmit="executeChangePassword(event)" class="space-y-3">
+      <div>
+        <div class="text-xs font-semibold text-ink/70">Akun Anggota:</div>
+        <div id="pwd-target-name" class="font-black text-ink text-sm bg-white p-2 brutal-border mt-1"></div>
+      </div>
+
+      <div>
+        <label for="pwd-input" class="block text-xs font-black font-mono uppercase text-ink mb-1">Password Baru</label>
+        <input type="password" id="pwd-input" name="password" required minlength="6" placeholder="Minimal 6 karakter" class="w-full px-3 py-2 bg-white brutal-input text-sm font-bold text-ink">
+      </div>
+
+      <div>
+        <label for="pwd-confirm-input" class="block text-xs font-black font-mono uppercase text-ink mb-1">Konfirmasi Password Baru</label>
+        <input type="password" id="pwd-confirm-input" name="password_confirmation" required minlength="6" placeholder="Ulangi password baru" class="w-full px-3 py-2 bg-white brutal-input text-sm font-bold text-ink">
+      </div>
+
+      <div class="pt-2 flex items-center gap-3">
+        <button type="button" onclick="closePasswordModal()" class="w-1/2 py-2.5 bg-white hover:bg-cream brutal-btn text-xs font-mono font-black uppercase tracking-wider text-ink transition-all">
+          Batal
+        </button>
+        <button type="submit" id="btn-submit-password" class="w-1/2 py-2.5 bg-brand hover:bg-brand-dark text-white brutal-btn text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all">
+          <span>Simpan Password</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: UBAH PERAN ANGGOTA (NEOBRUTALIST) -->
+<div id="modal-change-role" class="fixed inset-0 bg-ink/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target === this) closeRoleModal()">
+  <div class="bg-cream brutal-card max-w-sm sm:max-w-md w-full p-5 sm:p-6 relative modal-box space-y-4">
+    <!-- HEADER -->
+    <div class="flex items-start justify-between pb-3 border-b-2 border-ink">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 bg-mustard text-ink brutal-border flex items-center justify-center font-black text-lg shadow-[2px_2px_0px_#121614]">
+          🎭
+        </div>
+        <div>
+          <span class="text-[10px] font-black font-mono uppercase text-brand tracking-widest block">Struktur Keluarga</span>
+          <h3 class="font-black font-display text-lg sm:text-xl text-ink leading-tight">Ubah Peran Anggota</h3>
+        </div>
+      </div>
+      <button type="button" onclick="closeRoleModal()" class="w-8 h-8 bg-white hover:bg-coral hover:text-white brutal-border font-black flex items-center justify-center transition-colors">
+        ✕
+      </button>
+    </div>
+
+    <!-- FORM BODY -->
+    <form id="form-change-role" onsubmit="executeChangeRole(event)" class="space-y-3">
+      <div>
+        <div class="text-xs font-semibold text-ink/70">Akun Anggota:</div>
+        <div id="role-target-name" class="font-black text-ink text-sm bg-white p-2 brutal-border mt-1"></div>
+      </div>
+
+      <div>
+        <label for="role-select" class="block text-xs font-black font-mono uppercase text-ink mb-1">Pilih Peran Baru</label>
+        <select id="role-select" name="role" required class="w-full px-3 py-2 bg-white brutal-input text-sm font-bold text-ink">
+          <option value="Ibu">Ibu / Istri</option>
+          <option value="Anak">Anak</option>
+          <option value="Kakek/Nenek">Kakek / Nenek</option>
+          <option value="ART">Asisten Rumah Tangga</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+      </div>
+
+      <div class="p-2.5 bg-white brutal-border border-l-4 border-l-mustard text-[11px] font-mono text-ink/80">
+        💡 Peran menentukan kategori tugas harian dan label anggota di ruang keluarga.
+      </div>
+
+      <div class="pt-2 flex items-center gap-3">
+        <button type="button" onclick="closeRoleModal()" class="w-1/2 py-2.5 bg-white hover:bg-cream brutal-btn text-xs font-mono font-black uppercase tracking-wider text-ink transition-all">
+          Batal
+        </button>
+        <button type="submit" id="btn-submit-role" class="w-1/2 py-2.5 bg-brand hover:bg-brand-dark text-white brutal-btn text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all">
+          <span>Simpan Peran</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 @endpush
 
 @push('scripts')
 <script>
   let currentInviteCode = "{{ $family->invite_code }}";
   let targetKickId = null;
+  let targetPasswordId = null;
+  let targetRoleId = null;
+
+  function openPasswordModal(id, name) {
+    targetPasswordId = id;
+    const nameEl = document.getElementById('pwd-target-name');
+    const modal = document.getElementById('modal-change-password');
+    const form = document.getElementById('form-change-password');
+    if (nameEl) nameEl.textContent = name;
+    if (form) form.reset();
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closePasswordModal() {
+    targetPasswordId = null;
+    const modal = document.getElementById('modal-change-password');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  async function executeChangePassword(e) {
+    e.preventDefault();
+    if (!targetPasswordId) return;
+
+    const pwd = document.getElementById('pwd-input').value;
+    const pwdConfirm = document.getElementById('pwd-confirm-input').value;
+
+    if (pwd !== pwdConfirm) {
+      showToast('Konfirmasi password tidak cocok.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-submit-password');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+    }
+
+    try {
+      const res = await fetch(`/members/${targetPasswordId}/password`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          password: pwd,
+          password_confirmation: pwdConfirm,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || (data.errors ? Object.values(data.errors)[0][0] : 'Gagal memperbarui password.'));
+      }
+
+      showToast(data.message, 'success');
+      closePasswordModal();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = 'Simpan Password';
+      }
+    }
+  }
+
+  function openRoleModal(id, name, currentRole) {
+    targetRoleId = id;
+    const nameEl = document.getElementById('role-target-name');
+    const roleSelect = document.getElementById('role-select');
+    const modal = document.getElementById('modal-change-role');
+
+    if (nameEl) nameEl.textContent = name;
+    if (roleSelect) roleSelect.value = currentRole;
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeRoleModal() {
+    targetRoleId = null;
+    const modal = document.getElementById('modal-change-role');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function applyRoleBadge(id, role) {
+    const roleEl = document.getElementById(`member-role-${id}`);
+    const badgeEl = document.getElementById(`member-badge-${id}`);
+    const avatarEl = document.getElementById(`member-avatar-${id}`);
+
+    if (roleEl) roleEl.textContent = role;
+
+    const badgeText = role === 'Ayah' ? 'ADMIN UTAMA' : (role === 'Ibu' ? 'CO-ADMIN' : 'ANGGOTA');
+    if (badgeEl) {
+      badgeEl.textContent = badgeText;
+      badgeEl.className = 'px-2 py-0.5 ' + (role === 'Ayah' ? 'bg-brand text-white' : (role === 'Ibu' ? 'bg-accent text-ink' : 'bg-white text-ink')) + ' brutal-border font-mono text-[10px] font-bold';
+    }
+
+    if (avatarEl && !avatarEl.querySelector('img')) {
+      const emoji = role === 'Ayah' ? '👨' : (role === 'Ibu' ? '👩' : (role === 'Anak' ? '👦' : '👧'));
+      avatarEl.innerHTML = `<span>${emoji}</span>`;
+      const bg = role === 'Ayah' ? 'bg-brand text-white' : (role === 'Ibu' ? 'bg-accent text-ink' : (role === 'Anak' ? 'bg-sky text-ink' : 'bg-coral text-white'));
+      avatarEl.className = `w-12 h-12 ${bg} brutal-border flex items-center justify-center text-2xl font-black overflow-hidden`;
+    }
+  }
+
+  async function executeChangeRole(e) {
+    e.preventDefault();
+    if (!targetRoleId) return;
+
+    const roleSelect = document.getElementById('role-select');
+    const newRole = roleSelect ? roleSelect.value : '';
+
+    const btn = document.getElementById('btn-submit-role');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+    }
+
+    try {
+      const res = await fetch(`/members/${targetRoleId}/role`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ role: newRole }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || (data.errors ? Object.values(data.errors)[0][0] : 'Gagal memperbarui peran.'));
+      }
+
+      showToast(data.message, 'success');
+      applyRoleBadge(targetRoleId, data.role);
+      closeRoleModal();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = 'Simpan Peran';
+      }
+    }
+  }
 
   function copyDashboardInvite() {
     const inviteLink = "{{ url('/join') }}/" + currentInviteCode;
@@ -382,6 +649,10 @@
               card.style.transform = 'scale(0.9)';
               setTimeout(() => card.remove(), 300);
             }
+          }
+
+          if (e.action === 'role_changed' && e.data) {
+            applyRoleBadge(e.data.target_user_id, e.data.role);
           }
         });
       }

@@ -279,11 +279,30 @@ class FamilyAlbumTest extends TestCase
         $responsePhoto->assertSessionHas('success');
         $this->assertEquals($photo->id, $this->family->fresh()->banner_media_id);
 
-        // Dashboard renders banner
+        // Update banner position and fit via AJAX
+        $responsePosition = $this->actingAs($this->user)
+            ->patchJson(route('albums.banner.position'), [
+                'position' => '50% 20%',
+                'fit' => 'contain',
+            ]);
+        $responsePosition->assertOk()
+            ->assertJson([
+                'status' => 'success',
+                'banner_position' => '50% 20%',
+                'banner_fit' => 'contain',
+            ]);
+
+        $freshFamily = $this->family->fresh();
+        $this->assertEquals('50% 20%', $freshFamily->banner_position);
+        $this->assertEquals('contain', $freshFamily->banner_fit);
+
+        // Dashboard renders banner with position and fit
         $dashResponse = $this->actingAs($this->user)->get(route('dashboard'));
         $dashResponse->assertOk()
             ->assertSee('Momen Keluarga')
-            ->assertSee('Momen Indah Keluarga');
+            ->assertSee('Momen Indah Keluarga')
+            ->assertSee('50% 20%')
+            ->assertSee('object-contain');
 
         // Banner can be removed
         $removeResponse = $this->actingAs($this->user)

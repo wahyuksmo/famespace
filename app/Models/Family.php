@@ -21,6 +21,8 @@ class Family extends Model
         'monthly_budget',
         'currency',
         'banner_media_id',
+        'banner_position',
+        'banner_fit',
     ];
 
     protected static function booted(): void

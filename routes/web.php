@@ -48,6 +48,8 @@ Route::middleware('auth')->group(function () {
     // Members & Roles
     Route::get('/members', [MemberController::class, 'index'])->name('members.index');
     Route::patch('/members/{id}/toggle-finance', [MemberController::class, 'toggleFinanceAccess'])->name('members.toggle_finance');
+    Route::patch('/members/{id}/password', [MemberController::class, 'updatePassword'])->name('members.update_password');
+    Route::patch('/members/{id}/role', [MemberController::class, 'updateRole'])->name('members.update_role');
     Route::delete('/members/{id}', [MemberController::class, 'kickMember'])->name('members.kick');
     Route::post('/members/regenerate-invite', [MemberController::class, 'regenerateInviteCode'])->name('members.regenerate_invite');
 
@@ -61,6 +63,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/albums/media/{media}', [AlbumController::class, 'destroyMedia'])->name('albums.media.destroy');
     Route::post('/albums/media/{media}/set-banner', [AlbumController::class, 'setBanner'])->name('albums.media.set-banner');
     Route::post('/albums/banner/remove', [AlbumController::class, 'removeBanner'])->name('albums.banner.remove');
+    Route::patch('/albums/banner/position', [AlbumController::class, 'updateBannerPosition'])->name('albums.banner.position');
 
     // Notes (Catatan & Kulkas Digital)
     Route::get('/notes', [NoteController::class, 'index'])->name('notes.index');
