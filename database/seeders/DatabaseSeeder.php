@@ -643,5 +643,8 @@ class DatabaseSeeder extends Seeder
 
         // 7. Master Kalender Kerja (m_wkcal) Tahun 2026
         (new WkcalService)->generateYear(2026, 'DatabaseSeeder');
+
+        // 8. Super Administrator Account
+        $this->call(SuperAdminSeeder::class);
     }
 }
