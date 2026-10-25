@@ -293,6 +293,18 @@ class MemberController extends Controller
             'invite_code' => $newCode,
         ]);
 
+        broadcast(new FamilyMemberEvent(
+            familyId: (string) $family->id,
+            action: 'invite_code_regenerated',
+            userId: (int) $currentUser->id,
+            userName: (string) $currentUser->name,
+            message: "{$currentUser->name} telah mengacak ulang kode undangan keluarga menjadi {$newCode}.",
+            data: [
+                'invite_code' => $newCode,
+                'invite_url' => url('/join/'.$newCode),
+            ]
+        ));
+
         return response()->json([
             'success' => true,
             'invite_code' => $newCode,

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Reward\Controllers;
 
+use App\Events\RewardEvent;
 use App\Http\Controllers\Controller;
 use App\Modules\Reward\Repositories\RewardRepository;
 use App\Modules\Reward\Services\RewardService;
@@ -107,6 +108,15 @@ class RewardController extends Controller
                 $validated
             );
 
+            broadcast(new RewardEvent(
+                familyId: (string) $user->family_id,
+                action: 'reward_created',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: "{$user->name} menambahkan hadiah baru: {$reward->title}",
+                data: ['reward_id' => $reward->id, 'title' => $reward->title]
+            ));
+
             return response()->json([
                 'success' => true,
                 'message' => 'Hadiah berhasil ditambahkan ke katalog!',
@@ -140,6 +150,15 @@ class RewardController extends Controller
                 $validated
             );
 
+            broadcast(new RewardEvent(
+                familyId: (string) $user->family_id,
+                action: 'reward_updated',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: "{$user->name} memperbarui hadiah: {$reward->title}",
+                data: ['reward_id' => $reward->id, 'title' => $reward->title]
+            ));
+
             return response()->json([
                 'success' => true,
                 'message' => 'Hadiah berhasil diperbarui!',
@@ -160,6 +179,15 @@ class RewardController extends Controller
         try {
             $this->rewardService->deleteReward($id, $user->family_id);
 
+            broadcast(new RewardEvent(
+                familyId: (string) $user->family_id,
+                action: 'reward_deleted',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: "{$user->name} menghapus hadiah dari katalog.",
+                data: ['reward_id' => $id]
+            ));
+
             return response()->json([
                 'success' => true,
                 'message' => 'Hadiah berhasil dihapus dari katalog.',
@@ -175,6 +203,20 @@ class RewardController extends Controller
 
         try {
             $claim = $this->rewardService->claimReward($id, $user);
+
+            broadcast(new RewardEvent(
+                familyId: (string) $user->family_id,
+                action: 'reward_claimed',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: "{$user->name} menukarkan poin untuk hadiah: {$claim->reward->title} 🎁",
+                data: [
+                    'claim_id' => $claim->id,
+                    'reward_title' => $claim->reward->title,
+                    'user_id' => $user->id,
+                    'user_points' => $user->fresh()->points,
+                ]
+            ));
 
             return response()->json([
                 'success' => true,
@@ -197,6 +239,19 @@ class RewardController extends Controller
         try {
             $claim = $this->rewardService->approveClaim($id, $user);
 
+            broadcast(new RewardEvent(
+                familyId: (string) $user->family_id,
+                action: 'claim_approved',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: "Klaim hadiah {$claim->reward->title} oleh {$claim->user->name} telah disetujui! 🎉",
+                data: [
+                    'claim_id' => $claim->id,
+                    'reward_title' => $claim->reward->title,
+                    'target_user_id' => $claim->user_id,
+                ]
+            ));
+
             return response()->json([
                 'success' => true,
                 'message' => 'Klaim hadiah berhasil disetujui & diserahkan! 🎉',
@@ -218,6 +273,19 @@ class RewardController extends Controller
 
         try {
             $claim = $this->rewardService->rejectClaim($id, $user, $notes);
+
+            broadcast(new RewardEvent(
+                familyId: (string) $user->family_id,
+                action: 'claim_rejected',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: "Klaim hadiah {$claim->reward->title} oleh {$claim->user->name} ditolak. Poin dikembalikan.",
+                data: [
+                    'claim_id' => $claim->id,
+                    'reward_title' => $claim->reward->title,
+                    'target_user_id' => $claim->user_id,
+                ]
+            ));
 
             return response()->json([
                 'success' => true,

@@ -41,7 +41,7 @@
           </div>
           <div class="text-[10px] font-mono font-bold text-ink/60 mt-1.5 flex items-center justify-between">
             <div class="flex items-center gap-1.5 truncate">
-              <span>👥 {{ $members->count() }} Anggota</span>
+              <span id="sidebar-members-summary">👥 {{ $members->count() }} Anggota</span>
               <span>&bull;</span>
               <span class="{{ $isPro ? 'text-brand font-black' : 'text-ink/60' }}">{{ $isPro ? 'PRO 👑' : 'Free' }}</span>
             </div>
@@ -190,7 +190,7 @@
               <span class="w-5 h-5 flex items-center justify-center text-sm flex-shrink-0">👨‍👩‍👧‍👦</span>
               <span class="font-bold">Anggota Keluarga</span>
             </div>
-            <span class="px-1.5 py-0.5 bg-cream text-ink font-mono text-[9px] brutal-border font-black shadow-[1px_1px_0px_#121614]">
+            <span id="sidebar-members-count" class="px-1.5 py-0.5 bg-cream text-ink font-mono text-[9px] brutal-border font-black shadow-[1px_1px_0px_#121614]">
               {{ $members->count() }}
             </span>
           </a>

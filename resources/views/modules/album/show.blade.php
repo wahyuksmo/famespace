@@ -103,6 +103,7 @@
   </div>
 
   <!-- MEDIA GALLERY GRID -->
+  <div id="album-media-grid-section">
   @if($media->isEmpty())
     <div class="p-8 sm:p-12 bg-white brutal-card text-center space-y-4">
       <div class="w-16 h-16 mx-auto bg-brand-soft brutal-border flex items-center justify-center text-3xl shadow-[3px_3px_0px_#121614]">
@@ -234,6 +235,7 @@
       {{ $media->links() }}
     </div>
   @endif
+  </div>
 
 </div>
 @endsection

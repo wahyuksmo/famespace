@@ -2,6 +2,7 @@
 
 namespace App\Modules\Album\Controllers;
 
+use App\Events\AlbumEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Album;
 use App\Models\AlbumMedia;
@@ -103,6 +104,15 @@ class AlbumController extends Controller
             'cover_image_path' => $coverPath,
         ]);
 
+        broadcast(new AlbumEvent(
+            familyId: (string) $family->id,
+            action: 'album_created',
+            userId: (int) $user->id,
+            userName: (string) $user->name,
+            message: "{$user->name} membuat album kenangan baru: {$album->title}",
+            data: ['album_id' => $album->id, 'title' => $album->title]
+        ));
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -143,6 +153,15 @@ class AlbumController extends Controller
         $album->description = $validated['description'] ?? null;
         $album->save();
 
+        broadcast(new AlbumEvent(
+            familyId: (string) $user->family_id,
+            action: 'album_updated',
+            userId: (int) $user->id,
+            userName: (string) $user->name,
+            message: "{$user->name} memperbarui album: {$album->title}",
+            data: ['album_id' => $album->id, 'title' => $album->title]
+        ));
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -179,7 +198,17 @@ class AlbumController extends Controller
         }
 
         $albumTitle = $album->title;
+        $albumId = $album->id;
         $album->delete();
+
+        broadcast(new AlbumEvent(
+            familyId: (string) $user->family_id,
+            action: 'album_deleted',
+            userId: (int) $user->id,
+            userName: (string) $user->name,
+            message: "{$user->name} menghapus album: {$albumTitle}",
+            data: ['album_id' => $albumId, 'title' => $albumTitle]
+        ));
 
         if (request()->wantsJson()) {
             return response()->json([
@@ -245,6 +274,15 @@ class AlbumController extends Controller
             'caption' => $request->input('caption'),
         ]);
 
+        broadcast(new AlbumEvent(
+            familyId: (string) $family->id,
+            action: 'media_uploaded',
+            userId: (int) $user->id,
+            userName: (string) $user->name,
+            message: "{$user->name} mengunggah ".($isPhoto ? 'foto' : 'video')." baru ke album: {$album->title}",
+            data: ['album_id' => $album->id, 'media_id' => $media->id, 'media_type' => $media->media_type]
+        ));
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -274,7 +312,18 @@ class AlbumController extends Controller
         }
 
         $type = $media->isPhoto() ? 'Foto' : 'Video';
+        $mediaId = $media->id;
+        $albumId = $media->album_id;
         $media->delete();
+
+        broadcast(new AlbumEvent(
+            familyId: (string) $user->family_id,
+            action: 'media_deleted',
+            userId: (int) $user->id,
+            userName: (string) $user->name,
+            message: "{$user->name} menghapus {$type} dari album.",
+            data: ['album_id' => $albumId, 'media_id' => $mediaId]
+        ));
 
         if (request()->wantsJson()) {
             return response()->json([
@@ -309,6 +358,15 @@ class AlbumController extends Controller
         }
 
         $family->update($updateData);
+
+        broadcast(new AlbumEvent(
+            familyId: (string) $family->id,
+            action: 'banner_updated',
+            userId: (int) $user->id,
+            userName: (string) $user->name,
+            message: "{$user->name} memperbarui banner foto beranda keluarga.",
+            data: ['banner_media_id' => $media->id]
+        ));
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

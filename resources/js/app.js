@@ -37,4 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     bindEvent('TimelineEvent', 'Ada momen kenangan keluarga baru.');
     bindEvent('FamilyMemberEvent', 'Ada perubahan status anggota keluarga.');
     bindEvent('NoteEvent', 'Ada pembaruan catatan di papan keluarga.');
+    bindEvent('PantryEvent', 'Ada pembaruan stok atau bahan di pantry.');
+    bindEvent('AlbumEvent', 'Ada foto atau album kenangan baru.');
+    bindEvent('RewardEvent', 'Ada pembaruan klaim atau katalog hadiah.');
+    bindEvent('SubscriptionEvent', 'Ada pembaruan status langganan keluarga.');
 });

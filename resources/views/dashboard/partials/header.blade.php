@@ -59,7 +59,7 @@
     @endif
 
     <!-- FAMILY MEMBERS GROUP (CLICKABLE TO MEMBERS PAGE) -->
-    <a href="{{ route('members.index') }}" title="Kelola Anggota Keluarga ({{ $members->count() }} orang)" class="flex items-center gap-2 p-1 sm:p-1.5 bg-cream hover:bg-accent/30 brutal-border transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] shadow-brutal-sm group">
+    <a href="{{ route('members.index') }}" id="header-family-members-link" title="Kelola Anggota Keluarga ({{ $members->count() }} orang)" class="flex items-center gap-2 p-1 sm:p-1.5 bg-cream hover:bg-accent/30 brutal-border transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] shadow-brutal-sm group">
       <div class="flex items-center -space-x-2 pl-0.5">
         @foreach($members->take(4) as $m)
           @php

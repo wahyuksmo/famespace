@@ -2,6 +2,7 @@
 
 namespace App\Modules\Subscription\Controllers;
 
+use App\Events\SubscriptionEvent;
 use App\Http\Controllers\Controller;
 use App\Modules\Subscription\Repositories\PaymentRepository;
 use App\Modules\Subscription\Services\SubscriptionService;
@@ -46,6 +47,16 @@ class SubscriptionController extends Controller
     {
         try {
             $result = $this->subService->simulatePayment($invoiceNumber);
+            $user = Auth::user();
+
+            broadcast(new SubscriptionEvent(
+                familyId: (string) $user->family_id,
+                action: 'plan_upgraded',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: 'Selamat! Seluruh anggota keluarga sekarang menikmati Fitur FamKoji Pro! 👑',
+                data: ['plan' => 'pro', 'is_pro' => true]
+            ));
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -72,6 +83,16 @@ class SubscriptionController extends Controller
 
         try {
             $status = $this->subService->toggleDevPlan($familyId, $planCode);
+            $user = Auth::user();
+
+            broadcast(new SubscriptionEvent(
+                familyId: (string) $familyId,
+                action: 'plan_toggled',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: 'Status paket langganan keluarga berubah menjadi: '.strtoupper($status),
+                data: ['plan' => $status, 'is_pro' => $status === 'pro']
+            ));
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => true, 'plan' => $status]);

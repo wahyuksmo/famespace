@@ -100,7 +100,7 @@ class RegisterController extends Controller
                     'member_name' => $user->name,
                     'role' => $user->role,
                 ]
-            ))->toOthers();
+            ));
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -178,7 +178,7 @@ class RegisterController extends Controller
                     'member_name' => $user->name,
                     'role' => $user->role,
                 ]
-            ))->toOthers();
+            ));
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([

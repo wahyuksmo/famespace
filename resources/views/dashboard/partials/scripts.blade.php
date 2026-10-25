@@ -971,11 +971,103 @@
 
     // 6. Family members refresh
     const $membersSection = $('#members-list-section');
+    const $headerMembers = $('#header-family-members-link');
+    const $sidebarCount = $('#sidebar-members-count');
+    const $sidebarSummary = $('#sidebar-members-summary');
+
     if ($membersSection.length) {
       $.get(window.location.href, function(html) {
         const newMembers = $(html).find('#members-list-section').html();
         if (newMembers) $membersSection.html(newMembers);
       });
+    }
+
+    if ($headerMembers.length || $sidebarCount.length || $sidebarSummary.length) {
+      $.get('/dashboard', function(html) {
+        if (typeof html === 'string') {
+          const $parsed = $(html);
+          if ($headerMembers.length) {
+            const newHeader = $parsed.find('#header-family-members-link').html();
+            if (newHeader) $headerMembers.html(newHeader);
+          }
+          if ($sidebarCount.length) {
+            const newCount = $parsed.find('#sidebar-members-count').html();
+            if (newCount) $sidebarCount.html(newCount);
+          }
+          if ($sidebarSummary.length) {
+            const newSum = $parsed.find('#sidebar-members-summary').html();
+            if (newSum) $sidebarSummary.html(newSum);
+          }
+        }
+      });
+    }
+
+    // 7. Pantry module
+    if (window.pantryDataTable) {
+      window.pantryDataTable.ajax.reload(null, false);
+    }
+    const $pantrySummary = $('#pantry-summary-cards');
+    if ($pantrySummary.length) {
+      $.get(window.location.href, function(html) {
+        const newSummary = $(html).find('#pantry-summary-cards').html();
+        if (newSummary) $pantrySummary.html(newSummary);
+      });
+    }
+
+    // 8. Album module
+    const $albumGrid = $('#albums-list-section');
+    const $albumMediaGrid = $('#album-media-grid-section');
+    if ($albumGrid.length || $albumMediaGrid.length) {
+      $.get(window.location.href, function(html) {
+        const $parsed = $(html);
+        if ($albumGrid.length) {
+          const newGrid = $parsed.find('#albums-list-section').html();
+          if (newGrid) $albumGrid.html(newGrid);
+        }
+        if ($albumMediaGrid.length) {
+          const newMedia = $parsed.find('#album-media-grid-section').html();
+          if (newMedia) $albumMediaGrid.html(newMedia);
+        }
+      });
+    }
+
+    // 9. Rewards module
+    if (window.rewardsDataTable) {
+      window.rewardsDataTable.ajax.reload(null, false);
+    }
+    if (typeof refreshRewardsData === 'function') {
+      refreshRewardsData();
+    }
+    const $claimsList = $('#claims-pending-list');
+    if ($claimsList.length) {
+      $.get(window.location.href, function(html) {
+        const newClaims = $(html).find('#claims-pending-list').html();
+        if (newClaims) $claimsList.html(newClaims);
+      });
+    }
+
+    // 10. Subscription / PRO status
+    if (moduleHint && (moduleHint.action === 'plan_upgraded' || moduleHint.action === 'plan_toggled')) {
+      setTimeout(() => window.location.reload(), 800);
+    }
+
+    // 11. Family member actions (invite code & profile avatar)
+    if (moduleHint && moduleHint.action === 'invite_code_regenerated' && moduleHint.data) {
+      const codeDisplay = document.getElementById('display-invite-code');
+      if (codeDisplay) codeDisplay.textContent = moduleHint.data.invite_code;
+      const waBtn = document.getElementById('btn-wa-invite');
+      if (waBtn && moduleHint.data.invite_url) {
+        waBtn.href = `https://wa.me/?text=Halo!%20Ayo%20gabung%20ke%20ruang%20keluarga%20kita%20di%20FamKoji:%20${encodeURIComponent(moduleHint.data.invite_url)}`;
+      }
+    }
+    if (moduleHint && moduleHint.action === 'profile_updated' && moduleHint.data) {
+      const uId = moduleHint.data.user_id;
+      const nameEl = document.getElementById(`member-name-${uId}`);
+      if (nameEl && moduleHint.data.user_name) nameEl.textContent = moduleHint.data.user_name;
+      const avatarEl = document.getElementById(`member-avatar-${uId}`);
+      if (avatarEl && moduleHint.data.avatar_url) {
+        avatarEl.innerHTML = `<img src="${moduleHint.data.avatar_url}" alt="${moduleHint.data.user_name}" class="w-full h-full object-cover">`;
+      }
     }
   };
 

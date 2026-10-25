@@ -2,6 +2,7 @@
 
 namespace App\Modules\Auth\Controllers;
 
+use App\Events\FamilyMemberEvent;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -48,6 +49,21 @@ class ProfileController extends Controller
         }
 
         $user->save();
+
+        if ($user->family_id) {
+            broadcast(new FamilyMemberEvent(
+                familyId: (string) $user->family_id,
+                action: 'profile_updated',
+                userId: (int) $user->id,
+                userName: (string) $user->name,
+                message: "{$user->name} memperbarui foto profil/nama.",
+                data: [
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                    'avatar_url' => $user->avatar_url,
+                ]
+            ));
+        }
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([

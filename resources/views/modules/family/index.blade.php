@@ -625,17 +625,19 @@
     }
   }
 
-  // Handle realtime broadcast event for kicked member
+  // Handle realtime broadcast event for kicked/joined member
   window.addEventListener('DOMContentLoaded', () => {
     const userMeta = document.querySelector('meta[name="user-id"]');
     const currentUserId = userMeta ? Number(userMeta.getAttribute('content')) : null;
 
-    if (window.Echo) {
+    const setupFamilyEcho = () => {
+      if (!window.Echo) return;
+
       const familyMeta = document.querySelector('meta[name="family-id"]');
       const familyId = familyMeta ? familyMeta.getAttribute('content') : null;
 
       if (familyId) {
-        window.Echo.private(`family.${familyId}`).listen('FamilyMemberEvent', (e) => {
+        const handleEvent = (e) => {
           if (e.action === 'member_kicked' && e.data) {
             if (currentUserId && Number(e.data.kicked_user_id) === currentUserId) {
               alert('Akun Anda telah dikeluarkan dari ruang keluarga ini oleh Admin.');
@@ -651,11 +653,27 @@
             }
           }
 
+          if (e.action === 'member_joined') {
+            if (typeof window.reloadCurrentModuleData === 'function') {
+              window.reloadCurrentModuleData(e);
+            }
+          }
+
           if (e.action === 'role_changed' && e.data) {
             applyRoleBadge(e.data.target_user_id, e.data.role);
           }
-        });
+        };
+
+        window.Echo.private(`family.${familyId}`)
+          .listen('FamilyMemberEvent', handleEvent)
+          .listen('.FamilyMemberEvent', handleEvent);
       }
+    };
+
+    if (window.Echo) {
+      setupFamilyEcho();
+    } else {
+      setTimeout(setupFamilyEcho, 500);
     }
   });
 </script>

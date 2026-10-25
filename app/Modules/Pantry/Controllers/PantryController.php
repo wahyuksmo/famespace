@@ -2,6 +2,7 @@
 
 namespace App\Modules\Pantry\Controllers;
 
+use App\Events\PantryEvent;
 use App\Http\Controllers\Controller;
 use App\Modules\Pantry\Services\PantryService;
 use Illuminate\Http\JsonResponse;
@@ -144,6 +145,15 @@ class PantryController extends Controller
 
         $item = $this->pantryService->createItem($validated, $user);
 
+        broadcast(new PantryEvent(
+            familyId: (string) $user->family_id,
+            action: 'item_created',
+            userId: (int) $user->id,
+            userName: (string) $user->name,
+            message: "{$user->name} menambahkan barang baru: {$item->name} ke pantry.",
+            data: ['item_id' => $item->id, 'item_name' => $item->name]
+        ));
+
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -171,6 +181,15 @@ class PantryController extends Controller
 
         $item = $this->pantryService->updateItem($id, $validated, $user);
 
+        broadcast(new PantryEvent(
+            familyId: (string) $user->family_id,
+            action: 'item_updated',
+            userId: (int) $user->id,
+            userName: (string) $user->name,
+            message: "{$user->name} memperbarui data barang: {$item->name}.",
+            data: ['item_id' => $item->id, 'item_name' => $item->name]
+        ));
+
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -192,6 +211,15 @@ class PantryController extends Controller
 
         $item = $this->pantryService->adjustStock($id, (float) $validated['delta'], $user);
 
+        broadcast(new PantryEvent(
+            familyId: (string) $user->family_id,
+            action: 'stock_adjusted',
+            userId: (int) $user->id,
+            userName: (string) $user->name,
+            message: "{$user->name} mengubah stok {$item->name} menjadi {$item->quantity} {$item->unit}.",
+            data: ['item_id' => $item->id, 'item_name' => $item->name, 'new_quantity' => $item->quantity]
+        ));
+
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -208,6 +236,15 @@ class PantryController extends Controller
         $user = Auth::user();
 
         $this->pantryService->deleteItem($id, $user);
+
+        broadcast(new PantryEvent(
+            familyId: (string) $user->family_id,
+            action: 'item_deleted',
+            userId: (int) $user->id,
+            userName: (string) $user->name,
+            message: "{$user->name} menghapus barang dari inventaris pantry.",
+            data: ['item_id' => $id]
+        ));
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
