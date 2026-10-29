@@ -31,77 +31,115 @@
   </div>
 
   <!-- HEADER CHORES & REWARDS -->
-  <div class="bg-white brutal-card p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <div class="bg-white brutal-card p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
       <div class="flex items-center gap-2">
-        <span id="header-tagline" class="px-2.5 py-0.5 bg-accent brutal-border font-mono text-[10px] sm:text-xs font-black uppercase">
+        <span id="header-tagline" class="px-2.5 py-0.5 bg-accent brutal-border font-mono text-[10px] sm:text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#121614]">
           DISTRIBUSI PEKERJAAN RUMAH
         </span>
       </div>
-      <h2 id="header-title" class="text-xl sm:text-2xl font-black font-display text-ink mt-1">Manajemen Tugas & Chores</h2>
+      <h2 id="header-title" class="text-xl sm:text-2xl font-black font-display text-ink mt-1 tracking-tight">Manajemen Tugas & Chores</h2>
       <p id="header-subtitle" class="text-xs font-medium text-ink/70">Bagi tugas secara adil antar anggota keluarga. Anak-anak kumpulkan poin reward.</p>
-    </div>
-    <div class="flex items-center gap-2">
-      <button type="button" id="header-btn-add-chore" onclick="openChoreModal()" class="hidden md:inline-flex items-center justify-center px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider text-center">
-        + Tambah Tugas Baru
-      </button>
-      @if(isset($user) && method_exists($user, 'isParent') && $user->isParent())
-        <button type="button" id="header-btn-add-reward" onclick="openRewardModal()" class="hidden items-center justify-center px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider text-center">
-          + Tambah Hadiah Baru
-        </button>
-      @endif
     </div>
   </div>
 
   <!-- SECTION: CHORES TAB -->
-  <div id="section-chores-tab" class="space-y-6">
+  <div id="section-chores-tab" class="space-y-5">
 
-  <!-- REWARD POIN BANNER FOR KIDS -->
-  <div id="chores-kids-banner" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    @php
-      $kids = $members->filter(fn($m) => in_array(strtolower($m->role), ['anak', 'member']))->values();
-    @endphp
+  <!-- REWARD POIN BANNER FOR KIDS: INTERACTIVE AVATAR CHIPS -->
+  @php
+    $kids = $members->filter(fn($m) => in_array(strtolower($m->role), ['anak', 'member']))->values();
+  @endphp
+  <div id="chores-kids-banner" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+    <div class="px-2.5 py-1.5 bg-ink text-white brutal-border font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 flex-shrink-0 shadow-[2px_2px_0px_#121614]">
+      <span>⭐ Poin Anak</span>
+    </div>
     @forelse($kids as $idx => $kid)
-      <div class="bg-brand-soft brutal-border p-4 flex items-center justify-between">
-        <div class="flex items-center gap-3 min-w-0">
-          <div class="w-10 h-10 {{ $idx % 2 === 0 ? 'bg-sky text-ink' : 'bg-coral text-white' }} brutal-border flex items-center justify-center font-black text-xl flex-shrink-0">
-            {{ $idx % 2 === 0 ? '👦' : '👧' }}
-          </div>
-          <div class="min-w-0">
-            <div class="font-black text-xs text-ink truncate">Celengan Poin {{ $kid->name }}</div>
-            <div class="text-[11px] text-ink/70 truncate">
-              {{ ($allChores ?? $chores)->where('assigned_to_user_id', $kid->id)->where('status', 'completed')->count() }} tugas tuntas
-            </div>
-          </div>
+      @php
+        $kidDoneCount = ($allChores ?? $chores)->where('assigned_to_user_id', $kid->id)->where('status', 'completed')->count();
+      @endphp
+      <button 
+        type="button" 
+        onclick="filterByAssignee('{{ addslashes($kid->name) }}')"
+        class="kid-point-chip flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-brand-soft brutal-border transition-all shadow-[2px_2px_0px_#121614] hover:-translate-y-0.5 active:translate-y-0 flex-shrink-0 group cursor-pointer"
+        title="Klik untuk filter tugas {{ $kid->name }} ({{ $kidDoneCount }} tuntas)"
+      >
+        <div class="w-6 h-6 {{ $idx % 2 === 0 ? 'bg-sky text-ink' : 'bg-coral text-white' }} brutal-border rounded-full flex items-center justify-center text-xs font-black flex-shrink-0">
+          {{ $idx % 2 === 0 ? '👦' : '👧' }}
         </div>
-        <span class="px-3 py-1 bg-accent brutal-border font-mono font-black text-sm flex-shrink-0">⭐ {{ $kid->points ?? 0 }} Poin</span>
-      </div>
+        <span class="font-bold text-xs text-ink group-hover:text-brand">{{ $kid->name }}</span>
+        <span class="px-1.5 py-0.2 bg-accent text-ink font-mono font-black text-[11px] brutal-border">
+          ⭐ <span class="kid-points-val" data-user-id="{{ $kid->id }}">{{ $kid->points ?? 0 }}</span>
+        </span>
+      </button>
     @empty
-      <div class="col-span-full bg-cream brutal-border p-3.5 flex items-center justify-between text-xs font-mono text-ink/70">
-        <span>💡 Tambahkan anggota keluarga berstatus Anak untuk mengaktifkan celengan poin tugas rumah tangga.</span>
+      <div class="text-xs font-mono text-ink/60 bg-cream brutal-border px-3 py-1.5 shadow-[2px_2px_0px_#121614]">
+        💡 Tambahkan anggota anak untuk mengaktifkan celengan poin.
       </div>
     @endforelse
   </div>
 
+  @php
+    $completedCount = ($allChores ?? $chores)->where('status', 'completed')->count();
+    $totalCount = max(($allChores ?? $chores)->count(), 1);
+    $progressPercent = ($allChores ?? $chores)->count() > 0 ? round(($completedCount / $totalCount) * 100) : 0;
+  @endphp
+
   <!-- CHORES LIST BY SECTION WITH SERVERSIDE DATATABLES -->
-  <div class="bg-white brutal-card p-4 sm:p-6 space-y-3 sm:space-y-4">
-    <div class="flex items-center justify-between pb-3 border-b-2 border-ink">
-      <h3 class="font-black font-display text-base">Checklist Tugas Aktif</h3>
-      <span id="chores-completion-stat" class="text-xs font-mono font-bold text-ink/70">
-        {{ ($allChores ?? $chores)->where('status', 'completed')->count() }}/{{ max(($allChores ?? $chores)->count(), 1) }} Selesai
-      </span>
+  <div class="bg-white brutal-card p-4 sm:p-6 space-y-4">
+    <!-- TOP BAR: Title & Interactive Progress Bar -->
+    <div class="space-y-2.5 pb-3 border-b-2 border-ink">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-accent brutal-border animate-pulse"></span>
+          <h3 class="font-black font-display text-base text-ink">Checklist Tugas Aktif</h3>
+        </div>
+        <div class="flex items-center gap-2 font-mono text-xs font-bold text-ink/80">
+          <span>Progres:</span>
+          <span id="chores-completion-stat" class="px-2 py-0.5 bg-brand-soft text-brand brutal-border font-black text-[11px]">
+            {{ $completedCount }}/{{ ($allChores ?? $chores)->count() }} Selesai (<span id="chores-progress-percent">{{ $progressPercent }}%</span>)
+          </span>
+        </div>
+      </div>
+      <!-- Progress Bar Visual Neobrutalist -->
+      <div class="w-full bg-cream brutal-border h-3 p-0.5 overflow-hidden">
+        <div 
+          id="chores-progress-bar" 
+          class="bg-accent h-full transition-all duration-500 ease-out" 
+          style="width: {{ $progressPercent }}%"
+        ></div>
+      </div>
     </div>
 
-    <!-- FILTER PILLS UNTUK DESKTOP -->
-    <div class="hidden md:flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-mono font-bold no-scrollbar">
-      <button type="button" class="btn-filter-chore px-3 py-1 bg-ink text-white brutal-border text-[11px] font-black uppercase transition-all" data-status="all">Semua</button>
-      <button type="button" class="btn-filter-chore px-3 py-1 bg-white text-ink brutal-border text-[11px] font-bold uppercase transition-all" data-status="pending">Perlu Dikerjakan</button>
-      <button type="button" class="btn-filter-chore px-3 py-1 bg-white text-ink brutal-border text-[11px] font-bold uppercase transition-all" data-status="completed">Selesai</button>
+    <!-- SEGMENTED TABS UNTUK DESKTOP -->
+    <div class="hidden md:flex items-center justify-between gap-2">
+      <div class="flex items-center gap-1.5 p-1 bg-cream brutal-border text-xs font-mono font-bold">
+        <button 
+          type="button" 
+          class="btn-segment-chore px-4 py-1.5 bg-ink text-white brutal-border text-xs font-black uppercase transition-all shadow-brutal-sm flex items-center gap-1.5 cursor-pointer" 
+          data-status="pending"
+        >
+          <span>📋 Perlu Dikerjakan</span>
+          <span id="badge-pending-count" class="px-1.5 py-0.2 bg-accent text-ink text-[10px] font-mono font-black rounded-sm">{{ ($allChores ?? $chores)->where('status', 'pending')->count() }}</span>
+        </button>
+        <button 
+          type="button" 
+          class="btn-segment-chore px-4 py-1.5 bg-white text-ink text-xs font-bold uppercase transition-all hover:bg-white/80 flex items-center gap-1.5 cursor-pointer" 
+          data-status="completed"
+        >
+          <span>✓ Selesai</span>
+          <span id="badge-completed-count" class="px-1.5 py-0.2 bg-ink/10 text-ink text-[10px] font-mono font-bold rounded-sm">{{ ($allChores ?? $chores)->where('status', 'completed')->count() }}</span>
+        </button>
+      </div>
+      <div class="text-[11px] font-mono text-ink/50">
+        💡 Hover kartu untuk aksi cepat
+      </div>
     </div>
 
     @php
-      $choreCount = isset($chores) ? count($chores) : 0;
-      $totalChores = isset($chores) && method_exists($chores, 'total') ? $chores->total() : $choreCount;
+      $pendingChores = ($allChores ?? $chores)->where('status', 'pending')->values();
+      $pendingCount = count($pendingChores);
+      $totalChores = ($allChores ?? $chores)->count();
     @endphp
 
     <!-- 1. DESKTOP VIEW (MD+): DATATABLES CARD WRAPPER -->
@@ -121,31 +159,44 @@
     <!-- 2. MOBILE VIEW (< MD): NEOBRUTALIST CARD STACK & LOAD MORE -->
     <div class="block md:hidden space-y-3.5" id="chores-mobile-container">
       
-      <!-- MOBILE QUICK SEARCH & FILTER PILLS -->
-      <div class="space-y-2">
+      <!-- MOBILE QUICK SEARCH & SEGMENTED TABS -->
+      <div class="space-y-2.5">
         <div class="relative">
           <input 
             type="text" 
             id="chores-mobile-search" 
-            placeholder="Cari tugas rumah tangga..." 
+            placeholder="Cari tugas atau nama anggota..." 
             class="w-full pl-9 pr-3 py-2 bg-white brutal-border font-sans text-xs font-bold text-ink placeholder:text-ink/40 focus:outline-none focus:bg-brand-soft shadow-brutal-sm transition-colors"
           >
           <span class="absolute left-3 top-2.5 text-xs text-ink/50">🔍</span>
         </div>
         
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-mono font-bold no-scrollbar">
-          <button type="button" class="btn-mfilter-chore px-3 py-1 bg-ink text-white brutal-border text-[11px] font-black uppercase transition-all" data-status="all">Semua</button>
-          <button type="button" class="btn-mfilter-chore px-3 py-1 bg-white text-ink brutal-border text-[11px] font-bold uppercase transition-all" data-status="pending">Perlu Dikerjakan</button>
-          <button type="button" class="btn-mfilter-chore px-3 py-1 bg-white text-ink brutal-border text-[11px] font-bold uppercase transition-all" data-status="completed">Selesai</button>
+        <!-- Mobile Segmented Tabs -->
+        <div class="grid grid-cols-2 gap-1.5 p-1 bg-cream brutal-border text-xs font-mono font-bold">
+          <button 
+            type="button" 
+            class="btn-msegment-chore py-2 px-2 bg-ink text-white brutal-border text-[11px] font-black uppercase transition-all shadow-brutal-sm flex items-center justify-center gap-1.5 cursor-pointer" 
+            data-status="pending"
+          >
+            <span>📋 Perlu Dikerjakan</span>
+            <span id="mbadge-pending-count" class="px-1.5 py-0.2 bg-accent text-ink text-[10px] font-mono font-black rounded-sm">{{ $pendingCount }}</span>
+          </button>
+          <button 
+            type="button" 
+            class="btn-msegment-chore py-2 px-2 bg-white text-ink text-[11px] font-bold uppercase transition-all hover:bg-white/80 flex items-center justify-center gap-1.5 cursor-pointer" 
+            data-status="completed"
+          >
+            <span>✓ Selesai</span>
+            <span id="mbadge-completed-count" class="px-1.5 py-0.2 bg-ink/10 text-ink text-[10px] font-mono font-bold rounded-sm">{{ ($allChores ?? $chores)->where('status', 'completed')->count() }}</span>
+          </button>
         </div>
       </div>
 
       <!-- CARD FEED CONTAINER -->
       <div id="chores-mobile-card-list" class="space-y-3">
-        @if(isset($chores) && count($chores) > 0)
-          @foreach($chores as $chore)
+        @if($pendingCount > 0)
+          @foreach($pendingChores as $chore)
             @php
-              $isDone = $chore->status === 'completed';
               $attachmentUrl = $chore->attachment_path ? (str_starts_with($chore->attachment_path, 'http') ? $chore->attachment_path : asset('storage/'.$chore->attachment_path)) : null;
               $chorePayload = json_encode([
                 'id' => $chore->id,
@@ -159,63 +210,71 @@
                 'update_url' => route('chores.update', $chore->id),
                 'destroy_url' => route('chores.destroy', $chore->id),
               ]);
-              $dueLabel = $chore->description ? $chore->description : ($chore->due_date ? 'Batas: '.\Carbon\Carbon::parse($chore->due_date)->locale('id')->isoFormat('D MMM Y') : 'Tugas Rumah');
+              $dueLabel = $chore->description ? $chore->description : ($chore->due_date ? 'Batas: '.\Carbon\Carbon::parse($chore->due_date)->locale('id')->isoFormat('D MMM Y') : null);
             @endphp
-            <div class="p-3.5 {{ $isDone ? 'bg-cream' : 'bg-white shadow-brutal-sm' }} brutal-border mobile-card-item transition-all" data-id="{{ $chore->id }}">
-              <div class="flex items-start justify-between gap-2.5">
-                <label class="flex items-start gap-3 cursor-pointer min-w-0 flex-1">
-                  <input type="checkbox" {{ $isDone ? 'checked' : '' }} onchange="toggleTask(this, {{ $chore->id }})" class="w-5 h-5 mt-0.5 brutal-border accent-brand flex-shrink-0">
-                  <div class="min-w-0">
-                    <div class="text-xs {{ $isDone ? 'line-through text-ink/50' : 'text-ink font-black' }} break-words leading-snug">
+            <div class="chore-card group relative p-3.5 bg-white brutal-border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-brutal shadow-brutal-sm flex flex-col justify-between gap-3 mobile-card-item" data-id="{{ $chore->id }}">
+              <div class="flex items-start gap-3 min-w-0">
+                <input 
+                  type="checkbox" 
+                  onchange="toggleTask(this, {{ $chore->id }})" 
+                  class="chore-checkbox w-5 h-5 mt-0.5 brutal-border accent-brand cursor-pointer transition-transform active:scale-90 flex-shrink-0"
+                >
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-start justify-between gap-2">
+                    <span class="chore-title text-xs sm:text-sm font-black text-ink leading-snug break-words transition-all">
                       {{ $chore->title }}
-                    </div>
-                    <div class="text-[10px] mt-0.5 {{ $isDone ? 'text-ink/60' : 'text-coral font-bold' }}">
-                      {{ $dueLabel }}
-                    </div>
+                    </span>
+                    <span class="chore-points-badge px-2 py-0.5 bg-accent text-ink brutal-border font-mono font-black text-[10px] shadow-[1px_1px_0px_#121614] inline-flex items-center gap-0.5 flex-shrink-0">
+                      ⭐ +{{ $chore->points }} Poin
+                    </span>
                   </div>
-                </label>
-                <span class="px-2 py-0.5 bg-brand text-white brutal-border text-[10px] font-black font-mono flex-shrink-0">
-                  +{{ $chore->points }} Poin
-                </span>
+
+                  <div class="flex items-center gap-1.5 mt-2 flex-wrap text-[10px] sm:text-[11px]">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-brand-soft border border-ink/20 font-bold text-ink">
+                      👤 {{ $chore->assignee ? $chore->assignee->name : 'Semua Anggota' }}
+                    </span>
+                    @if($dueLabel)
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-cream border border-ink/20 font-mono text-coral font-bold">
+                        📅 {{ $dueLabel }}
+                      </span>
+                    @endif
+                  </div>
+                </div>
               </div>
 
-              <div class="pt-2.5 mt-2.5 border-t border-ink/15 flex items-center justify-between gap-2 flex-wrap">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="px-2 py-0.5 bg-accent brutal-border text-[10px] font-black uppercase">
-                    👤 {{ $chore->assignee ? $chore->assignee->name : 'Semua Anggota' }}
-                  </span>
-                  @if($attachmentUrl)
-                    <button 
-                      type="button" 
-                      onclick="showImagePreview('{{ $attachmentUrl }}', 'Foto Tugas: {{ addslashes($chore->title) }}')" 
-                      class="px-2 py-0.5 bg-brand-soft hover:bg-brand hover:text-white brutal-border text-[10px] font-bold flex items-center gap-1 transition-colors"
-                    >
-                      📸 Foto
-                    </button>
-                  @endif
-                </div>
-                <div class="flex items-center gap-1.5 ml-auto">
+              <div class="pt-2 border-t border-ink/10 flex items-center justify-end gap-1.5">
+                @if($attachmentUrl)
                   <button 
                     type="button" 
-                    onclick='openEditChoreModal({!! $chorePayload !!})' 
-                    class="px-2.5 py-1 bg-white hover:bg-accent brutal-border text-[11px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                    onclick="showImagePreview('{{ $attachmentUrl }}', 'Foto Tugas: {{ addslashes($chore->title) }}')" 
+                    class="w-7 h-7 flex items-center justify-center bg-white hover:bg-sky brutal-border text-xs shadow-[1px_1px_0px_#121614] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+                    title="Foto Panduan"
                   >
-                    ✏️ Edit
+                    📷
                   </button>
-                  <button 
-                    type="button" 
-                    onclick="confirmDelete('{{ route('chores.destroy', $chore->id) }}', 'tugas {{ addslashes($chore->title) }}')" 
-                    class="px-2.5 py-1 bg-coral text-white hover:bg-ink brutal-border text-[11px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
-                  >
-                    🗑️
-                  </button>
-                </div>
+                @endif
+                <button 
+                  type="button" 
+                  onclick='openEditChoreModal({!! $chorePayload !!})' 
+                  class="w-7 h-7 flex items-center justify-center bg-white hover:bg-accent brutal-border text-xs shadow-[1px_1px_0px_#121614] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+                  title="Edit Tugas"
+                >
+                  ✏️
+                </button>
+                <button 
+                  type="button" 
+                  onclick="confirmDelete('{{ route('chores.destroy', $chore->id) }}', 'tugas {{ addslashes($chore->title) }}')" 
+                  class="w-7 h-7 flex items-center justify-center bg-white hover:bg-coral hover:text-white brutal-border text-xs shadow-[1px_1px_0px_#121614] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+                  title="Hapus Tugas"
+                >
+                  🗑️
+                </button>
               </div>
             </div>
           @endforeach
         @else
-          <div class="p-6 text-center bg-cream brutal-border font-mono text-xs font-bold text-ink/60">
-            Belum ada tugas rumah tangga.
+          <div class="p-6 text-center bg-cream brutal-border font-mono text-xs font-bold text-ink/60 shadow-[2px_2px_0px_#121614]">
+            🎉 Semua tugas selesai! Tidak ada tugas yang perlu dikerjakan saat ini.
           </div>
         @endif
       </div>
@@ -223,17 +282,17 @@
       <!-- MOBILE PAGINATION ("MUAT LEBIH BANYAK") -->
       <div id="chores-mobile-pagination-box" class="pt-1 text-center space-y-2">
         <div id="chores-mobile-counter" class="text-[11px] font-mono font-bold text-ink/70">
-          Menampilkan <span id="chores-mobile-count">{{ $choreCount }}</span> dari <span id="chores-mobile-total">{{ $totalChores }}</span> tugas
+          Menampilkan <span id="chores-mobile-count">{{ $pendingCount }}</span> dari <span id="chores-mobile-total">{{ $pendingCount }}</span> tugas aktif
         </div>
         <button 
           type="button" 
           id="chores-mobile-load-more" 
           onclick="loadMoreChoresMobile()" 
-          class="{{ $choreCount >= $totalChores ? 'hidden' : '' }} w-full py-3 bg-brand text-white hover:bg-brand-dark brutal-btn text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.99] transition-all"
+          class="hidden w-full py-2.5 bg-brand text-white hover:bg-brand-dark brutal-btn text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.99] transition-all"
         >
           <span>⬇ Muat Lebih Banyak</span>
         </button>
-        <div id="chores-mobile-all-loaded" class="{{ $choreCount < $totalChores ? 'hidden' : '' }} py-2.5 bg-cream brutal-border font-mono text-[11px] font-black text-ink/60">
+        <div id="chores-mobile-all-loaded" class="py-2.5 bg-cream brutal-border font-mono text-[11px] font-black text-ink/60">
           ✓ Semua tugas telah ditampilkan
         </div>
       </div>
@@ -259,7 +318,7 @@
   let choresDataTable = null;
   let rewardsDataTable = null;
   let choreDatePicker = null;
-  let choresFilterStatus = 'all';
+  let choresFilterStatus = 'pending';
 
   $(document).ready(function() {
     // Inisialisasi Flatpickr
@@ -280,7 +339,7 @@
         url: "{{ route('chores.paginate') }}",
         type: 'GET',
         data: function(d) {
-          d.status = (choresFilterStatus === 'all') ? '' : choresFilterStatus;
+          d.status = choresFilterStatus;
         }
       },
       pageLength: 5,
@@ -307,50 +366,64 @@
           render: function(data, type, row) {
             const isDone = row.status === 'completed';
             const payload = JSON.stringify(row).replace(/"/g, '&quot;');
-            const dueLabel = row.description ? escapeHtml(row.description) : (row.formatted_due ? 'Batas: ' + row.formatted_due : 'Tugas Rumah');
+            const dueLabel = row.description ? escapeHtml(row.description) : (row.formatted_due ? 'Batas: ' + row.formatted_due : null);
+            const photoBtn = row.attachment_url ? `
+              <button 
+                type="button" 
+                onclick="showImagePreview('${row.attachment_url}', 'Foto Tugas: ${escapeHtml(row.title)}')" 
+                class="w-8 h-8 flex items-center justify-center bg-white hover:bg-sky brutal-border text-xs shadow-[1.5px_1.5px_0px_#121614] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+                title="Lihat Foto Bukti"
+              >
+                📷
+              </button>
+            ` : '';
 
             return `
-              <div class="p-3 ${isDone ? 'bg-cream' : 'bg-white shadow-brutal-sm'} brutal-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <label class="flex items-center gap-3 cursor-pointer min-w-0">
-                  <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTask(this, ${row.id})" class="w-5 h-5 brutal-border accent-brand flex-shrink-0">
-                  <div class="min-w-0">
-                    <div class="text-xs font-bold ${isDone ? 'line-through text-ink/50' : 'text-ink font-black'} truncate">
-                      ${escapeHtml(row.title)}
+              <div class="chore-card group relative p-4 bg-white brutal-border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-brutal ${isDone ? 'is-completed bg-[#FAFAF8] opacity-75' : 'shadow-brutal-sm'} flex items-center justify-between gap-4" data-id="${row.id}">
+                <div class="flex items-center gap-3.5 min-w-0 flex-1">
+                  <input 
+                    type="checkbox" 
+                    ${isDone ? 'checked' : ''} 
+                    onchange="toggleTask(this, ${row.id})" 
+                    class="chore-checkbox w-5 h-5 brutal-border accent-brand cursor-pointer transition-transform active:scale-90 hover:scale-105 flex-shrink-0"
+                  >
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="chore-title text-sm font-black text-ink leading-snug break-words transition-all ${isDone ? 'line-through text-ink/40' : ''}">
+                        ${escapeHtml(row.title)}
+                      </span>
+                      <span class="chore-points-badge px-2 py-0.5 bg-accent text-ink brutal-border font-mono font-black text-[11px] shadow-[1px_1px_0px_#121614] inline-flex items-center gap-1 transition-transform group-hover:scale-105 flex-shrink-0">
+                        ⭐ +${row.points} Poin
+                      </span>
                     </div>
-                    <div class="text-[10px] ${isDone ? 'text-ink/60' : 'text-coral font-bold'}">
-                      ${dueLabel}
+
+                    <div class="flex items-center gap-2 mt-1.5 flex-wrap text-xs">
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-brand-soft border border-ink/20 font-bold text-[11px] text-ink">
+                        <span>👤</span> ${escapeHtml(row.assignee_name || 'Semua Anggota')}
+                      </span>
+                      ${dueLabel ? `
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-cream border border-ink/20 font-mono text-[11px] ${isDone ? 'text-ink/50' : 'text-coral font-bold'}">
+                          <span>📅</span> ${dueLabel}
+                        </span>
+                      ` : ''}
                     </div>
                   </div>
-                </label>
-                <div class="flex items-center gap-1.5 flex-wrap self-end sm:self-center">
-                  ${row.attachment_url ? `
-                    <button 
-                      type="button" 
-                      onclick="showImagePreview('${row.attachment_url}', 'Foto Tugas: ${escapeHtml(row.title)}')" 
-                      class="px-2 py-0.5 bg-brand-soft hover:bg-brand hover:text-white brutal-border text-[10px] font-bold flex items-center gap-1 transition-colors"
-                      title="Lihat Foto Panduan / Bukti"
-                    >
-                      📸 Foto
-                    </button>
-                  ` : ''}
-                  <span class="px-2 py-0.5 bg-accent brutal-border text-xs font-bold">
-                    ${escapeHtml(row.assignee_name)}
-                  </span>
-                  <span class="px-2 py-0.5 bg-brand text-white brutal-border text-[10px] font-black font-mono">
-                    +${row.points} Poin
-                  </span>
+                </div>
+
+                <div class="flex items-center gap-1.5 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150 flex-shrink-0">
+                  ${photoBtn}
                   <button 
                     type="button" 
                     onclick='openEditChoreModal(${payload})' 
-                    class="px-2 py-0.5 bg-white hover:bg-accent brutal-border text-[10px] font-bold transition-colors"
+                    class="w-8 h-8 flex items-center justify-center bg-white hover:bg-accent brutal-border text-xs shadow-[1.5px_1.5px_0px_#121614] active:translate-x-0.5 active:translate-y-0.5 transition-all"
                     title="Edit Tugas"
                   >
-                    ✏️ Edit
+                    ✏️
                   </button>
                   <button 
                     type="button" 
                     onclick="confirmDelete('${row.destroy_url}', 'tugas ${escapeHtml(row.title)}')" 
-                    class="px-2 py-0.5 bg-coral text-white hover:bg-ink brutal-border text-[10px] font-bold transition-colors"
+                    class="w-8 h-8 flex items-center justify-center bg-white hover:bg-coral hover:text-white brutal-border text-xs shadow-[1.5px_1.5px_0px_#121614] active:translate-x-0.5 active:translate-y-0.5 transition-all"
                     title="Hapus Tugas"
                   >
                     🗑️
@@ -508,69 +581,78 @@
   }
 
   // MOBILE CHORES STATE & LOAD MORE
-  let choresMobileStart = {{ $choreCount }};
+  let choresMobileStart = {{ $pendingCount }};
   const choresMobileLength = 5;
-  let choresMobileTotal = {{ $totalChores }};
-  let choresMobileFilterStatus = 'all';
+  let choresMobileTotal = {{ $pendingCount }};
+  let choresMobileFilterStatus = 'pending';
   let choresMobileSearch = '';
   let choresMobileLoading = false;
 
   function renderMobileChoreCard(row) {
     const isDone = row.status === 'completed';
     const payload = JSON.stringify(row).replace(/"/g, '&quot;');
-    const dueLabel = row.description ? escapeHtml(row.description) : (row.formatted_due ? 'Batas: ' + row.formatted_due : 'Tugas Rumah');
+    const dueLabel = row.description ? escapeHtml(row.description) : (row.formatted_due ? 'Batas: ' + row.formatted_due : null);
     const photoBtn = row.attachment_url ? `
       <button 
         type="button" 
         onclick="showImagePreview('${row.attachment_url}', 'Foto Tugas: ${escapeHtml(row.title)}')" 
-        class="px-2 py-0.5 bg-brand-soft hover:bg-brand hover:text-white brutal-border text-[10px] font-bold flex items-center gap-1 transition-colors"
+        class="w-7 h-7 flex items-center justify-center bg-white hover:bg-sky brutal-border text-xs shadow-[1px_1px_0px_#121614] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+        title="Lihat Foto Bukti"
       >
-        📸 Foto
+        📷
       </button>
     ` : '';
 
     return `
-      <div class="p-3.5 ${isDone ? 'bg-cream' : 'bg-white shadow-brutal-sm'} brutal-border mobile-card-item transition-all" data-id="${row.id}">
-        <div class="flex items-start justify-between gap-2.5">
-          <label class="flex items-start gap-3 cursor-pointer min-w-0 flex-1">
-            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTask(this, ${row.id})" class="w-5 h-5 mt-0.5 brutal-border accent-brand flex-shrink-0">
-            <div class="min-w-0">
-              <div class="text-xs ${isDone ? 'line-through text-ink/50' : 'text-ink font-black'} break-words leading-snug">
+      <div class="chore-card group relative p-3.5 bg-white brutal-border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-brutal ${isDone ? 'is-completed bg-[#FAFAF8] opacity-75' : 'shadow-brutal-sm'} flex flex-col justify-between gap-3 mobile-card-item" data-id="${row.id}">
+        <div class="flex items-start gap-3 min-w-0">
+          <input 
+            type="checkbox" 
+            ${isDone ? 'checked' : ''} 
+            onchange="toggleTask(this, ${row.id})" 
+            class="chore-checkbox w-5 h-5 mt-0.5 brutal-border accent-brand cursor-pointer transition-transform active:scale-90 flex-shrink-0"
+          >
+          <div class="min-w-0 flex-1">
+            <div class="flex items-start justify-between gap-2">
+              <span class="chore-title text-xs sm:text-sm font-black text-ink leading-snug break-words transition-all ${isDone ? 'line-through text-ink/40' : ''}">
                 ${escapeHtml(row.title)}
-              </div>
-              <div class="text-[10px] mt-0.5 ${isDone ? 'text-ink/60' : 'text-coral font-bold'}">
-                ${dueLabel}
-              </div>
+              </span>
+              <span class="chore-points-badge px-2 py-0.5 bg-accent text-ink brutal-border font-mono font-black text-[10px] shadow-[1px_1px_0px_#121614] inline-flex items-center gap-0.5 flex-shrink-0">
+                ⭐ +${row.points} Poin
+              </span>
             </div>
-          </label>
-          <span class="px-2 py-0.5 bg-brand text-white brutal-border text-[10px] font-black font-mono flex-shrink-0">
-            +${row.points} Poin
-          </span>
+
+            <div class="flex items-center gap-1.5 mt-2 flex-wrap text-[10px] sm:text-[11px]">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-brand-soft border border-ink/20 font-bold text-ink">
+                👤 ${escapeHtml(row.assignee_name || 'Semua Anggota')}
+              </span>
+              ${dueLabel ? `
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-cream border border-ink/20 font-mono ${isDone ? 'text-ink/50' : 'text-coral font-bold'}">
+                  📅 ${dueLabel}
+                </span>
+              ` : ''}
+            </div>
+          </div>
         </div>
 
-        <div class="pt-2.5 mt-2.5 border-t border-ink/15 flex items-center justify-between gap-2 flex-wrap">
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="px-2 py-0.5 bg-accent brutal-border text-[10px] font-black uppercase">
-              👤 ${escapeHtml(row.assignee_name || 'Semua Anggota')}
-            </span>
-            ${photoBtn}
-          </div>
-          <div class="flex items-center gap-1.5 ml-auto">
-            <button 
-              type="button" 
-              onclick='openEditChoreModal(${payload})' 
-              class="px-2.5 py-1 bg-white hover:bg-accent brutal-border text-[11px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
-            >
-              ✏️ Edit
-            </button>
-            <button 
-              type="button" 
-              onclick="confirmDelete('${row.destroy_url}', 'tugas ${escapeHtml(row.title)}')" 
-              class="px-2.5 py-1 bg-coral text-white hover:bg-ink brutal-border text-[11px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
-            >
-              🗑️
-            </button>
-          </div>
+        <div class="pt-2 border-t border-ink/10 flex items-center justify-end gap-1.5">
+          ${photoBtn}
+          <button 
+            type="button" 
+            onclick='openEditChoreModal(${payload})' 
+            class="w-7 h-7 flex items-center justify-center bg-white hover:bg-accent brutal-border text-xs shadow-[1px_1px_0px_#121614] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+            title="Edit Tugas"
+          >
+            ✏️
+          </button>
+          <button 
+            type="button" 
+            onclick="confirmDelete('${row.destroy_url}', 'tugas ${escapeHtml(row.title)}')" 
+            class="w-7 h-7 flex items-center justify-center bg-white hover:bg-coral hover:text-white brutal-border text-xs shadow-[1px_1px_0px_#121614] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+            title="Hapus Tugas"
+          >
+            🗑️
+          </button>
         </div>
       </div>
     `;
@@ -652,17 +734,31 @@
   }
 
   $(document).ready(function() {
-    $(document).on('click', '.btn-filter-chore, .btn-mfilter-chore', function() {
-      const status = $(this).data('status') || 'all';
+    $(document).on('click', '.btn-segment-chore, .btn-msegment-chore', function() {
+      const status = $(this).data('status') || 'pending';
       choresFilterStatus = status;
       choresMobileFilterStatus = status;
-      $('.btn-filter-chore, .btn-mfilter-chore').each(function() {
+
+      $('.btn-segment-chore').each(function() {
         if ($(this).data('status') === status) {
-          $(this).removeClass('bg-white text-ink font-bold').addClass('bg-ink text-white font-black');
+          $(this).removeClass('bg-white text-ink hover:bg-white/80').addClass('bg-ink text-white brutal-border shadow-brutal-sm');
+          $(this).find('span:last-child').removeClass('bg-ink/10 text-ink').addClass('bg-accent text-ink font-black');
         } else {
-          $(this).removeClass('bg-ink text-white font-black').addClass('bg-white text-ink font-bold');
+          $(this).removeClass('bg-ink text-white brutal-border shadow-brutal-sm').addClass('bg-white text-ink hover:bg-white/80');
+          $(this).find('span:last-child').removeClass('bg-accent text-ink font-black').addClass('bg-ink/10 text-ink font-bold');
         }
       });
+
+      $('.btn-msegment-chore').each(function() {
+        if ($(this).data('status') === status) {
+          $(this).removeClass('bg-white text-ink hover:bg-white/80').addClass('bg-ink text-white brutal-border shadow-brutal-sm');
+          $(this).find('span:last-child').removeClass('bg-ink/10 text-ink').addClass('bg-accent text-ink font-black');
+        } else {
+          $(this).removeClass('bg-ink text-white brutal-border shadow-brutal-sm').addClass('bg-white text-ink hover:bg-white/80');
+          $(this).find('span:last-child').removeClass('bg-accent text-ink font-black').addClass('bg-ink/10 text-ink font-bold');
+        }
+      });
+
       if (choresDataTable) choresDataTable.ajax.reload();
       if (typeof refreshChoresMobile === 'function') refreshChoresMobile();
     });
@@ -678,37 +774,140 @@
     });
   });
 
+  let totalChoresCount = {{ max(($allChores ?? $chores)->count(), 0) }};
+  let completedChoresCount = {{ ($allChores ?? $chores)->where('status', 'completed')->count() }};
+  let pendingChoresCount = {{ ($allChores ?? $chores)->where('status', 'pending')->count() }};
+  let activeAssigneeFilter = null;
+
+  function filterByAssignee(name) {
+    if (activeAssigneeFilter === name) {
+      activeAssigneeFilter = null;
+      $('.kid-point-chip').removeClass('ring-2 ring-brand bg-brand-soft');
+      if (choresDataTable) choresDataTable.search('').draw();
+      $('#chores-mobile-search').val('');
+      choresMobileSearch = '';
+      if (typeof refreshChoresMobile === 'function') refreshChoresMobile();
+      if (typeof showToast === 'function') showToast('Menampilkan semua tugas');
+    } else {
+      activeAssigneeFilter = name;
+      $('.kid-point-chip').removeClass('ring-2 ring-brand bg-brand-soft');
+      $(`.kid-point-chip[title*="${name}"]`).addClass('ring-2 ring-brand bg-brand-soft');
+      if (choresDataTable) choresDataTable.search(name).draw();
+      $('#chores-mobile-search').val(name);
+      choresMobileSearch = name;
+      if (typeof refreshChoresMobile === 'function') refreshChoresMobile();
+      if (typeof showToast === 'function') showToast(`Menyaring tugas: ${name}`);
+    }
+  }
+
+  function updateCompletionStatsOptimistic(isCompleted) {
+    if (isCompleted) {
+      completedChoresCount = Math.min(totalChoresCount, completedChoresCount + 1);
+      pendingChoresCount = Math.max(0, pendingChoresCount - 1);
+    } else {
+      completedChoresCount = Math.max(0, completedChoresCount - 1);
+      pendingChoresCount = Math.min(totalChoresCount, pendingChoresCount + 1);
+    }
+    const percent = totalChoresCount > 0 ? Math.round((completedChoresCount / totalChoresCount) * 100) : 0;
+    $('#chores-progress-bar').css('width', percent + '%');
+    $('#chores-progress-percent').text(percent + '%');
+    $('#chores-completion-stat').html(`${completedChoresCount}/${totalChoresCount} Selesai (<span id="chores-progress-percent">${percent}%</span>)`);
+
+    // Update segmented tab counters
+    $('#badge-pending-count, #mbadge-pending-count').text(pendingChoresCount);
+    $('#badge-completed-count, #mbadge-completed-count').text(completedChoresCount);
+    $('#tab-btn-chores span:last-child').text(pendingChoresCount);
+  }
+
   function toggleTask(checkbox, choreId) {
     const $checkbox = $(checkbox);
-    const $parent = $checkbox.closest('div');
-    const $text = $parent.find('label > div > div').first();
+    const $card = $checkbox.closest('.chore-card, [data-id]');
+    const $text = $card.find('.chore-title');
+    const $badge = $card.find('.chore-points-badge');
 
     const $choreCount = $('#sidebar-chore-count');
     const prevCount = parseInt($choreCount.text(), 10) || 0;
+    const isChecked = checkbox.checked;
 
-    if (checkbox.checked) {
-      $text.addClass('line-through text-ink/50');
+    // Optimistic UI updates
+    if (isChecked) {
+      $text.addClass('line-through text-ink/40');
+      $card.addClass('is-completed bg-[#FAFAF8] opacity-75').removeClass('shadow-brutal-sm');
       $choreCount.text(Math.max(0, prevCount - 1));
+      
+      // Micro-bounce animations
+      $badge.addClass('scale-110 bg-brand text-white transition-transform');
+      setTimeout(() => $badge.removeClass('scale-110 bg-brand text-white'), 300);
+      $checkbox.addClass('scale-125 transition-transform');
+      setTimeout(() => $checkbox.removeClass('scale-125'), 200);
+
       const rect = checkbox.getBoundingClientRect();
-      fireConfetti(rect.left + 8, rect.top + 8);
+      if (typeof fireConfetti === 'function') {
+        fireConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      }
+
+      // Transisi halus keluar 800ms jika sedang di tab "Perlu Dikerjakan"
+      if (choresFilterStatus === 'pending') {
+        setTimeout(function() {
+          $card.slideUp(300, function() {
+            $(this).remove();
+            if ($('#chores-mobile-card-list .chore-card').length === 0) {
+              $('#chores-mobile-card-list').html(`
+                <div class="p-6 text-center bg-cream brutal-border font-mono text-xs font-bold text-ink/60 shadow-[2px_2px_0px_#121614]">
+                  🎉 Semua tugas tuntas! Tidak ada tugas yang perlu dikerjakan saat ini.
+                </div>
+              `);
+            }
+          });
+        }, 800);
+      }
     } else {
-      $text.removeClass('line-through text-ink/50');
+      $text.removeClass('line-through text-ink/40');
+      $card.removeClass('is-completed bg-[#FAFAF8] opacity-75').addClass('shadow-brutal-sm');
       $choreCount.text(prevCount + 1);
+
+      // Transisi halus keluar 800ms jika sedang di tab "Selesai"
+      if (choresFilterStatus === 'completed') {
+        setTimeout(function() {
+          $card.slideUp(300, function() {
+            $(this).remove();
+            if ($('#chores-mobile-card-list .chore-card').length === 0) {
+              $('#chores-mobile-card-list').html(`
+                <div class="p-6 text-center bg-cream brutal-border font-mono text-xs font-bold text-ink/60 shadow-[2px_2px_0px_#121614]">
+                  Belum ada tugas yang selesai.
+                </div>
+              `);
+            }
+          });
+        }, 800);
+      }
     }
+
+    updateCompletionStatsOptimistic(isChecked);
 
     if (choreId) {
       $checkbox.prop('disabled', true);
-      showLoading('Menyinkronkan status tugas...');
 
       $.ajax({
         url: '/chores/' + choreId + '/toggle',
         type: 'PATCH',
         dataType: 'json',
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
         success: function(data) {
           if (data.success) {
-            showToast(`Status tugas diperbarui (${data.points_awarded > 0 ? '+' : ''}${data.points_awarded} Poin)`);
+            const pts = data.points_awarded || 0;
+            if (pts > 0) {
+              if (typeof showToast === 'function') showToast(`Tugas selesai! +${pts} Poin ⭐`);
+            } else {
+              if (typeof showToast === 'function') showToast('Status tugas dikembalikan');
+            }
             if (data.user_points !== undefined && typeof window.updateUserPoints === 'function') {
               window.updateUserPoints(data.user_points);
+            }
+            if (data.user_id) {
+              $(`.kid-points-val[data-user-id="${data.user_id}"]`).text(data.user_points);
             }
             if (typeof window.reloadCurrentModuleData === 'function') {
               window.reloadCurrentModuleData({ data: data });
@@ -716,17 +915,30 @@
           }
         },
         error: function(err) {
-          showToast('Gagal memperbarui status tugas.', 'error');
-          checkbox.checked = !checkbox.checked;
+          if (typeof showToast === 'function') showToast('Gagal memperbarui status tugas.', 'error');
+          checkbox.checked = !isChecked;
+          if (checkbox.checked) {
+            $text.addClass('line-through text-ink/40');
+            $card.addClass('is-completed bg-[#FAFAF8] opacity-75');
+            updateCompletionStatsOptimistic(true);
+          } else {
+            $text.removeClass('line-through text-ink/40');
+            $card.removeClass('is-completed bg-[#FAFAF8] opacity-75');
+            updateCompletionStatsOptimistic(false);
+          }
           $choreCount.text(prevCount);
         },
         complete: function() {
           $checkbox.prop('disabled', false);
-          hideLoading();
         }
       });
     }
   }
+
+  window.reloadCurrentModuleData = function(event) {
+    if (choresDataTable) choresDataTable.ajax.reload(null, false);
+    if (typeof refreshChoresMobile === 'function') refreshChoresMobile();
+  };
 
   function openChoreModal() {
     currentModalType = 'task';
@@ -891,8 +1103,6 @@
     const $btnRewards = $('#tab-btn-rewards');
     const $secChores = $('#section-chores-tab');
     const $secRewards = $('#section-rewards-tab');
-    const $btnAddChore = $('#header-btn-add-chore');
-    const $btnAddReward = $('#header-btn-add-reward');
 
     if (tab === 'chores') {
       $btnChores.removeClass('bg-white text-ink hover:bg-cream').addClass('bg-ink text-white');
@@ -901,12 +1111,12 @@
       $('#header-tagline').text('DISTRIBUSI PEKERJAAN RUMAH');
       $('#header-title').text('Manajemen Tugas & Chores');
       $('#header-subtitle').text('Bagi tugas secara adil antar anggota keluarga. Anak-anak kumpulkan poin reward.');
-      
-      $btnAddChore.removeClass('hidden').addClass('hidden md:inline-flex');
-      $btnAddReward.addClass('hidden').removeClass('inline-flex');
 
       $secChores.removeClass('hidden');
       $secRewards.addClass('hidden');
+
+      // Adaptif bottom nav button ke Tambah Tugas
+      $('#bottom-nav-center-btn').attr('onclick', "if(window.vibrateDevice) window.vibrateDevice(12); if(typeof openChoreModal === 'function') openChoreModal();").attr('title', 'Tambah Tugas').attr('aria-label', 'Tambah Tugas');
 
       if (history.replaceState) {
         history.replaceState(null, null, '#chores');
@@ -918,12 +1128,15 @@
       $('#header-tagline').text('KATALOG & PENUKARAN REWARD');
       $('#header-title').text('Katalog Hadiah & Klaim Reward');
       $('#header-subtitle').text('Tukarkan poin hasil tugas rumah tangga dengan berbagai hadiah menarik pilihan orang tua.');
-      
-      $btnAddChore.addClass('hidden').removeClass('hidden md:inline-flex');
-      $btnAddReward.removeClass('hidden').addClass('inline-flex');
 
       $secChores.addClass('hidden');
       $secRewards.removeClass('hidden');
+
+      // Adaptif bottom nav button ke Tambah Hadiah (Orang Tua)
+      const isParentUser = {{ ($isParent ?? (auth()->user()?->isParent() ?? false)) ? 'true' : 'false' }};
+      if (isParentUser) {
+        $('#bottom-nav-center-btn').attr('onclick', "if(window.vibrateDevice) window.vibrateDevice(12); if(typeof openRewardModal === 'function') openRewardModal();").attr('title', 'Tambah Hadiah').attr('aria-label', 'Tambah Hadiah');
+      }
 
       if (rewardsDataTable) {
         setTimeout(function() {

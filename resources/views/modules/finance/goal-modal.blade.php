@@ -172,6 +172,15 @@
           class="w-full px-3 py-2 bg-cream brutal-border text-sm font-bold font-mono text-ink outline-none focus:bg-white"
           autocomplete="off"
         >
+        <!-- QUICK PRESETS FOR DEPOSIT -->
+        <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+          <button type="button" onclick="addQuickAmount(25000, 'deposit-input-amount')" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-mono font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">+25rb</button>
+          <button type="button" onclick="addQuickAmount(50000, 'deposit-input-amount')" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-mono font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">+50rb</button>
+          <button type="button" onclick="addQuickAmount(100000, 'deposit-input-amount')" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-mono font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">+100rb</button>
+          <button type="button" onclick="addQuickAmount(250000, 'deposit-input-amount')" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-mono font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">+250rb</button>
+          <button type="button" onclick="addQuickAmount(500000, 'deposit-input-amount')" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-mono font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">+500rb</button>
+          <button type="button" onclick="clearQuickAmount('deposit-input-amount')" class="px-2 py-0.5 bg-coral/15 hover:bg-coral text-ink hover:text-white brutal-border text-[10px] font-mono font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">Reset</button>
+        </div>
         <p class="text-[10px] text-ink/60 font-mono mt-1">Uang yang disetor mengurangi saldo kas keluarga sebagai tabungan (bukan pengeluaran).</p>
       </div>
 

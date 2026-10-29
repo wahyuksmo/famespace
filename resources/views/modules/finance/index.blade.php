@@ -6,58 +6,6 @@
 <!-- TAB 3: KAS & TABUNGAN KELUARGA -->
 <div id="view-finance" class="space-y-6">
   
-  <!-- HEADER KAS -->
-  <div class="bg-white brutal-card p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-    <div>
-      <span class="px-2.5 py-0.5 bg-brand text-white brutal-border font-mono text-[10px] sm:text-xs font-black uppercase tracking-wider">
-        TRANSPARANSI FINANSIAL RUMAH TANGGA
-      </span>
-      <div class="flex items-center gap-2 flex-wrap">
-        <h2 class="text-xl sm:text-2xl font-black font-display text-ink mt-1">Kas & Tabungan Bersama</h2>
-        @if(!($canViewAllFinances ?? true))
-          <span class="px-2 py-0.5 bg-accent text-ink brutal-border text-[10px] font-black font-mono">
-            🔒 Mode Terbatas: Data Pribadi
-          </span>
-        @endif
-      </div>
-      <p class="text-xs font-medium text-ink/70">Catat pemasukan, pengeluaran dapur, dan pantau celengan impian keluarga.</p>
-    </div>
-    <div class="flex items-center gap-2 flex-wrap">
-      @if($canViewAllFinances ?? true)
-      <button type="button" onclick="openCategoryManageModal()" class="flex-1 sm:flex-none inline-flex items-center justify-center px-3.5 py-2.5 bg-cream hover:bg-accent text-ink brutal-border text-xs font-black uppercase tracking-wider shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">
-        🏷️ Kategori & Anggaran
-      </button>
-      @endif
-      <button type="button" onclick="openFinanceModal()" class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">
-        {{ ($canViewAllFinances ?? true) ? '+ Catat Kas' : '+ Catat Pengeluaran' }}
-      </button>
-    </div>
-  </div>
-
-  <!-- NAVIGASI TAB UTAMA: BUKU KAS VS REKAP LAPORAN -->
-  <div class="flex items-center gap-2 border-b-2 border-ink pb-2">
-    <button 
-      type="button" 
-      onclick="switchFinanceMainTab('book')" 
-      id="fmain-tab-book" 
-      class="px-4 py-2 bg-ink text-white brutal-border font-display font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
-    >
-      📒 Buku Kas & Anggaran
-    </button>
-    <button 
-      type="button" 
-      onclick="switchFinanceMainTab('rekap')" 
-      id="fmain-tab-rekap" 
-      class="px-4 py-2 bg-cream hover:bg-accent text-ink brutal-border font-display font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
-    >
-      📊 Rekap & Analisis Laporan
-    </button>
-  </div>
-
-  <!-- TAB 1: BUKU KAS & ANGGARAN -->
-  <div id="section-finance-book" class="space-y-6">
-  @if($canViewAllFinances ?? true)
-  <!-- 4 SUMMARY STATS -->
   @php
     $family = $family ?? (auth()->user() ? auth()->user()->family : null);
     $familyName = $family ? $family->name : 'Keluarga';
@@ -67,49 +15,182 @@
     $saving = (float) ($finance['saving'] ?? 0);
     $budget = (float) ($family ? $family->monthly_budget : 0);
     $budgetPct = $budget > 0 ? round(($expense / $budget) * 100, 1) : 0;
-    $currentMonthName = now()->locale('id')->isoFormat('MMM');
+    $currentMonthName = now()->locale('id')->isoFormat('MMMM Y');
     $categoryBudgets = $categoryBudgets ?? collect();
     $goals = $goals ?? collect();
   @endphp
-  <div id="finance-summary-cards" class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-    <div class="bg-brand-soft brutal-card p-4 sm:p-5">
-      <div class="text-[10px] sm:text-xs font-mono font-bold text-ink/70 uppercase">Total Saldo Kas Tersedia</div>
-      <div id="stat-total-balance" class="text-xl sm:text-2xl font-black font-mono text-brand mt-1 truncate" title="Rp {{ number_format($balance, 0, ',', '.') }}">
-        Rp {{ number_format($balance, 0, ',', '.') }}
+
+  @if($canViewAllFinances ?? true)
+  <!-- HERO BALANCE CARD NEOBRUTALIS INTERAKTIF -->
+  <div class="bg-gradient-to-br from-brand-soft to-cream brutal-card p-5 sm:p-7 relative overflow-hidden transition-all duration-300 hover:shadow-brutal-lg">
+    <div class="absolute -right-6 -bottom-6 text-brand/10 text-9xl font-black select-none pointer-events-none font-mono">
+      Rp
+    </div>
+
+    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <!-- Balance Details -->
+      <div class="space-y-1.5">
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <span class="px-2.5 py-0.5 bg-brand text-white brutal-border font-mono text-[10px] font-black uppercase tracking-wider">
+            🏛️ Total Saldo Kas Tersedia
+          </span>
+          <button 
+            type="button" 
+            id="btn-toggle-eye" 
+            onclick="toggleBalancePrivacy()" 
+            class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-xs flex items-center gap-1 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+            title="Sembunyikan/Tampilkan nominal saldo"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span class="text-[10px] font-mono font-bold">Privasi</span>
+          </button>
+        </div>
+
+        <div class="flex items-baseline gap-2">
+          <div 
+            id="stat-total-balance" 
+            data-real-balance="Rp {{ number_format($balance, 0, ',', '.') }}" 
+            class="text-3xl sm:text-4xl font-black font-mono text-ink tracking-tight select-all transition-all duration-300"
+            title="Rp {{ number_format($balance, 0, ',', '.') }}"
+          >
+            Rp {{ number_format($balance, 0, ',', '.') }}
+          </div>
+        </div>
+
+        <p class="text-xs font-medium text-ink/70">
+          Saldo riil siap alokasi per <span class="font-bold text-ink">{{ $currentMonthName }}</span>
+        </p>
       </div>
-      <div class="text-[11px] font-bold text-ink/70 mt-1">
-        Saldo aktif kas {{ $familyName }}
+
+      <!-- Desktop-only Quick Action (Mobile menggunakan tombol (+) tengah di bottom navigation) -->
+      <div class="hidden lg:flex items-center gap-2 flex-shrink-0">
+        <button 
+          type="button" 
+          onclick="openFinanceModal()" 
+          class="px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-brutal-sm hover:bg-brand-dark transition-all active:translate-x-[1px] active:translate-y-[1px]"
+        >
+          <span>✍️ + Catat Kas</span>
+        </button>
       </div>
     </div>
 
-    <div class="bg-white brutal-card p-4 sm:p-5">
-      <div class="text-[10px] sm:text-xs font-mono font-bold text-ink/70 uppercase">Pemasukan Bulan Ini ({{ $currentMonthName }})</div>
-      <div id="stat-total-income" class="text-xl sm:text-2xl font-black font-mono text-brand mt-1 truncate" title="+ Rp {{ number_format($income, 0, ',', '.') }}">
-        + Rp {{ number_format($income, 0, ',', '.') }}
+    <!-- 3 SLIM METRICS PILLS (INTERACTIVE HOVER) -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 sm:pt-5 mt-4 sm:mt-5 border-t-2 border-ink/15">
+      <div class="bg-white/90 p-3 brutal-border flex items-center justify-between gap-2 shadow-brutal-sm hover:-translate-y-0.5 transition-all">
+        <div class="min-w-0">
+          <div class="text-[10px] font-mono font-black uppercase text-brand flex items-center gap-1">
+            <span>↗</span> Pemasukan Bulan Ini
+          </div>
+          <div id="stat-total-income" class="text-base sm:text-lg font-black font-mono text-brand truncate" title="+ Rp {{ number_format($income, 0, ',', '.') }}">
+            + Rp {{ number_format($income, 0, ',', '.') }}
+          </div>
+        </div>
+        <span class="text-xl flex-shrink-0">💰</span>
       </div>
-      <div class="text-[11px] font-bold text-brand mt-1">Total uang masuk tercatat</div>
-    </div>
 
-    <div class="bg-white brutal-card p-4 sm:p-5">
-      <div class="text-[10px] sm:text-xs font-mono font-bold text-ink/70 uppercase">Pengeluaran Bulan Ini ({{ $currentMonthName }})</div>
-      <div id="stat-total-expense" class="text-xl sm:text-2xl font-black font-mono text-coral mt-1 truncate" title="- Rp {{ number_format($expense, 0, ',', '.') }}">
-        - Rp {{ number_format($expense, 0, ',', '.') }}
+      <div class="bg-white/90 p-3 brutal-border flex items-center justify-between gap-2 shadow-brutal-sm hover:-translate-y-0.5 transition-all">
+        <div class="min-w-0">
+          <div class="text-[10px] font-mono font-black uppercase text-coral flex items-center gap-1">
+            <span>↘</span> Pengeluaran Bulan Ini
+          </div>
+          <div id="stat-total-expense" class="text-base sm:text-lg font-black font-mono text-coral truncate" title="- Rp {{ number_format($expense, 0, ',', '.') }}">
+            - Rp {{ number_format($expense, 0, ',', '.') }}
+          </div>
+          <div class="text-[9px] font-mono font-bold text-ink/60 truncate">
+            {{ $budgetPct }}% target bulanan
+          </div>
+        </div>
+        <span class="text-xl flex-shrink-0">💸</span>
       </div>
-      <div class="text-[11px] font-bold text-ink/70 mt-1">{{ $budgetPct }}% target bulanan</div>
-    </div>
 
-    <div class="bg-emerald-50 brutal-card p-4 sm:p-5">
-      <div class="text-[10px] sm:text-xs font-mono font-bold text-emerald-800 uppercase">Tabungan Tersimpan</div>
-      <div id="stat-total-saving" class="text-xl sm:text-2xl font-black font-mono text-emerald-700 mt-1 truncate" title="Rp {{ number_format($saving, 0, ',', '.') }}">
-        Rp {{ number_format($saving, 0, ',', '.') }}
+      <div class="bg-white/90 p-3 brutal-border flex items-center justify-between gap-2 shadow-brutal-sm hover:-translate-y-0.5 transition-all">
+        <div class="min-w-0">
+          <div class="text-[10px] font-mono font-black uppercase text-emerald-800 flex items-center gap-1">
+            <span>🛡️</span> Tabungan Tersimpan
+          </div>
+          <div id="stat-total-saving" class="text-base sm:text-lg font-black font-mono text-emerald-700 truncate" title="Rp {{ number_format($saving, 0, ',', '.') }}">
+            Rp {{ number_format($saving, 0, ',', '.') }}
+          </div>
+          <div class="text-[9px] font-mono font-bold text-emerald-800 truncate">
+            {{ count($goals) }} Celengan Impian Aktif
+          </div>
+        </div>
+        <span class="text-xl flex-shrink-0">🐷</span>
       </div>
-      <div class="text-[11px] font-bold text-emerald-800 mt-1">Dialokasikan ke celengan</div>
     </div>
+  </div>
+  @else
+  <!-- Hero Card Mode Terbatas -->
+  <div class="bg-white brutal-card p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <span class="px-2 py-0.5 bg-accent text-ink brutal-border text-[10px] font-black font-mono">
+        🔒 Mode Terbatas: Data Pribadi
+      </span>
+      <h2 class="text-xl font-black font-display text-ink mt-1">Catatan Pengeluaran Pribadi</h2>
+      <p class="text-xs font-medium text-ink/70">Catat dan pantau transaksi pengeluaran yang Anda kelola.</p>
+    </div>
+    <button type="button" onclick="openFinanceModal()" class="px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider shadow-brutal-sm">
+      + Catat Pengeluaran
+    </button>
   </div>
   @endif
 
+  <!-- SUB-TABS SEGMENTED NAVIGASI BERSIH -->
+  <div class="flex items-center gap-2 border-b-2 border-ink pb-2 overflow-x-auto no-scrollbar">
+    <button 
+      type="button" 
+      onclick="switchFinanceTab('trx')" 
+      id="fsubtab-trx" 
+      class="fsubtab-btn px-4 py-2 bg-ink text-white brutal-border font-display font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1.5 flex-shrink-0"
+    >
+      <span>💳</span>
+      <span>Transaksi & Mutasi</span>
+    </button>
+
+    @if($canViewAllFinances ?? true)
+    <button 
+      type="button" 
+      onclick="switchFinanceTab('budget')" 
+      id="fsubtab-budget" 
+      class="fsubtab-btn px-4 py-2 bg-cream hover:bg-accent text-ink brutal-border font-display font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1.5 flex-shrink-0"
+    >
+      <span>📊</span>
+      <span>Kategori & Anggaran</span>
+    </button>
+
+    <button 
+      type="button" 
+      onclick="switchFinanceTab('goals')" 
+      id="fsubtab-goals" 
+      class="fsubtab-btn px-4 py-2 bg-cream hover:bg-accent text-ink brutal-border font-display font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1.5 flex-shrink-0"
+    >
+      <span>🎯</span>
+      <span>Celengan Impian</span>
+      @if(count($goals) > 0)
+        <span class="px-1.5 py-0.2 bg-brand text-white text-[10px] font-mono rounded-full">{{ count($goals) }}</span>
+      @endif
+    </button>
+
+    <button 
+      type="button" 
+      onclick="switchFinanceTab('rekap')" 
+      id="fsubtab-rekap" 
+      class="fsubtab-btn px-4 py-2 bg-cream hover:bg-accent text-ink brutal-border font-display font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1.5 flex-shrink-0"
+    >
+      <span>📈</span>
+      <span>Rekap & Laporan</span>
+    </button>
+    @endif
+  </div>
+
+  <div id="section-finance-book" class="hidden"></div>
+
   @if($canViewAllFinances ?? true)
-  <!-- BATAS ANGGARAN & KUOTA PER KATEGORI -->
+  <!-- TAB 2: ANGGARAN BULANAN PER KATEGORI -->
+  <div id="section-finance-budget" class="finance-tab-section space-y-6 hidden">
   <div id="finance-budgets-section" class="bg-white brutal-card p-4 sm:p-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-ink mb-4 gap-3">
       <div>
@@ -140,16 +221,24 @@
           </select>
         </div>
 
-        <button type="button" onclick="openPeriodBudgetModal()" class="px-3 py-1.5 bg-accent hover:bg-white text-ink brutal-border text-xs font-bold flex items-center gap-1 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">
-          <span>📝 Anggaran Periode</span>
-        </button>
-
-        <button type="button" onclick="openCategoryManageModal()" class="px-3 py-1.5 bg-cream hover:bg-white text-ink brutal-border text-xs font-bold flex items-center gap-1 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">
-          <span>⚙️ Kelola Kategori</span>
+        <button type="button" onclick="openCreateCategoryModal()" class="px-3.5 py-1.5 bg-brand text-white hover:bg-brand-dark brutal-btn text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">
+          <span>+ Kategori Baru</span>
         </button>
       </div>
     </div>
 
+    <!-- SUB-FILTER TABS: PENGELUARAN VS PEMASUKAN -->
+    <div class="flex items-center gap-2 mb-4 border-b-2 border-ink pb-3">
+      <button type="button" id="subtab-cat-expense" onclick="switchCategorySection('expense')" class="px-3.5 py-1.5 bg-ink text-white brutal-border font-mono text-xs font-black uppercase transition-all shadow-brutal-sm">
+        💸 Pengeluaran & Anggaran
+      </button>
+      <button type="button" id="subtab-cat-income" onclick="switchCategorySection('income')" class="px-3.5 py-1.5 bg-cream hover:bg-white text-ink brutal-border font-mono text-xs font-black uppercase transition-all shadow-brutal-sm">
+        💰 Kategori Pemasukan
+      </button>
+    </div>
+
+    <!-- 1. KATEGORI PENGELUARAN & ANGGARAN SECTION -->
+    <div id="category-section-expense" class="space-y-4">
     <!-- 1. DESKTOP VIEW (MD+): TABEL SERVERSIDE DATATABLES -->
     <div class="hidden md:block w-full overflow-x-auto">
       <table id="budget-datatable" class="w-full text-left text-xs font-semibold">
@@ -245,20 +334,30 @@
                 @endif
               </div>
 
+              @php
+                $cbPayload = json_encode([
+                  'id' => $cb['id'],
+                  'name' => $cb['name'],
+                  'type' => 'expense',
+                  'icon' => $cb['icon'] ?: '🏷️',
+                  'monthly_budget' => (float) ($cb['monthly_budget'] ?? 0),
+                  'is_custom' => $cb['is_custom'] ?? false,
+                ]);
+              @endphp
               <div class="pt-2 border-t border-ink/15 flex items-center gap-2">
                 <button 
                   type="button" 
-                  onclick='openPeriodBudgetModal({{ $cb['id'] }}, @json($cb['name']), {{ (int) $cb['monthly_budget'] }}, @json($cb['notes'] ?? ""), {{ $hasBudget ? 'true' : 'false' }})' 
+                  onclick='openEditCategoryForm({!! $cbPayload !!})' 
                   class="flex-1 py-2 bg-accent hover:bg-white text-ink brutal-border text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
                 >
-                  <span>✏️ Atur Anggaran Bulan Ini</span>
+                  <span>✏️ Edit Kategori & Anggaran</span>
                 </button>
-                @if($hasBudget && strtolower(trim($cb['name'])) !== 'lain-lain')
+                @if(!empty($cb['is_custom']) && strtolower(trim($cb['name'])) !== 'lain-lain')
                   <button 
                     type="button" 
-                    onclick="confirmDelete('{{ url('/finances/period-budgets/' . $cb['id']) }}?period={{ urlencode($selectedPeriod ?? now()->format('Y-m')) }}', 'anggaran kategori {{ addslashes($cb['name']) }} (sisa pagu dialihkan ke Lain-lain)')" 
+                    onclick="confirmDelete('{{ route('finances.categories.destroy', $cb['id']) }}', 'kategori {{ addslashes($cb['name']) }} (transaksi dialihkan ke Lain-lain)')" 
                     class="px-3 py-2 bg-coral hover:bg-ink text-white brutal-border text-xs font-black uppercase shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
-                    title="Hapus Batas Anggaran"
+                    title="Hapus Kategori"
                   >
                     <span>🗑️</span>
                   </button>
@@ -296,9 +395,38 @@
       </div>
 
     </div>
+    </div>
+    <!-- END CATEGORY SECTION EXPENSE -->
+
+    <!-- 2. KATEGORI PEMASUKAN SECTION -->
+    <div id="category-section-income" class="space-y-4 hidden">
+      <!-- 1. DESKTOP VIEW (MD+): TABEL SERVERSIDE PEMASUKAN -->
+      <div class="hidden md:block w-full overflow-x-auto">
+        <table id="income-category-datatable" class="w-full text-left text-xs font-semibold">
+          <thead class="bg-cream brutal-border uppercase font-mono text-[11px] text-ink">
+            <tr>
+              <th class="p-2.5">Kategori Pemasukan</th>
+              <th class="p-2.5">Jenis</th>
+              <th class="p-2.5 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y-2 divide-ink/10">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 2. MOBILE VIEW (< MD): TOUCH-FRIENDLY CARD STACK -->
+      <div class="block md:hidden space-y-3" id="income-category-mobile-container">
+        <div id="income-category-mobile-list" class="space-y-2.5">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
   </div>
 
-  <!-- CELENGAN & TARGET TABUNGAN BERSAMA -->
+  <!-- TAB 3: CELENGAN & TARGET TABUNGAN BERSAMA -->
+  <div id="section-finance-goals" class="finance-tab-section space-y-6 hidden">
   <div id="finance-goals-section" class="bg-white brutal-card p-4 sm:p-6">
     <div class="flex items-center justify-between pb-3 border-b-2 border-ink mb-4 gap-2 flex-wrap">
       <div>
@@ -318,16 +446,19 @@
         @foreach($goals as $goal)
           @php
             $isComplete = $goal['pct'] >= 100 || $goal['status'] === 'completed';
-            $badgeBg = $isComplete ? 'bg-brand text-white' : ($goal['pct'] > 50 ? 'bg-accent text-ink' : 'bg-sage text-ink');
+            $badgeBg = $isComplete ? 'bg-emerald-500 text-white' : ($goal['pct'] > 50 ? 'bg-accent text-ink' : 'bg-sage text-ink');
+            $remaining = max(0, $goal['target_amount'] - $goal['current_amount']);
             $goalJson = json_encode($goal);
           @endphp
-          <div class="p-3.5 sm:p-4 bg-cream brutal-border space-y-2 flex flex-col justify-between">
-            <div class="space-y-2">
+          <div class="p-4 sm:p-5 bg-white brutal-border shadow-brutal hover:shadow-brutal-lg hover:-translate-y-0.5 space-y-3 flex flex-col justify-between transition-all duration-300">
+            <div class="space-y-3">
               <div class="flex justify-between items-start gap-2">
-                <span class="text-2xl flex-shrink-0">{{ $goal['icon'] ?? '🎯' }}</span>
+                <div class="w-11 h-11 bg-cream brutal-border flex items-center justify-center text-2xl flex-shrink-0 shadow-brutal-sm">
+                  {{ $goal['icon'] ?? '🎯' }}
+                </div>
                 <div class="flex items-center gap-1">
                   @if($isComplete)
-                    <span class="px-2 py-0.5 bg-brand text-white brutal-border text-[10px] font-black font-mono">✓ TERCAPAI</span>
+                    <span class="px-2 py-0.5 bg-emerald-500 text-white brutal-border text-[10px] font-black font-mono">✓ TERCAPAI</span>
                   @else
                     <span class="px-2 py-0.5 {{ $badgeBg }} brutal-border text-[10px] font-black font-mono">{{ $goal['pct'] }}% TERCAPAI</span>
                   @endif
@@ -335,22 +466,43 @@
               </div>
 
               <div>
-                <div class="font-black text-sm text-ink leading-snug">{{ $goal['title'] }}</div>
+                <h4 class="font-black font-display text-sm sm:text-base text-ink leading-snug">{{ $goal['title'] }}</h4>
                 @if(!empty($goal['target_date']))
-                  <div class="text-[10px] font-mono text-ink/60 mt-0.5">🎯 Target: {{ $goal['formatted_target_date'] }}</div>
+                  <div class="text-[10px] font-mono text-ink/60 mt-0.5 flex items-center gap-1">
+                    <span>🎯 Target: {{ $goal['formatted_target_date'] }}</span>
+                  </div>
                 @endif
               </div>
 
-              <div class="text-xs font-mono font-bold text-brand">
-                Rp {{ number_format($goal['current_amount'], 0, ',', '.') }} / Rp {{ number_format($goal['target_amount'], 0, ',', '.') }}
+              <div class="bg-cream/60 p-2 brutal-border space-y-1">
+                <div class="flex justify-between items-baseline text-xs font-mono font-bold">
+                  <span class="text-ink/70 text-[11px]">Terkumpul:</span>
+                  <span class="text-brand font-black">Rp {{ number_format($goal['current_amount'], 0, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between items-baseline text-[10px] font-mono text-ink/60">
+                  <span>Target:</span>
+                  <span>Rp {{ number_format($goal['target_amount'], 0, ',', '.') }}</span>
+                </div>
               </div>
 
-              <div class="w-full bg-white h-3 brutal-border overflow-hidden">
-                <div class="bg-brand h-full transition-all duration-300" style="width: {{ $goal['pct'] }}%"></div>
+              <div class="space-y-1">
+                <div class="w-full bg-cream h-3.5 brutal-border overflow-hidden p-0.5">
+                  <div class="{{ $isComplete ? 'bg-emerald-500' : 'bg-brand' }} h-full transition-all duration-700 ease-out" style="width: {{ min(100, $goal['pct']) }}%"></div>
+                </div>
+                <div class="flex justify-between items-center text-[10px] font-mono">
+                  @if($isComplete)
+                    <span class="text-emerald-700 font-bold">🎉 Target tercapai penuh!</span>
+                  @else
+                    <span class="text-ink/60">Sisa:</span>
+                    <span class="text-coral font-bold">Rp {{ number_format($remaining, 0, ',', '.') }}</span>
+                  @endif
+                </div>
               </div>
 
               @if(!empty($goal['note']))
-                <div class="text-[10px] text-ink/70 font-medium">{{ $goal['note'] }}</div>
+                <div class="text-[10px] text-ink/70 font-medium italic bg-cream/40 p-1.5 brutal-border">
+                  💬 {{ $goal['note'] }}
+                </div>
               @endif
             </div>
 
@@ -361,9 +513,9 @@
                 data-goal-id="{{ $goal['id'] }}"
                 data-goal-title="{{ $goal['title'] }}"
                 onclick="openGoalDepositModal(this.dataset.goalId, this.dataset.goalTitle)" 
-                class="px-2.5 py-1.5 bg-brand hover:bg-brand-dark text-white brutal-border text-xs font-black uppercase tracking-wider flex items-center gap-1 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all flex-1 justify-center"
+                class="px-2.5 py-1.5 bg-brand hover:bg-brand-dark text-white brutal-btn text-xs font-black uppercase tracking-wider flex items-center gap-1 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all flex-1 justify-center"
               >
-                <span>💰 Setor</span>
+                <span>💰 + Setor</span>
               </button>
               <button 
                 type="button" 
@@ -397,7 +549,19 @@
       </div>
     @endif
   </div>
+  </div>
   @endif
+
+  <!-- TAB 1: TRANSAKSI & MUTASI (HYBRID CERDAS) -->
+  <div id="section-finance-trx" class="finance-tab-section space-y-4">
+    <!-- QUICK FILTER CHIPS TRANSAKSI -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+      <span class="text-xs font-mono font-black uppercase text-ink/70 flex-shrink-0">Filter Cepat:</span>
+      <button type="button" onclick="filterTrxQuick('all', this)" class="chip-trx-filter px-3 py-1 bg-ink text-white brutal-border text-xs font-mono font-black uppercase tracking-wider shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all flex-shrink-0">Semua</button>
+      <button type="button" onclick="filterTrxQuick('expense', this)" class="chip-trx-filter px-3 py-1 bg-white text-ink brutal-border text-xs font-mono font-bold uppercase tracking-wider shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all flex-shrink-0 flex items-center gap-1"><span>💸</span> Pengeluaran</button>
+      <button type="button" onclick="filterTrxQuick('income', this)" class="chip-trx-filter px-3 py-1 bg-white text-ink brutal-border text-xs font-mono font-bold uppercase tracking-wider shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all flex-shrink-0 flex items-center gap-1"><span>💰</span> Pemasukan</button>
+      <button type="button" onclick="filterTrxQuick('saving', this)" class="chip-trx-filter px-3 py-1 bg-white text-ink brutal-border text-xs font-mono font-bold uppercase tracking-wider shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all flex-shrink-0 flex items-center gap-1"><span>🐷</span> Tabungan</button>
+    </div>
 
   <!-- RIWAYAT TRANSAKSI TABEL SERVERSIDE DATATABLES -->
   <div class="bg-white brutal-card p-4 sm:p-6">
@@ -567,49 +731,52 @@
                   <span>{{ $trx->category ? $trx->category->icon : ($isIncome ? '💰' : '📦') }}</span>
                   <span>{{ $trx->category ? $trx->category->name : ($isIncome ? 'Pemasukan' : 'Pengeluaran') }}</span>
                 </span>
-                <span class="font-mono text-[11px] font-bold text-ink/70 flex items-center gap-1 flex-shrink-0">
-                  <span>🗓️</span>
-                  <span>{{ \Carbon\Carbon::parse($trx->transaction_date)->locale('id')->isoFormat('D MMM Y') }}</span>
-                </span>
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                  <span class="font-mono text-[10px] font-bold text-ink/70 flex items-center gap-0.5">
+                    <span>🗓️</span>
+                    <span>{{ \Carbon\Carbon::parse($trx->transaction_date)->locale('id')->isoFormat('D MMM Y') }}</span>
+                  </span>
+                  <div class="flex items-center gap-1 ml-1">
+                    <button 
+                      type="button" 
+                      onclick='openEditFinanceModal({!! $trxPayload !!})' 
+                      class="w-6 h-6 bg-cream hover:bg-accent text-ink brutal-border flex items-center justify-center text-[10px] shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                      title="Edit Transaksi"
+                    >
+                      ✏️
+                    </button>
+                    <button 
+                      type="button" 
+                      onclick="confirmDelete('{{ route('finances.destroy', $trx->id) }}', 'transaksi {{ addslashes($trx->description) }}')" 
+                      class="w-6 h-6 bg-cream hover:bg-coral hover:text-white text-ink brutal-border flex items-center justify-center text-[10px] shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                      title="Hapus Transaksi"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              <div class="py-3 flex items-start justify-between gap-3">
+              <div class="pt-2.5 flex items-start justify-between gap-3">
                 <div class="min-w-0 flex-1">
                   <h4 class="text-sm font-black text-ink leading-snug break-words">{{ $trx->description }}</h4>
-                  <div class="mt-1.5 flex items-center gap-2 flex-wrap">
+                  <div class="mt-1 flex items-center gap-2 flex-wrap">
                     <span class="inline-flex items-center gap-1 text-[11px] font-bold text-ink/70">
                       <span class="text-ink/50">👤</span> {{ $trx->user ? $trx->user->name : 'Keluarga' }}
                     </span>
                     @if($receiptUrl)
-                      <button type="button" onclick="showImagePreview('{{ $receiptUrl }}', 'Struk: {{ addslashes($trx->description) }}')" class="inline-flex items-center gap-1 px-2 py-0.5 bg-brand-soft hover:bg-brand hover:text-white brutal-border text-[10px] font-mono font-bold transition-colors">
+                      <button type="button" onclick="showImagePreview('{{ $receiptUrl }}', 'Struk: {{ addslashes($trx->description) }}')" class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-brand-soft hover:bg-brand hover:text-white brutal-border text-[9px] font-mono font-bold transition-colors">
                         📎 Struk
                       </button>
                     @endif
                   </div>
                 </div>
                 <div class="text-right flex-shrink-0">
-                  <span class="text-[10px] font-mono font-black block text-ink/50 uppercase">{{ $isIncome ? 'Masuk' : 'Keluar' }}</span>
-                  <span class="font-mono text-base font-black {{ $isIncome ? 'text-brand' : 'text-coral' }} leading-tight block">
+                  <span class="text-[9px] font-mono font-black block text-ink/50 uppercase">{{ $isIncome ? 'Masuk' : 'Keluar' }}</span>
+                  <span class="font-mono text-sm sm:text-base font-black {{ $isIncome ? 'text-brand' : 'text-coral' }} leading-tight block">
                     {{ $isIncome ? '+' : '-' }} Rp {{ number_format($trx->amount, 0, ',', '.') }}
                   </span>
                 </div>
-              </div>
-
-              <div class="pt-2.5 border-t border-ink/15 flex items-center justify-end gap-2">
-                <button 
-                  type="button" 
-                  onclick='openEditFinanceModal({!! $trxPayload !!})' 
-                  class="px-3 py-1.5 bg-accent hover:bg-white text-ink brutal-border text-xs font-black uppercase tracking-wider flex items-center gap-1 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
-                >
-                  ✏️ Edit
-                </button>
-                <button 
-                  type="button" 
-                  onclick="confirmDelete('{{ route('finances.destroy', $trx->id) }}', 'transaksi {{ addslashes($trx->description) }}')" 
-                  class="px-3 py-1.5 bg-coral hover:bg-ink text-white brutal-border text-xs font-black uppercase tracking-wider flex items-center gap-1 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
-                >
-                  🗑️ Hapus
-                </button>
               </div>
             </div>
           @endforeach
@@ -643,8 +810,8 @@
   </div>
   </div>
 
-  <!-- TAB 2: REKAP LAPORAN KEUANGAN & DIAGRAM ANALISIS -->
-  <div id="section-finance-rekap" class="space-y-6 hidden">
+  <!-- TAB 4: REKAP LAPORAN KEUANGAN & DIAGRAM ANALISIS -->
+  <div id="section-finance-rekap" class="finance-tab-section space-y-6 hidden">
     <!-- FILTER BAR REKAP -->
     <div class="bg-white brutal-card p-4 sm:p-6 space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b-2 border-ink">
@@ -890,6 +1057,58 @@
     input.value = 'Rp ' + parseInt(clean, 10).toLocaleString('id-ID');
   };
 
+  window.addQuickAmount = function(val, targetId = 'finance-input-amount') {
+    const input = document.getElementById(targetId);
+    if (!input) return;
+    const current = parseInt((input.value || '').replace(/[^0-9]/g, ''), 10) || 0;
+    const next = current + val;
+    input.value = 'Rp ' + next.toLocaleString('id-ID');
+    $(input).trigger('input');
+  };
+
+  window.clearQuickAmount = function(targetId = 'finance-input-amount') {
+    const input = document.getElementById(targetId);
+    if (!input) return;
+    input.value = '';
+    $(input).trigger('input');
+  };
+
+  window.toggleBalancePrivacy = function() {
+    const isHidden = localStorage.getItem('famkoji_finance_hide_balance') === 'true';
+    localStorage.setItem('famkoji_finance_hide_balance', !isHidden);
+    applyBalancePrivacy();
+  };
+
+  window.applyBalancePrivacy = function() {
+    const isHidden = localStorage.getItem('famkoji_finance_hide_balance') === 'true';
+    const $statBalance = $('#stat-total-balance');
+    if (!$statBalance.length) return;
+    
+    const realBalance = $statBalance.attr('data-real-balance') || $statBalance.attr('title') || $statBalance.text().trim();
+    if (!$statBalance.attr('data-real-balance')) {
+      $statBalance.attr('data-real-balance', realBalance);
+    }
+    
+    if (isHidden) {
+      $statBalance.text('Rp ••••••••');
+      $('#btn-toggle-eye').html(`
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+        </svg>
+        <span class="text-[10px] font-mono font-bold">Tampilkan</span>
+      `);
+    } else {
+      $statBalance.text($statBalance.attr('data-real-balance'));
+      $('#btn-toggle-eye').html(`
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+        <span class="text-[10px] font-mono font-bold">Privasi</span>
+      `);
+    }
+  };
+
   let financeDataTable = null;
   let budgetDataTable = null;
   let categoryDataTable = null;
@@ -899,18 +1118,74 @@
   let currentReportData = @json($report ?? null);
   let currentReportMode = 'monthly';
 
+  window.switchFinanceTab = function(tab) {
+    $('.finance-tab-section').addClass('hidden');
+    $('.fsubtab-btn').removeClass('bg-ink text-white').addClass('bg-cream text-ink hover:bg-accent');
+
+    if (tab === 'rekap') {
+      $('#section-finance-rekap').removeClass('hidden');
+      $('#fsubtab-rekap').removeClass('bg-cream text-ink hover:bg-accent').addClass('bg-ink text-white');
+      setTimeout(() => {
+        if (typeof initOrUpdateReportCharts === 'function') initOrUpdateReportCharts();
+      }, 50);
+    } else if (tab === 'budget') {
+      $('#section-finance-budget').removeClass('hidden');
+      $('#fsubtab-budget').removeClass('bg-cream text-ink hover:bg-accent').addClass('bg-ink text-white');
+      if (window.budgetDataTable) {
+        setTimeout(() => window.budgetDataTable.columns.adjust().draw(false), 50);
+      }
+    } else if (tab === 'goals') {
+      $('#section-finance-goals').removeClass('hidden');
+      $('#fsubtab-goals').removeClass('bg-cream text-ink hover:bg-accent').addClass('bg-ink text-white');
+    } else {
+      $('#section-finance-trx').removeClass('hidden');
+      $('#fsubtab-trx').removeClass('bg-cream text-ink hover:bg-accent').addClass('bg-ink text-white');
+      if (window.financeDataTable) {
+        setTimeout(() => window.financeDataTable.columns.adjust().draw(false), 50);
+      }
+    }
+
+    try {
+      sessionStorage.setItem('famkoji_finance_active_tab', tab);
+    } catch(e) {}
+  };
+
   window.switchFinanceMainTab = function(tab) {
     if (tab === 'rekap') {
-      $('#section-finance-book').addClass('hidden');
-      $('#section-finance-rekap').removeClass('hidden');
-      $('#fmain-tab-rekap').removeClass('bg-cream text-ink hover:bg-accent').addClass('bg-ink text-white');
-      $('#fmain-tab-book').removeClass('bg-ink text-white').addClass('bg-cream text-ink hover:bg-accent');
-      setTimeout(() => initOrUpdateReportCharts(), 50);
+      switchFinanceTab('rekap');
     } else {
-      $('#section-finance-rekap').addClass('hidden');
-      $('#section-finance-book').removeClass('hidden');
-      $('#fmain-tab-book').removeClass('bg-cream text-ink hover:bg-accent').addClass('bg-ink text-white');
-      $('#fmain-tab-rekap').removeClass('bg-ink text-white').addClass('bg-cream text-ink hover:bg-accent');
+      switchFinanceTab('trx');
+    }
+  };
+
+  window.quickOpenDepositModal = function() {
+    @if(isset($goals) && count($goals) > 0)
+      @php $firstGoal = $goals->first(); @endphp
+      openGoalDepositModal({{ $firstGoal['id'] }}, @json($firstGoal['title']));
+    @else
+      openGoalModal();
+    @endif
+  };
+
+  window.filterTrxQuick = function(type, el) {
+    $('.chip-trx-filter').removeClass('bg-ink text-white font-black').addClass('bg-white text-ink font-bold');
+    $(el).removeClass('bg-white text-ink font-bold').addClass('bg-ink text-white font-black');
+
+    if (window.financeDataTable) {
+      if (type === 'all') {
+        window.financeDataTable.search('').draw();
+      } else if (type === 'expense') {
+        window.financeDataTable.search('Pengeluaran').draw();
+      } else if (type === 'income') {
+        window.financeDataTable.search('Pemasukan').draw();
+      } else if (type === 'saving') {
+        window.financeDataTable.search('Tabungan').draw();
+      }
+    }
+
+    financeMobileFilterType = type;
+    if (typeof refreshFinanceMobile === 'function') {
+      refreshFinanceMobile();
     }
   };
 
@@ -1219,7 +1494,8 @@
     $.get(`/finances/summary?period=${encodeURIComponent(period)}`, function(res) {
       if (!res || !res.success) return;
 
-      $('#stat-total-balance').text(res.formatted_balance).attr('title', res.formatted_balance);
+      $('#stat-total-balance').attr('data-real-balance', res.formatted_balance).attr('title', res.formatted_balance);
+      applyBalancePrivacy();
       $('#stat-total-income').text('+ ' + res.formatted_income).attr('title', '+ ' + res.formatted_income);
       $('#stat-total-expense').text('- ' + res.formatted_expense).attr('title', '- ' + res.formatted_expense);
       $('#stat-total-saving').text(res.formatted_saving).attr('title', res.formatted_saving);
@@ -1247,6 +1523,14 @@
   window.reloadCurrentModuleData = window.refreshFinanceData;
 
   $(document).ready(function() {
+    // Pulihkan tab aktif dari sessionStorage
+    const savedFinanceTab = sessionStorage.getItem('famkoji_finance_active_tab');
+    if (savedFinanceTab && ['trx', 'budget', 'goals', 'rekap'].includes(savedFinanceTab)) {
+      switchFinanceTab(savedFinanceTab);
+    }
+    // Terapkan preferensi privasi saldo
+    applyBalancePrivacy();
+
     // Inisialisasi Flatpickr Tanggal Transaksi
     if (typeof flatpickr !== 'undefined') {
       financeDatePicker = flatpickr("#finance-input-date", {
@@ -1489,28 +1773,34 @@
           searchable: false,
           className: 'p-2.5 text-center',
           render: function(data, type, row) {
-            const notesSafe = (row.notes || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            const nameSafe = (row.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            const currentPeriod = $('#budget-period-select').val() || "{{ now()->format('Y-m') }}";
+            const catPayload = JSON.stringify({
+              id: row.id,
+              name: row.name,
+              type: 'expense',
+              icon: row.icon || '🏷️',
+              monthly_budget: row.monthly_budget,
+              is_custom: row.is_custom
+            }).replace(/"/g, '&quot;');
+            const nameSafe = escapeHtml(row.name || '');
+
             let actions = `
               <div class="flex items-center justify-center gap-1.5">
                 <button 
                   type="button" 
-                  onclick='openPeriodBudgetModal(${row.id}, "${nameSafe}", ${row.monthly_budget}, "${notesSafe}", ${row.has_budget})' 
+                  onclick='openEditCategoryForm(${catPayload})' 
                   class="px-2.5 py-1 bg-accent hover:bg-white text-ink brutal-border text-[10px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
-                  title="Atur Anggaran"
+                  title="Edit Kategori & Anggaran"
                 >
-                  ✏️ Atur
+                  ✏️ Edit
                 </button>
             `;
-            if (row.has_budget && (row.name || '').toLowerCase().trim() !== 'lain-lain') {
-              const deleteUrl = `{{ url('/finances/period-budgets') }}/${row.id}?period=${encodeURIComponent(currentPeriod)}`;
+            if (row.is_custom && (row.name || '').toLowerCase().trim() !== 'lain-lain') {
               actions += `
                 <button 
                   type="button" 
-                  onclick="confirmDelete('${deleteUrl}', 'anggaran kategori ${nameSafe} (nominal dialihkan ke Lain-lain)')" 
+                  onclick="confirmDelete('/finances/categories/${row.id}', 'kategori ${nameSafe} (transaksi dialihkan ke Lain-lain)')" 
                   class="px-2 py-1 bg-coral hover:bg-ink text-white brutal-border text-[10px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
-                  title="Hapus Batas Anggaran"
+                  title="Hapus Kategori"
                 >
                   🗑️
                 </button>
@@ -1577,21 +1867,41 @@
 
     return `
       <div class="bg-white brutal-card p-3.5 border-2 border-ink shadow-brutal-sm mobile-card-item transition-all" data-id="${row.id}">
-        <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-ink/15">
+        <div class="flex items-center justify-between gap-2 pb-2 border-b border-ink/15">
           <span class="px-2.5 py-0.5 ${badgeClass} brutal-border text-[10px] font-black uppercase tracking-wider truncate inline-flex items-center gap-1">
             <span>${row.category_icon || (isIncome ? '💰' : '📦')}</span>
             <span>${escapeHtml(categoryLabel)}</span>
           </span>
-          <span class="font-mono text-[11px] font-bold text-ink/70 flex items-center gap-1 flex-shrink-0">
-            <span>🗓️</span>
-            <span>${escapeHtml(row.formatted_date || row.transaction_date)}</span>
-          </span>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <span class="font-mono text-[10px] font-bold text-ink/70 flex items-center gap-0.5">
+              <span>🗓️</span>
+              <span>${escapeHtml(row.formatted_date || row.transaction_date)}</span>
+            </span>
+            <div class="flex items-center gap-1 ml-1">
+              <button 
+                type="button" 
+                onclick='openEditFinanceModal(${payload})' 
+                class="w-6 h-6 bg-cream hover:bg-accent text-ink brutal-border flex items-center justify-center text-[10px] shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                title="Edit Transaksi"
+              >
+                ✏️
+              </button>
+              <button 
+                type="button" 
+                onclick="confirmDelete('${row.destroy_url}', 'transaksi ${escapeHtml(row.description)}')" 
+                class="w-6 h-6 bg-cream hover:bg-coral hover:text-white text-ink brutal-border flex items-center justify-center text-[10px] shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                title="Hapus Transaksi"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div class="py-3 flex items-start justify-between gap-3">
+        <div class="pt-2.5 flex items-start justify-between gap-3">
           <div class="min-w-0 flex-1">
             <h4 class="text-sm font-black text-ink leading-snug break-words">${escapeHtml(row.description)}</h4>
-            <div class="mt-1.5 flex items-center gap-2 flex-wrap">
+            <div class="mt-1 flex items-center gap-2 flex-wrap">
               <span class="inline-flex items-center gap-1 text-[11px] font-bold text-ink/70">
                 <span class="text-ink/50">👤</span> ${escapeHtml(row.user || 'Keluarga')}
               </span>
@@ -1599,28 +1909,11 @@
             </div>
           </div>
           <div class="text-right flex-shrink-0">
-            <span class="text-[10px] font-mono font-black block text-ink/50 uppercase">${isIncome ? 'Masuk' : 'Keluar'}</span>
-            <span class="font-mono text-base font-black ${amountClass} leading-tight block">
+            <span class="text-[9px] font-mono font-black block text-ink/50 uppercase">${isIncome ? 'Masuk' : 'Keluar'}</span>
+            <span class="font-mono text-sm sm:text-base font-black ${amountClass} leading-tight block">
               ${amountSign} Rp ${Number(row.amount).toLocaleString('id-ID')}
             </span>
           </div>
-        </div>
-
-        <div class="pt-2.5 border-t border-ink/15 flex items-center justify-end gap-2">
-          <button 
-            type="button" 
-            onclick='openEditFinanceModal(${payload})' 
-            class="px-3 py-1.5 bg-accent hover:bg-white text-ink brutal-border text-xs font-black uppercase tracking-wider flex items-center gap-1 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
-          >
-            ✏️ Edit
-          </button>
-          <button 
-            type="button" 
-            onclick="confirmDelete('${row.destroy_url}', 'transaksi ${escapeHtml(row.description)}')" 
-            class="px-3 py-1.5 bg-coral hover:bg-ink text-white brutal-border text-xs font-black uppercase tracking-wider flex items-center gap-1 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
-          >
-            🗑️ Hapus
-          </button>
         </div>
       </div>
     `;
@@ -1827,17 +2120,17 @@
         <div class="pt-2 border-t border-ink/15 flex items-center gap-2">
           <button 
             type="button" 
-            onclick='openPeriodBudgetModal(${row.id}, "${nameSafe}", ${row.monthly_budget}, "${notesSafe}", ${row.has_budget})' 
+            onclick='openEditCategoryForm({ id: ${row.id}, name: "${nameSafe}", type: "expense", icon: "${row.icon || '🏷️'}", monthly_budget: ${row.monthly_budget || 0}, is_custom: ${row.is_custom ? 'true' : 'false'} })' 
             class="flex-1 py-2 bg-accent hover:bg-white text-ink brutal-border text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
           >
-            <span>✏️ Atur Anggaran Bulan Ini</span>
+            <span>✏️ Edit Kategori & Anggaran</span>
           </button>
-          ${(row.has_budget && (row.name || '').toLowerCase().trim() !== 'lain-lain') ? `
+          ${(row.is_custom && (row.name || '').toLowerCase().trim() !== 'lain-lain') ? `
             <button 
               type="button" 
-              onclick="confirmDelete('{{ url('/finances/period-budgets') }}/${row.id}?period=${encodeURIComponent($('#budget-period-select').val() || '{{ now()->format('Y-m') }}')}', 'anggaran kategori ${nameSafe} (nominal dialihkan ke Lain-lain)')" 
+              onclick="confirmDelete('/finances/categories/${row.id}', 'kategori ${nameSafe} (transaksi dialihkan ke Lain-lain)')" 
               class="px-3 py-2 bg-coral hover:bg-ink text-white brutal-border text-xs font-black uppercase shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
-              title="Hapus Batas Anggaran"
+              title="Hapus Kategori"
             >
               <span>🗑️</span>
             </button>
@@ -1941,7 +2234,7 @@
       <button 
         type="button" 
         onclick="confirmDelete('${row.destroy_url}', 'kategori ${nameEsc} (transaksi & anggarannya dialihkan ke Lain-lain)')" 
-        class="px-3 py-1.5 bg-coral hover:bg-ink text-white brutal-border text-xs font-bold text-center shadow-brutal-sm"
+        class="px-2.5 py-1 bg-coral hover:bg-ink text-white brutal-border text-[11px] font-bold text-center shadow-brutal-sm"
       >
         🗑️ Hapus
       </button>
@@ -1961,11 +2254,11 @@
         <div class="text-[11px] font-mono text-ink/70">
           Anggaran: <span class="font-bold ${row.monthly_budget > 0 ? 'text-brand' : 'text-ink/50'}">${row.formatted_budget}</span>
         </div>
-        <div class="pt-2 border-t border-ink/15 flex items-center justify-end gap-2">
+        <div class="pt-2 border-t border-ink/15 flex items-center justify-end gap-1.5">
           <button 
             type="button" 
             onclick='openEditCategoryForm(${catJson})' 
-            class="flex-1 py-1.5 bg-accent hover:bg-white text-ink brutal-border text-xs font-bold text-center shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
+            class="px-2.5 py-1 bg-accent hover:bg-white text-ink brutal-border text-[11px] font-bold text-center shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
           >
             ✏️ Edit
           </button>
@@ -2290,28 +2583,43 @@
   });
 
   // ================= CATEGORY & BUDGET JS =================
-  function openCategoryManageModal() {
-    switchCategoryTab('list');
-    $('#category-manage-modal').removeClass('hidden');
-    setTimeout(() => {
-      initCategoryDataTable();
-      refreshCategoryMobile();
-    }, 50);
+  let incomeCategoryDataTable = null;
+
+  function switchCategorySection(section) {
+    if (section === 'income') {
+      $('#subtab-cat-income').removeClass('bg-cream text-ink').addClass('bg-ink text-white');
+      $('#subtab-cat-expense').removeClass('bg-ink text-white').addClass('bg-cream text-ink');
+      $('#category-section-expense').addClass('hidden');
+      $('#category-section-income').removeClass('hidden');
+      initIncomeCategoryDataTable();
+    } else {
+      $('#subtab-cat-expense').removeClass('bg-cream text-ink').addClass('bg-ink text-white');
+      $('#subtab-cat-income').removeClass('bg-ink text-white').addClass('bg-cream text-ink');
+      $('#category-section-income').addClass('hidden');
+      $('#category-section-expense').removeClass('hidden');
+      if (budgetDataTable) {
+        budgetDataTable.columns.adjust().draw();
+      }
+    }
   }
 
-  function initCategoryDataTable() {
-    if (categoryDataTable) {
-      categoryDataTable.columns.adjust().draw();
-      categoryDataTable.ajax.reload(null, false);
+  function initIncomeCategoryDataTable() {
+    if (incomeCategoryDataTable) {
+      incomeCategoryDataTable.columns.adjust().draw();
+      incomeCategoryDataTable.ajax.reload(null, false);
+      loadIncomeCategoryMobile();
       return;
     }
 
-    window.categoryDataTable = categoryDataTable = $('#category-datatable').DataTable({
+    incomeCategoryDataTable = $('#income-category-datatable').DataTable({
       processing: true,
       serverSide: true,
       ajax: {
         url: "{{ route('finances.categories.paginate') }}",
-        type: 'GET'
+        type: 'GET',
+        data: function(d) {
+          d.type = 'income';
+        }
       },
       pageLength: 5,
       lengthMenu: [5, 10, 25],
@@ -2321,8 +2629,8 @@
         info: "Menampilkan _START_-_END_ dari _TOTAL_ kategori",
         infoEmpty: "Menampilkan 0 kategori",
         infoFiltered: "(disaring dari _MAX_ total data)",
-        emptyTable: "Belum ada kategori yang terdaftar.",
-        processing: "Memuat master kategori...",
+        emptyTable: "Belum ada kategori pemasukan.",
+        processing: "Memuat master pemasukan...",
         paginate: {
           first: "&laquo;",
           previous: "&larr; Prev",
@@ -2338,7 +2646,7 @@
           render: function(data, type, row) {
             return `
               <div class="flex items-center gap-2">
-                <span class="text-base flex-shrink-0">${row.icon || '🏷️'}</span>
+                <span class="text-base flex-shrink-0">${row.icon || '💰'}</span>
                 <span class="font-black text-ink">${escapeHtml(data)}</span>
               </div>
             `;
@@ -2348,19 +2656,8 @@
           data: 'type_label',
           name: 'type',
           className: 'p-2.5',
-          render: function(data, type, row) {
-            const isExpense = row.type === 'expense';
-            const badgeClass = isExpense ? 'bg-coral text-white' : 'bg-brand text-white';
-            return `<span class="px-1.5 py-0.5 ${badgeClass} brutal-border text-[9px] font-bold uppercase font-mono">${escapeHtml(data)}</span>`;
-          }
-        },
-        {
-          data: 'formatted_budget',
-          name: 'monthly_budget',
-          className: 'p-2.5 font-mono',
-          render: function(data, type, row) {
-            const colorClass = row.monthly_budget > 0 ? 'text-brand' : 'text-ink/50';
-            return `<span class="font-bold ${colorClass}">${data}</span>`;
+          render: function() {
+            return `<span class="px-1.5 py-0.5 bg-brand text-white brutal-border text-[9px] font-bold uppercase font-mono">Pemasukan</span>`;
           }
         },
         {
@@ -2375,8 +2672,8 @@
                 <button 
                   type="button" 
                   onclick='openEditCategoryForm(${catJson})' 
-                  class="px-2 py-0.5 bg-accent hover:bg-white text-ink brutal-border text-[10px] font-bold shadow-brutal-sm"
-                  title="Edit Kategori & Anggaran"
+                  class="px-2.5 py-1 bg-accent hover:bg-white text-ink brutal-border text-[10px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
+                  title="Edit Kategori"
                 >
                   ✏️ Edit
                 </button>
@@ -2387,8 +2684,8 @@
               html += `
                 <button 
                   type="button" 
-                  onclick="confirmDelete('${row.destroy_url}', 'kategori ${nameEsc} (transaksi & anggarannya dialihkan ke Lain-lain)')" 
-                  class="px-2 py-0.5 bg-coral hover:bg-ink text-white brutal-border text-[10px] font-bold shadow-brutal-sm"
+                  onclick="confirmDelete('${row.destroy_url}', 'kategori ${nameEsc} (transaksi dialihkan ke Lain-lain)')" 
+                  class="px-2 py-1 bg-coral hover:bg-ink text-white brutal-border text-[10px] font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px]"
                   title="Hapus Kategori"
                 >
                   🗑️
@@ -2401,27 +2698,106 @@
         }
       ]
     });
+
+    loadIncomeCategoryMobile();
+  }
+
+  function loadIncomeCategoryMobile() {
+    const $container = $('#income-category-mobile-list');
+    if (!$container.length) return;
+    $container.html('<div class="p-4 text-center font-mono text-xs text-ink/60">Memuat kategori pemasukan...</div>');
+
+    $.ajax({
+      url: "{{ route('finances.categories.paginate') }}",
+      type: 'GET',
+      data: { type: 'income', length: 50 },
+      success: function(res) {
+        if (!res.data || !res.data.length) {
+          $container.html('<div class="p-6 text-center bg-cream brutal-border font-mono text-xs font-bold text-ink/60">Belum ada kategori pemasukan terdaftar.</div>');
+          return;
+        }
+
+        let html = '';
+        res.data.forEach(function(cat) {
+          const catJson = JSON.stringify(cat).replace(/"/g, '&quot;');
+          const nameSafe = escapeHtml(cat.name);
+          const isLainLain = (cat.name || '').toLowerCase().trim() === 'lain-lain';
+          html += `
+            <div class="p-3 bg-white brutal-border shadow-brutal-sm flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="text-xl flex-shrink-0">${cat.icon || '💰'}</span>
+                <div class="min-w-0">
+                  <div class="font-black text-xs sm:text-sm text-ink truncate">${nameSafe}</div>
+                  <span class="px-1.5 py-0.2 bg-brand text-white brutal-border text-[9px] font-bold uppercase font-mono">Pemasukan</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 flex-shrink-0">
+                <button 
+                  type="button" 
+                  onclick='openEditCategoryForm(${catJson})' 
+                  class="px-2.5 py-1 bg-accent hover:bg-white text-ink brutal-border text-[11px] font-bold shadow-brutal-sm"
+                >
+                  ✏️ Edit
+                </button>
+                ${cat.is_custom && !isLainLain ? `
+                  <button 
+                    type="button" 
+                    onclick="confirmDelete('${cat.destroy_url}', 'kategori ${nameSafe}')" 
+                    class="px-2.5 py-1 bg-coral hover:bg-ink text-white brutal-border text-[11px] font-bold shadow-brutal-sm"
+                  >
+                    🗑️
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        });
+        $container.html(html);
+      },
+      error: function() {
+        $container.html('<div class="p-4 text-center text-coral font-mono text-xs">Gagal memuat kategori pemasukan.</div>');
+      }
+    });
+  }
+
+  function openCreateCategoryModal(defaultType = 'expense') {
+    resetCategoryForm();
+    $('#category-modal-title').text('Tambah Kategori Baru');
+    $('#category-modal-subtitle').text('Atur kategori transaksi kas dan batas belanja bulanan');
+    $('#category-modal-icon-badge').text(defaultType === 'income' ? '💰' : '🏷️');
+    $('#category-input-type').val(defaultType);
+    $('#category-input-icon').val(defaultType === 'income' ? '💰' : '🏷️');
+    handleCategoryTypeChange(defaultType);
+    $('#category-btn-submit').html('Simpan Kategori &rarr;');
+    $('#category-manage-modal').removeClass('hidden');
+  }
+
+  function openCategoryManageModal() {
+    openCreateCategoryModal();
   }
 
   function closeCategoryManageModal() {
     $('#category-manage-modal').addClass('hidden');
   }
 
-  function switchCategoryTab(tab) {
-    if (tab === 'list') {
-      $('#tab-cat-list').removeClass('hidden');
-      $('#tab-cat-form').addClass('hidden');
-      $('#tab-btn-cat-list').removeClass('bg-cream text-ink').addClass('bg-ink text-white');
-      $('#tab-btn-cat-form').removeClass('bg-ink text-white').addClass('bg-cream text-ink');
+  function handleCategoryTypeChange(type) {
+    if (type === 'income') {
+      $('#category-budget-wrapper').addClass('hidden');
+      $('#category-input-budget').val('');
+      if ($('#category-input-icon').val() === '🏷️') {
+        selectCategoryIcon('💰');
+      }
     } else {
-      $('#tab-cat-list').addClass('hidden');
-      $('#tab-cat-form').removeClass('hidden');
-      $('#tab-btn-cat-form').removeClass('bg-cream text-ink').addClass('bg-ink text-white');
-      $('#tab-btn-cat-list').removeClass('bg-ink text-white').addClass('bg-cream text-ink');
-      if (!$('#category-input-id').val()) {
-        resetCategoryForm();
+      $('#category-budget-wrapper').removeClass('hidden');
+      if ($('#category-input-icon').val() === '💰') {
+        selectCategoryIcon('🏷️');
       }
     }
+  }
+
+  function selectCategoryIcon(icon) {
+    $('#category-input-icon').val(icon);
+    $('#category-modal-icon-badge').text(icon);
   }
 
   function resetCategoryForm() {
@@ -2432,6 +2808,7 @@
     $('#category-btn-submit').html('Simpan Kategori &rarr;');
     $('#category-input-icon').val('🏷️');
     $('#category-input-type').val('expense');
+    $('#category-budget-wrapper').removeClass('hidden');
   }
 
   function openEditCategoryForm(cat) {
@@ -2439,16 +2816,22 @@
     $('#category-input-id').val(cat.id);
     $('#category-modal-method').val('PUT');
     $('#category-modal-form').attr('action', `/finances/categories/${cat.id}`);
+    $('#category-modal-title').text('Edit Kategori & Anggaran');
+    $('#category-modal-subtitle').text('Ubah nama, ikon, atau batas belanja bulanan');
     $('#category-input-name').val(cat.name);
-    $('#category-input-type').val(cat.type || 'expense');
-    $('#category-input-icon').val(cat.icon || '🏷️');
+    const type = cat.type || 'expense';
+    $('#category-input-type').val(type);
+    const icon = cat.icon || (type === 'income' ? '💰' : '🏷️');
+    $('#category-input-icon').val(icon);
+    $('#category-modal-icon-badge').text(icon);
     if (cat.monthly_budget && Number(cat.monthly_budget) > 0) {
       $('#category-input-budget').val(formatRupiah(cat.monthly_budget));
     } else {
       $('#category-input-budget').val('');
     }
+    handleCategoryTypeChange(type);
     $('#category-btn-submit').html('Perbarui Kategori &rarr;');
-    switchCategoryTab('form');
+    $('#category-manage-modal').removeClass('hidden');
   }
 
   $('#category-modal-form').on('submit', function(e) {
@@ -2477,16 +2860,15 @@
         if (res.category && typeof window.updateCategoryInCombobox === 'function') {
           window.updateCategoryInCombobox(res.category);
         }
-        resetCategoryForm();
-        switchCategoryTab('list');
-        if (categoryDataTable) {
-          categoryDataTable.ajax.reload(null, false);
-        }
-        refreshCategoryMobile();
+        closeCategoryManageModal();
         if (budgetDataTable) {
           budgetDataTable.ajax.reload(null, false);
         }
         refreshBudgetMobile();
+        if (incomeCategoryDataTable) {
+          incomeCategoryDataTable.ajax.reload(null, false);
+        }
+        loadIncomeCategoryMobile();
         if (typeof window.refreshFinanceData === 'function') {
           window.refreshFinanceData();
         }

@@ -24,16 +24,6 @@
         <p class="text-xs text-ink/70 mt-0.5">Tukarkan poin hasil tugas rumah tanggamu dengan berbagai hadiah seru!</p>
       </div>
     </div>
-
-    @if($isParent)
-      <button 
-        type="button" 
-        onclick="openRewardModal()" 
-        class="w-full sm:w-auto px-4 py-2.5 bg-brand text-white brutal-btn text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2"
-      >
-        <span>+ Tambah Hadiah Baru</span>
-      </button>
-    @endif
   </div>
 
   <!-- PENDING CLAIMS REVIEW SECTION -->

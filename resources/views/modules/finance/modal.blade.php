@@ -150,6 +150,15 @@
             class="w-full px-3 py-2 bg-cream brutal-border text-xs sm:text-sm font-bold font-mono text-ink outline-none focus:bg-white"
             autocomplete="off"
           >
+          <!-- QUICK NOMINAL PRESET CHIPS -->
+          <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+            <button type="button" onclick="addQuickAmount(10000)" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-mono font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">+10rb</button>
+            <button type="button" onclick="addQuickAmount(20000)" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-mono font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">+20rb</button>
+            <button type="button" onclick="addQuickAmount(50000)" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-mono font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">+50rb</button>
+            <button type="button" onclick="addQuickAmount(100000)" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-mono font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">+100rb</button>
+            <button type="button" onclick="addQuickAmount(500000)" class="px-2 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-[10px] font-mono font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">+500rb</button>
+            <button type="button" onclick="clearQuickAmount()" class="px-2 py-0.5 bg-coral/15 hover:bg-coral text-ink hover:text-white brutal-border text-[10px] font-mono font-bold shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">Reset</button>
+          </div>
         </div>
         <div>
           <label class="block text-xs font-black font-mono uppercase text-ink mb-1" id="mlabel-date">

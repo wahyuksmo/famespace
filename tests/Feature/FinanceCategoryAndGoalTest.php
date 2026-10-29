@@ -169,6 +169,8 @@ class FinanceCategoryAndGoalTest extends TestCase
         $response->assertSee('Beli Sepeda Lipat');
         $response->assertSee('Riwayat Anggaran Bulanan');
         $response->assertSee('Target Tabungan Bersama');
+        $response->assertSee('+ Kategori Baru');
+        $response->assertSee('Kategori Pemasukan');
     }
 
     public function test_user_can_set_and_view_historical_monthly_budget_for_specific_period(): void
