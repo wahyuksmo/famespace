@@ -125,11 +125,77 @@ class FinanceService
         });
     }
 
-    public function calculateOverview(string $familyId, int $perPage = 5, string $pageName = 'page', ?int $page = null, ?string $period = null, ?int $userId = null, ?string $type = null): array
+    public static function resolveCycleRange(?string $period = null, int $cutOffDay = 1, ?Carbon $now = null): array
+    {
+        $cutOffDay = max(1, min(31, $cutOffDay));
+        $now = $now ?: Carbon::now();
+
+        if ($cutOffDay === 1) {
+            $period = ($period && preg_match('/^\d{4}-\d{2}$/', $period)) ? $period : $now->format('Y-m');
+            $date = Carbon::createFromFormat('Y-m', $period)->startOfMonth();
+            $start = $date->copy()->startOfMonth();
+            $end = $date->copy()->endOfMonth();
+            $currentPeriodKey = $now->format('Y-m');
+
+            return [
+                'period' => $period,
+                'current_period' => $currentPeriodKey,
+                'is_current' => $period === $currentPeriodKey,
+                'start_date' => $start->toDateString(),
+                'end_date' => $end->toDateString(),
+                'label' => $date->locale('id')->isoFormat('MMMM Y'),
+                'short_label' => $date->locale('id')->isoFormat('MMMM Y'),
+                'month_label' => $date->locale('id')->isoFormat('MMMM Y'),
+                'cut_off_day' => 1,
+            ];
+        }
+
+        $currentDay = (int) $now->day;
+        if ($currentDay >= $cutOffDay) {
+            $currentPeriodKey = $now->format('Y-m');
+        } else {
+            $currentPeriodKey = $now->copy()->subMonthNoOverflow()->format('Y-m');
+        }
+
+        $selectedPeriod = ($period && preg_match('/^\d{4}-\d{2}$/', $period)) ? $period : $currentPeriodKey;
+        $baseDate = Carbon::createFromFormat('Y-m', $selectedPeriod)->startOfMonth();
+
+        $startDay = min($cutOffDay, $baseDate->daysInMonth);
+        $startDate = Carbon::create($baseDate->year, $baseDate->month, $startDay, 0, 0, 0);
+
+        $nextMonthDate = $baseDate->copy()->addMonthNoOverflow();
+        $endDay = min($cutOffDay - 1, $nextMonthDate->daysInMonth);
+        if ($endDay <= 0) {
+            $endDate = $nextMonthDate->copy()->endOfMonth();
+        } else {
+            $endDate = Carbon::create($nextMonthDate->year, $nextMonthDate->month, $endDay, 23, 59, 59);
+        }
+
+        $monthLabel = $baseDate->locale('id')->isoFormat('MMMM Y');
+        $detailedLabel = $startDate->locale('id')->isoFormat('D MMM').' — '.$endDate->locale('id')->isoFormat('D MMM Y');
+
+        return [
+            'period' => $selectedPeriod,
+            'current_period' => $currentPeriodKey,
+            'is_current' => $selectedPeriod === $currentPeriodKey,
+            'start_date' => $startDate->toDateString(),
+            'end_date' => $endDate->toDateString(),
+            'label' => "{$monthLabel} ({$detailedLabel})",
+            'short_label' => $detailedLabel,
+            'month_label' => $monthLabel,
+            'cut_off_day' => $cutOffDay,
+        ];
+    }
+
+    public function calculateOverview(string $familyId, int $perPage = 5, string $pageName = 'page', ?int $page = null, ?string $period = null, ?int $userId = null, ?string $type = null, int $cutOffDay = 1): array
     {
         $resolvedType = $type ?? ($userId !== null ? 'expense' : null);
         $all = $this->financeRepo->getFamilyTransactions($familyId, 100, $userId, $resolvedType);
         $paginated = $this->financeRepo->getPaginatedFamilyTransactions($familyId, $perPage, $pageName, $page, $userId, $resolvedType);
+
+        $cycle = self::resolveCycleRange($period, $cutOffDay);
+        $selectedPeriod = $cycle['period'];
+        $currentPeriod = $cycle['current_period'];
 
         $wkcalPeriods = Wkcal::query()
             ->select('calendar_year', 'calendar_month')
@@ -138,35 +204,17 @@ class FinanceService
             ->orderByDesc('calendar_month')
             ->get();
 
-        $currentPeriod = now()->format('Y-m');
-
-        if ($period && preg_match('/^\d{4}-\d{2}$/', $period)) {
-            $selectedPeriod = $period;
-        } elseif ($wkcalPeriods->isNotEmpty()) {
-            $hasCurrent = $wkcalPeriods->contains(function ($row) use ($currentPeriod) {
-                return sprintf('%04d-%02d', $row->calendar_year, $row->calendar_month) === $currentPeriod;
-            });
-            if ($hasCurrent) {
-                $selectedPeriod = $currentPeriod;
-            } else {
-                $first = $wkcalPeriods->first();
-                $selectedPeriod = sprintf('%04d-%02d', $first->calendar_year, $first->calendar_month);
-            }
-        } else {
-            $selectedPeriod = $currentPeriod;
-        }
-
-        $selectedDate = Carbon::createFromFormat('Y-m', $selectedPeriod)->startOfMonth();
-
-        $monthlyExpenses = $this->financeRepo->getMonthlyExpensesByCategory($familyId, $selectedPeriod);
+        $monthlyExpenses = $this->financeRepo->getMonthlyExpensesByCategory($familyId, $cycle['start_date'], $cycle['end_date']);
         $historicalBudgets = $this->financeRepo->getCategoryBudgetsForPeriod($familyId, $selectedPeriod)
             ->keyBy('category_id');
 
-        $incomeExpense = $this->financeRepo->getFamilyIncomeExpense($familyId, $userId);
-        $income = $incomeExpense['income'];
-        $expense = $incomeExpense['expense'];
-        $saving = $incomeExpense['saving'] ?? 0;
-        $balance = $income - $expense - $saving;
+        $allTimeTotals = $this->financeRepo->getFamilyIncomeExpense($familyId, $userId);
+        $balance = $allTimeTotals['income'] - $allTimeTotals['expense'] - $allTimeTotals['saving'];
+
+        $cycleTotals = $this->financeRepo->getFamilyIncomeExpense($familyId, $userId, $cycle['start_date'], $cycle['end_date']);
+        $income = $cycleTotals['income'];
+        $expense = $cycleTotals['expense'];
+        $saving = $cycleTotals['saving'];
 
         $categories = $this->financeRepo->getCategories($familyId);
 
@@ -198,13 +246,16 @@ class FinanceService
         })->values();
 
         if ($wkcalPeriods->isNotEmpty()) {
-            $availablePeriods = $wkcalPeriods->map(function ($row) use ($selectedPeriod, $currentPeriod) {
+            $availablePeriods = $wkcalPeriods->map(function ($row) use ($selectedPeriod, $currentPeriod, $cutOffDay) {
                 $pStr = sprintf('%04d-%02d', $row->calendar_year, $row->calendar_month);
-                $pDate = Carbon::createFromDate($row->calendar_year, $row->calendar_month, 1);
+                $rowCycle = self::resolveCycleRange($pStr, $cutOffDay);
 
                 return [
                     'period' => $pStr,
-                    'label' => $pDate->locale('id')->isoFormat('MMMM Y'),
+                    'label' => $rowCycle['label'],
+                    'short_label' => $rowCycle['short_label'],
+                    'start_date' => $rowCycle['start_date'],
+                    'end_date' => $rowCycle['end_date'],
                     'is_selected' => $pStr === $selectedPeriod,
                     'is_current' => $pStr === $currentPeriod,
                 ];
@@ -213,7 +264,10 @@ class FinanceService
             $availablePeriods = [
                 [
                     'period' => $currentPeriod,
-                    'label' => now()->locale('id')->isoFormat('MMMM Y'),
+                    'label' => $cycle['label'],
+                    'short_label' => $cycle['short_label'],
+                    'start_date' => $cycle['start_date'],
+                    'end_date' => $cycle['end_date'],
                     'is_selected' => true,
                     'is_current' => true,
                 ],
@@ -221,10 +275,12 @@ class FinanceService
         }
 
         if (! collect($availablePeriods)->contains('period', $selectedPeriod)) {
-            $customDate = Carbon::createFromFormat('Y-m', $selectedPeriod)->startOfMonth();
             array_unshift($availablePeriods, [
                 'period' => $selectedPeriod,
-                'label' => $customDate->locale('id')->isoFormat('MMMM Y'),
+                'label' => $cycle['label'],
+                'short_label' => $cycle['short_label'],
+                'start_date' => $cycle['start_date'],
+                'end_date' => $cycle['end_date'],
                 'is_selected' => true,
                 'is_current' => $selectedPeriod === $currentPeriod,
             ]);
@@ -260,7 +316,11 @@ class FinanceService
             'category_budgets' => $categoryBudgets,
             'goals' => $goals,
             'selected_period' => $selectedPeriod,
-            'selected_period_label' => $selectedDate->locale('id')->isoFormat('MMMM Y'),
+            'selected_period_label' => $cycle['label'],
+            'selected_period_short' => $cycle['short_label'],
+            'start_date' => $cycle['start_date'],
+            'end_date' => $cycle['end_date'],
+            'cut_off_day' => $cutOffDay,
             'available_periods' => $availablePeriods,
         ];
     }
@@ -531,7 +591,7 @@ class FinanceService
         });
     }
 
-    public function getFinancialReport(string $familyId, ?string $mode = 'monthly', ?string $period = null, ?int $year = null, ?string $startMonth = null, ?string $endMonth = null): array
+    public function getFinancialReport(string $familyId, ?string $mode = 'monthly', ?string $period = null, ?int $year = null, ?string $startMonth = null, ?string $endMonth = null, int $cutOffDay = 1): array
     {
         $mode = $mode ?: 'monthly';
 
@@ -548,15 +608,18 @@ class FinanceService
                 [$startMonth, $endMonth] = [$endMonth, $startMonth];
             }
 
-            $startDate = Carbon::createFromFormat('Y-m', $startMonth)->startOfMonth()->toDateString();
-            $endDate = Carbon::createFromFormat('Y-m', $endMonth)->endOfMonth()->toDateString();
-            $periodLabel = Carbon::parse($startDate)->locale('id')->isoFormat('MMMM Y').' — '.Carbon::parse($endDate)->locale('id')->isoFormat('MMMM Y');
+            $startCycle = self::resolveCycleRange($startMonth, $cutOffDay);
+            $endCycle = self::resolveCycleRange($endMonth, $cutOffDay);
+
+            $startDate = $startCycle['start_date'];
+            $endDate = $endCycle['end_date'];
+            $periodLabel = Carbon::parse($startDate)->locale('id')->isoFormat('D MMM Y').' — '.Carbon::parse($endDate)->locale('id')->isoFormat('D MMM Y');
         } else {
-            $period = ($period && preg_match('/^\d{4}-\d{2}$/', $period)) ? $period : now()->format('Y-m');
-            $date = Carbon::createFromFormat('Y-m', $period);
-            $startDate = $date->copy()->startOfMonth()->toDateString();
-            $endDate = $date->copy()->endOfMonth()->toDateString();
-            $periodLabel = $date->locale('id')->isoFormat('MMMM Y');
+            $cycle = self::resolveCycleRange($period, $cutOffDay);
+            $startDate = $cycle['start_date'];
+            $endDate = $cycle['end_date'];
+            $periodLabel = $cycle['label'];
+            $period = $cycle['period'];
         }
 
         $report = $this->financeRepo->getReportData($familyId, $startDate, $endDate);
@@ -566,6 +629,7 @@ class FinanceService
         $report['selected_year'] = $year ?? (int) now()->format('Y');
         $report['start_month'] = $startMonth ?? now()->startOfYear()->format('Y-m');
         $report['end_month'] = $endMonth ?? now()->format('Y-m');
+        $report['cut_off_day'] = $cutOffDay;
 
         return $report;
     }

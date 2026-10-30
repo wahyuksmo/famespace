@@ -22,14 +22,20 @@ class ProfileController extends Controller
             'name' => 'required|string|max:255',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif',
             'remove_avatar' => 'nullable|boolean',
+            'cut_off_day' => 'nullable|integer|min:1|max:31',
         ], [
             'name.required' => 'Nama wajib diisi.',
             'name.max' => 'Nama maksimal 255 karakter.',
             'avatar.image' => 'File yang diunggah harus berupa gambar.',
             'avatar.mimes' => 'Format foto harus berupa JPG, PNG, WEBP, atau GIF.',
+            'cut_off_day.min' => 'Tanggal cut off minimal tanggal 1.',
+            'cut_off_day.max' => 'Tanggal cut off maksimal tanggal 31.',
         ]);
 
         $user->name = $validated['name'];
+        if (isset($validated['cut_off_day'])) {
+            $user->cut_off_day = (int) $validated['cut_off_day'];
+        }
 
         $removeAvatar = $request->boolean('remove_avatar');
         $oldPath = $user->getRawOriginal('avatar_url');

@@ -99,6 +99,7 @@ Route::middleware('auth')->group(function () {
 
     // Finance (Kas)
     Route::get('/finances', [FinanceController::class, 'index'])->name('finances.index');
+    Route::post('/finances/cut-off', [FinanceController::class, 'updateCutOff'])->name('finances.update_cut_off');
     Route::get('/finances/paginate/{page?}', [FinanceController::class, 'paginate'])->name('finances.paginate');
     Route::get('/finances/summary', [FinanceController::class, 'summary'])->name('finances.summary');
     Route::get('/finances/report-data', [FinanceController::class, 'reportData'])->name('finances.report_data');

@@ -90,6 +90,26 @@
                placeholder="Nama Anda">
       </div>
 
+      <!-- TANGGAL CUT OFF KAS -->
+      <div class="space-y-1.5">
+        <label for="profile-cutoff-input" class="block text-xs font-mono font-black uppercase text-ink">
+          🗓️ Tanggal Cut Off Keuangan (1–31)
+        </label>
+        <div class="flex items-center gap-2">
+          <input type="number" 
+                 id="profile-cutoff-input" 
+                 name="cut_off_day" 
+                 value="{{ auth()->user()?->cut_off_day ?? 1 }}" 
+                 min="1" 
+                 max="31"
+                 required
+                 class="w-24 px-3.5 py-2 bg-white brutal-border font-bold font-mono text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand shadow-brutal-sm">
+          <span class="text-xs font-mono text-ink/70">
+            Siklus bulanan dimulai tanggal ini (misal tgl 25).
+          </span>
+        </div>
+      </div>
+
       <!-- READ-ONLY INFO (ROLE, EMAIL, KELUARGA) -->
       <div class="grid grid-cols-2 gap-2 text-xs font-mono">
         <div class="p-2.5 bg-cream-soft brutal-border space-y-0.5">

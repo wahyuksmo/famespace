@@ -47,6 +47,16 @@
             </svg>
             <span class="text-[10px] font-mono font-bold">Privasi</span>
           </button>
+          <button 
+            type="button" 
+            id="btn-open-cutoff-modal" 
+            onclick="openCutOffModal()" 
+            class="px-2.5 py-0.5 bg-white hover:bg-accent text-ink brutal-border text-xs flex items-center gap-1 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer font-mono font-bold"
+            title="Atur tanggal cut off siklus bulanan saya"
+          >
+            <span>⚙️ Cut Off: Tgl</span>
+            <span id="badge-cutoff-day" class="font-black text-brand">{{ $cutOffDay ?? (auth()->user()->cut_off_day ?? 1) }}</span>
+          </button>
         </div>
 
         <div class="flex items-baseline gap-2">
@@ -205,20 +215,66 @@
 
       <!-- PERIOD SELECTOR & ACTIONS -->
       <div class="flex items-center gap-2 flex-wrap">
-        <div class="flex items-center gap-1.5 bg-cream brutal-border px-2.5 py-1 text-xs">
-          <span class="text-xs">📅</span>
-          <select 
-            id="budget-period-select"
-            class="bg-transparent font-mono font-bold text-ink outline-none cursor-pointer text-xs"
+        <!-- SEARCHABLE COMBOBOX: PERIODE ANGGARAN -->
+        <div class="relative" id="combobox-bperiod-root">
+          <input type="hidden" id="budget-period-select" value="{{ $selectedPeriod ?? now()->format('Y-m') }}">
+          <button 
+            type="button" 
+            id="btn-bperiod" 
+            onclick="toggleBudgetPeriodCombobox()" 
+            class="flex items-center gap-1.5 bg-cream hover:bg-white brutal-border px-2.5 py-1 text-xs font-mono font-bold text-ink transition-colors"
           >
-            @if(isset($availablePeriods))
-              @foreach($availablePeriods as $ap)
-                <option value="{{ $ap['period'] }}" data-label="{{ $ap['label'] }}" {{ $ap['is_selected'] ? 'selected' : '' }}>
-                  {{ $ap['label'] }} {{ $ap['is_current'] ? '(Bulan Ini)' : '' }}
-                </option>
-              @endforeach
-            @endif
-          </select>
+            <span class="text-xs">📅</span>
+            <span id="label-bperiod" class="truncate">
+              @php
+                $initialBperiodLabel = 'Pilih Periode...';
+                if(isset($availablePeriods)) {
+                  foreach($availablePeriods as $ap) {
+                    if($ap['is_selected']) {
+                      $initialBperiodLabel = $ap['label'] . ($ap['is_current'] ? ' (Bulan Ini)' : '');
+                      break;
+                    }
+                  }
+                }
+              @endphp
+              {{ $initialBperiodLabel }}
+            </span>
+            <span class="text-[9px] ml-1 text-ink/70">▼</span>
+          </button>
+
+          <!-- POPOVER DROPDOWN -->
+          <div 
+            id="popover-bperiod" 
+            class="hidden absolute right-0 top-full mt-1 bg-cream brutal-border shadow-brutal z-50 p-2 min-w-[220px] max-w-[280px] space-y-1.5"
+          >
+            <div class="relative">
+              <input 
+                type="text" 
+                id="search-bperiod" 
+                placeholder="Cari periode..." 
+                oninput="filterBudgetPeriod(this.value)" 
+                class="w-full px-2 py-1 bg-white brutal-border text-xs font-mono font-bold text-ink outline-none"
+                autocomplete="off"
+              >
+              <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs pointer-events-none">🔍</span>
+            </div>
+            <div id="list-bperiod" class="max-h-48 overflow-y-auto space-y-1 pr-0.5 font-mono text-xs">
+              @if(isset($availablePeriods))
+                @foreach($availablePeriods as $ap)
+                  <button 
+                    type="button" 
+                    onclick="selectBudgetPeriodOption('{{ $ap['period'] }}', '{{ $ap['label'] }}{{ $ap['is_current'] ? ' (Bulan Ini)' : '' }}')"
+                    class="bperiod-option-btn w-full text-left px-2.5 py-1.5 {{ $ap['is_selected'] ? 'bg-accent font-black' : 'bg-white hover:bg-cream font-bold' }} text-ink brutal-border text-xs flex items-center justify-between transition-colors"
+                    data-period="{{ $ap['period'] }}"
+                    data-label="{{ $ap['label'] }}"
+                  >
+                    <span class="truncate">{{ $ap['label'] }} {{ $ap['is_current'] ? '(Bulan Ini)' : '' }}</span>
+                    <span class="bperiod-check text-xs {{ $ap['is_selected'] ? '' : 'hidden' }}">✓</span>
+                  </button>
+                @endforeach
+              @endif
+            </div>
+          </div>
         </div>
 
         <button type="button" onclick="openCreateCategoryModal()" class="px-3.5 py-1.5 bg-brand text-white hover:bg-brand-dark brutal-btn text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">
@@ -848,15 +904,35 @@
         <!-- YEAR PICKER -->
         <div id="filter-wrapper-yearly" class="items-center gap-2 hidden">
           <label class="text-xs font-black font-mono uppercase text-ink">Tahun:</label>
-          <select 
-            id="report-input-year" 
-            class="px-3 py-1.5 bg-cream brutal-border text-xs font-bold font-mono text-ink outline-none focus:bg-white"
-          >
-            @php $thisYear = (int) now()->format('Y'); @endphp
-            @for($y = $thisYear; $y >= $thisYear - 4; $y--)
-              <option value="{{ $y }}" {{ $y === $thisYear ? 'selected' : '' }}>{{ $y }}</option>
-            @endfor
-          </select>
+          <div class="relative" id="combobox-ryear-root">
+            <input type="hidden" id="report-input-year" value="{{ (int) now()->format('Y') }}">
+            <button 
+              type="button" 
+              id="btn-ryear" 
+              onclick="toggleReportYearCombobox()" 
+              class="px-3 py-1.5 bg-cream hover:bg-white brutal-border text-xs font-bold font-mono text-ink flex items-center gap-2 outline-none"
+            >
+              <span id="label-ryear">{{ (int) now()->format('Y') }}</span>
+              <span class="text-[9px] text-ink/70">▼</span>
+            </button>
+            <div 
+              id="popover-ryear" 
+              class="hidden absolute left-0 top-full mt-1 bg-cream brutal-border shadow-brutal z-50 p-1.5 min-w-[120px] space-y-1"
+            >
+              @php $thisYear = (int) now()->format('Y'); @endphp
+              @for($y = $thisYear; $y >= $thisYear - 4; $y--)
+                <button 
+                  type="button" 
+                  onclick="selectReportYearOption('{{ $y }}')" 
+                  class="ryear-option-btn w-full text-left px-2.5 py-1 {{ $y === $thisYear ? 'bg-accent font-black' : 'bg-white hover:bg-cream font-bold' }} text-ink brutal-border text-xs font-mono flex items-center justify-between"
+                  data-year="{{ $y }}"
+                >
+                  <span>{{ $y }}</span>
+                  <span class="ryear-check text-xs {{ $y === $thisYear ? '' : 'hidden' }}">✓</span>
+                </button>
+              @endfor
+            </div>
+          </div>
         </div>
 
         <!-- RANGE PICKER -->
@@ -1030,6 +1106,7 @@
 
 @push('modals')
   @include('modules.finance.modal')
+  @include('modules.finance.cutoff-modal')
   @if($canViewAllFinances ?? true)
     @include('modules.finance.category-modal')
     @include('modules.finance.goal-modal')
@@ -2808,6 +2885,9 @@
     $('#category-btn-submit').html('Simpan Kategori &rarr;');
     $('#category-input-icon').val('🏷️');
     $('#category-input-type').val('expense');
+    $('#label-cattype').text('💸 Pengeluaran');
+    $('.cattype-check').addClass('hidden');
+    $('.cattype-check[data-type="expense"]').removeClass('hidden');
     $('#category-budget-wrapper').removeClass('hidden');
   }
 
@@ -2821,6 +2901,9 @@
     $('#category-input-name').val(cat.name);
     const type = cat.type || 'expense';
     $('#category-input-type').val(type);
+    $('#label-cattype').text(type === 'income' ? '💰 Pemasukan' : '💸 Pengeluaran');
+    $('.cattype-check').addClass('hidden');
+    $(`.cattype-check[data-type="${type}"]`).removeClass('hidden');
     const icon = cat.icon || (type === 'income' ? '💰' : '🏷️');
     $('#category-input-icon').val(icon);
     $('#category-modal-icon-badge').text(icon);
@@ -3058,15 +3141,27 @@
     $('#period-budget-form')[0].reset();
     if (catId) {
       $('#pbudget-input-category').val(catId);
+      const catObj = (window.financeCategories || []).find(c => String(c.id) === String(catId));
+      const icon = catObj ? (catObj.icon || '🏷️') : '🏷️';
+      const name = catName || (catObj ? catObj.name : 'Pilih Kategori...');
+      $('#label-pbudget-cat').text(icon + ' ' + name);
+    } else {
+      $('#pbudget-input-category').val('');
+      $('#label-pbudget-cat').text('Pilih Kategori...');
     }
+
+    const currentPeriod = $('#budget-period-select').val() || "{{ $selectedPeriod ?? now()->format('Y-m') }}";
+    $('#pbudget-input-period').val(currentPeriod);
+    const pObj = (window.financePeriods || []).find(p => String(p.period) === String(currentPeriod));
+    const pLabel = pObj ? (pObj.label + (pObj.is_current ? ' (Bulan Ini)' : '')) : "{{ $selectedPeriodLabel ?? now()->locale('id')->isoFormat('MMMM Y') }}";
+    $('#label-pbudget-period').text(pLabel);
+
     if (currentAmount && Number(currentAmount) > 0) {
       $('#pbudget-input-amount').val(formatRupiah(currentAmount));
     }
     if (notes) {
       $('#pbudget-input-notes').val(notes);
     }
-    const currentPeriod = $('#budget-period-select').val() || "{{ $selectedPeriod ?? now()->format('Y-m') }}";
-    $('#pbudget-input-period').val(currentPeriod);
 
     if (catId && (hasBudget || (currentAmount && Number(currentAmount) > 0))) {
       $('#pbudget-btn-delete').removeClass('hidden');
@@ -3084,7 +3179,7 @@
   function deleteCurrentPeriodBudget() {
     const catId = $('#pbudget-input-category').val();
     const period = $('#pbudget-input-period').val() || $('#budget-period-select').val() || "{{ now()->format('Y-m') }}";
-    const catName = $('#pbudget-input-category option:selected').text().trim() || 'kategori ini';
+    const catName = $('#label-pbudget-cat').text().trim() || 'kategori ini';
 
     if (!catId) return;
 
@@ -3167,6 +3262,269 @@
         hideLoading();
       }
     });
+  });
+
+  // ================= CUT OFF MODAL & CYCLE JS =================
+  window.openCutOffModal = function() {
+    $('#cutoff-manage-modal').removeClass('hidden');
+  };
+
+  window.closeCutOffModal = function() {
+    $('#cutoff-manage-modal').addClass('hidden');
+  };
+
+  window.selectCutOffPreset = function(day) {
+    $('#cutoff-input-day').val(day);
+  };
+
+  $('#cutoff-modal-form').on('submit', function(e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $('#cutoff-btn-submit');
+    const origText = $btn.html();
+    const cutOffDay = parseInt($('#cutoff-input-day').val(), 10) || 1;
+
+    $btn.prop('disabled', true).html('Menyimpan...');
+    showLoading('Menyimpan tanggal cut off...');
+
+    $.ajax({
+      url: $form.attr('action'),
+      type: 'POST',
+      data: $form.serialize(),
+      dataType: 'json',
+      success: function(res) {
+        closeCutOffModal();
+        if (typeof showToast === 'function') {
+          showToast(res.message || 'Tanggal cut off berhasil diperbarui!');
+        }
+        $('#badge-cutoff-day').text(cutOffDay);
+        window.location.reload();
+      },
+      error: function(xhr) {
+        let msg = 'Gagal menyimpan cut off.';
+        if (xhr.responseJSON) {
+          if (xhr.responseJSON.message) msg = xhr.responseJSON.message;
+          if (xhr.responseJSON.errors) msg = Object.values(xhr.responseJSON.errors).flat().join(' ');
+        }
+        if (typeof showToast === 'function') showToast(msg, 'error');
+        else alert(msg);
+      },
+      complete: function() {
+        $btn.prop('disabled', false).html(origText);
+        hideLoading();
+      }
+    });
+  });
+
+  // ================= BUDGET PERIOD COMBOBOX JS =================
+  window.toggleBudgetPeriodCombobox = function() {
+    const $popover = $('#popover-bperiod');
+    if ($popover.hasClass('hidden')) {
+      $popover.removeClass('hidden');
+      $('#search-bperiod').val('').focus();
+      filterBudgetPeriod('');
+    } else {
+      $popover.addClass('hidden');
+    }
+  };
+
+  window.filterBudgetPeriod = function(val) {
+    const search = (val || '').toLowerCase();
+    $('.bperiod-option-btn').each(function() {
+      const label = ($(this).data('label') || $(this).text()).toLowerCase();
+      if (label.includes(search)) {
+        $(this).removeClass('hidden');
+      } else {
+        $(this).addClass('hidden');
+      }
+    });
+  };
+
+  window.selectBudgetPeriodOption = function(period, label) {
+    $('#budget-period-select').val(period);
+    $('#label-bperiod').text(label);
+
+    $('.bperiod-option-btn').removeClass('bg-accent font-black').addClass('bg-white hover:bg-cream font-bold');
+    $('.bperiod-check').addClass('hidden');
+    const $activeBtn = $(`.bperiod-option-btn[data-period="${period}"]`);
+    $activeBtn.removeClass('bg-white hover:bg-cream font-bold').addClass('bg-accent font-black');
+    $activeBtn.find('.bperiod-check').removeClass('hidden');
+
+    $('#popover-bperiod').addClass('hidden');
+
+    const currentPeriod = "{{ now()->format('Y-m') }}";
+    if (period !== currentPeriod) {
+      $('#budget-period-badge').removeClass('hidden');
+      $('#budget-period-label').text(label);
+    } else {
+      $('#budget-period-badge').addClass('hidden');
+    }
+
+    if (budgetDataTable) {
+      budgetDataTable.ajax.reload();
+    }
+    refreshBudgetMobile();
+  };
+
+  // ================= REPORT YEAR COMBOBOX JS =================
+  window.toggleReportYearCombobox = function() {
+    $('#popover-ryear').toggleClass('hidden');
+  };
+
+  window.selectReportYearOption = function(year) {
+    $('#report-input-year').val(year);
+    $('#label-ryear').text(year);
+
+    $('.ryear-option-btn').removeClass('bg-accent font-black').addClass('bg-white hover:bg-cream font-bold');
+    $('.ryear-check').addClass('hidden');
+    const $activeBtn = $(`.ryear-option-btn[data-year="${year}"]`);
+    $activeBtn.removeClass('bg-white hover:bg-cream font-bold').addClass('bg-accent font-black');
+    $activeBtn.find('.ryear-check').removeClass('hidden');
+
+    $('#popover-ryear').addClass('hidden');
+    fetchReportData();
+  };
+
+  // ================= CATEGORY TYPE COMBOBOX JS =================
+  window.toggleCatTypeCombobox = function() {
+    $('#popover-cattype').toggleClass('hidden');
+  };
+
+  window.selectCatTypeOption = function(type, text) {
+    $('#category-input-type').val(type);
+    $('#label-cattype').text(text);
+    $('.cattype-check').addClass('hidden');
+    $(`.cattype-check[data-type="${type}"]`).removeClass('hidden');
+    $('#popover-cattype').addClass('hidden');
+    handleCategoryTypeChange(type);
+  };
+
+  // ================= PERIOD BUDGET MODAL COMBOBOXES JS =================
+  window.financeCategories = @json($categories ?? []);
+  window.financePeriods = @json($availablePeriods ?? []);
+
+  window.renderPbudgetCatOptions = function(filter = '') {
+    const $list = $('#list-pbudget-cat');
+    $list.empty();
+    const currentVal = $('#pbudget-input-category').val();
+    const cats = (window.financeCategories || []).filter(c => c.type === 'expense');
+    const search = (filter || '').toLowerCase();
+    const filtered = cats.filter(c => (c.name || '').toLowerCase().includes(search));
+
+    if (filtered.length === 0) {
+      $list.html('<div class="p-2 text-center text-[11px] font-mono text-ink/60">Kategori tidak ditemukan</div>');
+      return;
+    }
+
+    filtered.forEach(c => {
+      const isSelected = String(currentVal) === String(c.id);
+      const btn = $(`
+        <button type="button" class="w-full text-left px-2.5 py-1.5 text-xs font-bold transition-colors brutal-border flex items-center justify-between ${isSelected ? 'bg-accent text-ink' : 'bg-white hover:bg-cream text-ink'}">
+          <span class="flex items-center gap-1.5 truncate">
+            <span>${c.icon || '🏷️'}</span>
+            <span class="truncate">${escapeHtml(c.name)}</span>
+          </span>
+          ${isSelected ? '<span class="text-xs">✓</span>' : ''}
+        </button>
+      `);
+      btn.on('click', () => selectPbudgetCatOption(c.id, `${c.icon || '🏷️'} ${c.name}`));
+      $list.append(btn);
+    });
+  };
+
+  window.togglePbudgetCatCombobox = function() {
+    const $popover = $('#popover-pbudget-cat');
+    if ($popover.hasClass('hidden')) {
+      $('#popover-pbudget-period').addClass('hidden');
+      window.renderPbudgetCatOptions('');
+      $popover.removeClass('hidden');
+      $('#search-pbudget-cat').val('').focus();
+    } else {
+      $popover.addClass('hidden');
+    }
+  };
+
+  window.filterPbudgetCat = function(val) {
+    window.renderPbudgetCatOptions(val);
+  };
+
+  window.selectPbudgetCatOption = function(id, text) {
+    $('#pbudget-input-category').val(id);
+    $('#label-pbudget-cat').text(text);
+    $('#popover-pbudget-cat').addClass('hidden');
+  };
+
+  window.renderPbudgetPeriodOptions = function(filter = '') {
+    const $list = $('#list-pbudget-period');
+    $list.empty();
+    const currentVal = $('#pbudget-input-period').val();
+    const periods = window.financePeriods || [];
+    const search = (filter || '').toLowerCase();
+    const filtered = periods.filter(p => (p.label || '').toLowerCase().includes(search));
+
+    if (filtered.length === 0) {
+      $list.html('<div class="p-2 text-center text-[11px] font-mono text-ink/60">Periode tidak ditemukan</div>');
+      return;
+    }
+
+    filtered.forEach(p => {
+      const isSelected = String(currentVal) === String(p.period);
+      const labelWithCurrent = p.label + (p.is_current ? ' (Bulan Ini)' : '');
+      const btn = $(`
+        <button type="button" class="w-full text-left px-2.5 py-1.5 text-xs font-mono font-bold transition-colors brutal-border flex items-center justify-between ${isSelected ? 'bg-accent text-ink' : 'bg-white hover:bg-cream text-ink'}">
+          <span class="truncate">${escapeHtml(labelWithCurrent)}</span>
+          ${isSelected ? '<span class="text-xs">✓</span>' : ''}
+        </button>
+      `);
+      btn.on('click', () => selectPbudgetPeriodOption(p.period, labelWithCurrent));
+      $list.append(btn);
+    });
+  };
+
+  window.togglePbudgetPeriodCombobox = function() {
+    const $popover = $('#popover-pbudget-period');
+    if ($popover.hasClass('hidden')) {
+      $('#popover-pbudget-cat').addClass('hidden');
+      window.renderPbudgetPeriodOptions('');
+      $popover.removeClass('hidden');
+      $('#search-pbudget-period').val('').focus();
+    } else {
+      $popover.addClass('hidden');
+    }
+  };
+
+  window.filterPbudgetPeriod = function(val) {
+    window.renderPbudgetPeriodOptions(val);
+  };
+
+  window.selectPbudgetPeriodOption = function(period, label) {
+    $('#pbudget-input-period').val(period);
+    $('#label-pbudget-period').text(label);
+    $('#popover-pbudget-period').addClass('hidden');
+  };
+
+  // ================= CLOSE POPOVERS ON OUTSIDE CLICK =================
+  document.addEventListener('click', function(e) {
+    const bperiodRoot = document.getElementById('combobox-bperiod-root');
+    if (bperiodRoot && !bperiodRoot.contains(e.target)) {
+      document.getElementById('popover-bperiod')?.classList.add('hidden');
+    }
+    const ryearRoot = document.getElementById('combobox-ryear-root');
+    if (ryearRoot && !ryearRoot.contains(e.target)) {
+      document.getElementById('popover-ryear')?.classList.add('hidden');
+    }
+    const pbudgetCatRoot = document.getElementById('combobox-pbudget-cat-root');
+    if (pbudgetCatRoot && !pbudgetCatRoot.contains(e.target)) {
+      document.getElementById('popover-pbudget-cat')?.classList.add('hidden');
+    }
+    const pbudgetPeriodRoot = document.getElementById('combobox-pbudget-period-root');
+    if (pbudgetPeriodRoot && !pbudgetPeriodRoot.contains(e.target)) {
+      document.getElementById('popover-pbudget-period')?.classList.add('hidden');
+    }
+    const catTypeRoot = document.getElementById('combobox-cattype-root');
+    if (catTypeRoot && !catTypeRoot.contains(e.target)) {
+      document.getElementById('popover-cattype')?.classList.add('hidden');
+    }
   });
 </script>
 @endpush

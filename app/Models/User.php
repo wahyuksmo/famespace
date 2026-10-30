@@ -21,6 +21,7 @@ class User extends Authenticatable
         'password',
         'role',
         'can_view_all_finances',
+        'cut_off_day',
         'points',
         'avatar_url',
     ];
@@ -37,6 +38,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'points' => 'integer',
             'can_view_all_finances' => 'boolean',
+            'cut_off_day' => 'integer',
         ];
     }
 

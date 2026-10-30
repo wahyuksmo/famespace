@@ -1,5 +1,5 @@
 <!-- TOP HEADER (DESKTOP) -->
-<header class="hidden lg:flex bg-white brutal-border border-t-0 border-x-0 sticky top-0 z-20 px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5 items-center justify-between gap-3">
+<header class="hidden lg:flex bg-white brutal-border border-t-0 border-x-0 sticky top-0 z-30 px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5 items-center justify-between gap-3">
   
   <!-- LEFT: MOBILE TOGGLE & GREETING -->
   <div class="flex items-center gap-3 min-w-0">

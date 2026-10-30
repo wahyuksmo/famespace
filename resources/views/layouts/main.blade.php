@@ -37,7 +37,7 @@
 <body class="h-screen overflow-hidden flex antialiased selection:bg-accent selection:text-ink">
 
   <!-- MOBILE SIDEBAR BACKDROP -->
-  <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-ink/60 backdrop-blur-[2px] z-40 hidden lg:hidden transition-opacity duration-300"></div>
+  <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-ink/60 backdrop-blur-[2px] z-45 hidden lg:hidden transition-opacity duration-300"></div>
 
   <!-- SIDEBAR KIRI TETAP (CHUNKY NEOBRUTALIST) -->
   @include('dashboard.partials.sidebar')

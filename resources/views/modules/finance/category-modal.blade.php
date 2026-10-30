@@ -41,20 +41,36 @@
 
       <!-- JENIS KATEGORI & IKON -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
+        <!-- SEARCHABLE COMBOBOX: JENIS KATEGORI -->
+        <div class="relative" id="combobox-cattype-root">
           <label class="block text-xs font-black font-mono uppercase text-ink mb-1">
             Jenis Kategori:
           </label>
-          <select 
-            id="category-input-type" 
-            name="type" 
-            required
-            onchange="handleCategoryTypeChange(this.value)"
-            class="w-full px-3 py-2 bg-cream brutal-border text-xs font-bold text-ink outline-none focus:bg-white"
+          <input type="hidden" id="category-input-type" name="type" value="expense">
+          <button 
+            type="button" 
+            id="btn-cattype" 
+            onclick="toggleCatTypeCombobox()" 
+            class="w-full px-3 py-2 bg-cream brutal-border text-xs font-bold text-ink flex items-center justify-between text-left hover:bg-white focus:bg-white"
           >
-            <option value="expense">💸 Pengeluaran</option>
-            <option value="income">💰 Pemasukan</option>
-          </select>
+            <span id="label-cattype" class="truncate">💸 Pengeluaran</span>
+            <span class="text-[10px] ml-1.5 text-ink/70">▼</span>
+          </button>
+
+          <!-- POPOVER DROPDOWN -->
+          <div 
+            id="popover-cattype" 
+            class="hidden absolute left-0 right-0 top-full mt-1 bg-cream brutal-border shadow-brutal z-50 p-2 space-y-1"
+          >
+            <button type="button" onclick="selectCatTypeOption('expense', '💸 Pengeluaran')" class="w-full text-left px-2.5 py-1.5 bg-accent text-ink brutal-border text-xs font-bold flex items-center justify-between transition-colors">
+              <span>💸 Pengeluaran</span>
+              <span class="text-xs cattype-check" data-type="expense">✓</span>
+            </button>
+            <button type="button" onclick="selectCatTypeOption('income', '💰 Pemasukan')" class="w-full text-left px-2.5 py-1.5 bg-white hover:bg-cream text-ink brutal-border text-xs font-bold flex items-center justify-between transition-colors">
+              <span>💰 Pemasukan</span>
+              <span class="text-xs cattype-check hidden" data-type="income">✓</span>
+            </button>
+          </div>
         </div>
 
         <div>

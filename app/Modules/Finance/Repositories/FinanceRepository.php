@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\CategoryBudget;
 use App\Models\Finance;
 use App\Models\FinanceGoal;
+use App\Modules\Finance\Services\FinanceService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -94,12 +95,16 @@ class FinanceRepository
         ];
     }
 
-    public function getFamilyIncomeExpense(string $familyId, ?int $userId = null): array
+    public function getFamilyIncomeExpense(string $familyId, ?int $userId = null, ?string $startDate = null, ?string $endDate = null): array
     {
         $query = DB::table('t_finances')->where('family_id', $familyId);
 
         if ($userId !== null) {
             $query->where('user_id', $userId);
+        }
+
+        if ($startDate !== null && $endDate !== null) {
+            $query->whereBetween('transaction_date', [$startDate, $endDate]);
         }
 
         $totals = $query->selectRaw("
@@ -221,18 +226,23 @@ class FinanceRepository
             ->delete();
     }
 
-    public function getMonthlyExpensesByCategory(string $familyId, Carbon|string|null $period = null): \Illuminate\Support\Collection
+    public function getMonthlyExpensesByCategory(string $familyId, Carbon|string|null $periodOrStart = null, ?string $endDate = null): \Illuminate\Support\Collection
     {
-        if (is_string($period) && preg_match('/^\d{4}-\d{2}$/', $period)) {
-            $date = Carbon::createFromFormat('Y-m', $period)->startOfMonth();
-        } elseif ($period instanceof Carbon) {
-            $date = $period;
+        if ($periodOrStart !== null && $endDate !== null) {
+            $start = is_string($periodOrStart) ? $periodOrStart : $periodOrStart->toDateString();
+            $end = $endDate;
+        } elseif (is_string($periodOrStart) && preg_match('/^\d{4}-\d{2}$/', $periodOrStart)) {
+            $date = Carbon::createFromFormat('Y-m', $periodOrStart)->startOfMonth();
+            $start = $date->copy()->startOfMonth()->toDateString();
+            $end = $date->copy()->endOfMonth()->toDateString();
+        } elseif ($periodOrStart instanceof Carbon) {
+            $start = $periodOrStart->copy()->startOfMonth()->toDateString();
+            $end = $periodOrStart->copy()->endOfMonth()->toDateString();
         } else {
             $date = Carbon::now();
+            $start = $date->copy()->startOfMonth()->toDateString();
+            $end = $date->copy()->endOfMonth()->toDateString();
         }
-
-        $start = $date->copy()->startOfMonth()->toDateString();
-        $end = $date->copy()->endOfMonth()->toDateString();
 
         return DB::table('t_finances')
             ->where('family_id', $familyId)
@@ -244,7 +254,7 @@ class FinanceRepository
             ->pluck('total_spent', 'category_id');
     }
 
-    public function getDataTablesBudgets(string $familyId, string $period, int $start = 0, int $length = 10, ?string $search = null, ?string $status = null): array
+    public function getDataTablesBudgets(string $familyId, string $period, int $start = 0, int $length = 10, ?string $search = null, ?string $status = null, int $cutOffDay = 1): array
     {
         $query = Category::where(function ($q) use ($familyId) {
             $q->where('family_id', $familyId)->orWhereNull('family_id');
@@ -256,7 +266,8 @@ class FinanceRepository
         }
 
         $allCategories = $query->orderBy('name', 'asc')->get();
-        $monthlyExpenses = $this->getMonthlyExpensesByCategory($familyId, $period);
+        $cycle = FinanceService::resolveCycleRange($period, $cutOffDay);
+        $monthlyExpenses = $this->getMonthlyExpensesByCategory($familyId, $cycle['start_date'], $cycle['end_date']);
         $historicalBudgets = $this->getCategoryBudgetsForPeriod($familyId, $period)->keyBy('category_id');
 
         $mapped = $allCategories->map(function ($cat) use ($monthlyExpenses, $historicalBudgets) {

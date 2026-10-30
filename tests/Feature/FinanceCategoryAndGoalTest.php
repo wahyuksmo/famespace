@@ -9,6 +9,8 @@ use App\Models\Finance;
 use App\Models\FinanceGoal;
 use App\Models\User;
 use App\Models\Wkcal;
+use App\Modules\Finance\Services\FinanceService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -520,5 +522,42 @@ class FinanceCategoryAndGoalTest extends TestCase
             'amount' => 450000,
             'description' => 'Pengembalian Saldo Celengan: Celengan Liburan',
         ]);
+    }
+
+    public function test_user_can_update_cut_off_day_and_cycle_applies(): void
+    {
+        $response = $this->actingAs($this->user)->postJson(route('finances.update_cut_off'), [
+            'cut_off_day' => 25,
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'cut_off_day' => 25,
+        ]);
+
+        $this->user->refresh();
+        $this->assertEquals(25, $this->user->cut_off_day);
+
+        // Test cycle range helper
+        $cycle = FinanceService::resolveCycleRange(null, 25, Carbon::parse('2026-10-28'));
+        $this->assertEquals('2026-10-25', $cycle['start_date']);
+        $this->assertEquals('2026-11-24', $cycle['end_date']);
+        $this->assertEquals('2026-10', $cycle['period']);
+
+        $cycleBefore = FinanceService::resolveCycleRange(null, 25, Carbon::parse('2026-10-20'));
+        $this->assertEquals('2026-09-25', $cycleBefore['start_date']);
+        $this->assertEquals('2026-10-24', $cycleBefore['end_date']);
+        $this->assertEquals('2026-09', $cycleBefore['period']);
+    }
+
+    public function test_finance_index_contains_comboboxes_and_cutoff_elements(): void
+    {
+        $response = $this->actingAs($this->user)->get(route('finances.index'));
+        $response->assertStatus(200);
+        $response->assertSee('id="btn-open-cutoff-modal"', false);
+        $response->assertSee('id="combobox-bperiod-root"', false);
+        $response->assertSee('id="combobox-ryear-root"', false);
+        $response->assertSee('id="cutoff-manage-modal"', false);
     }
 }

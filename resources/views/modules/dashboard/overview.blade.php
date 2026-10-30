@@ -124,7 +124,7 @@
              style="object-position: {{ $bannerPos }};">
 
         <!-- DRAG HINT BADGE (SAAT ADJUST MODE AKTIF) -->
-        <div id="banner-drag-guide" class="absolute inset-0 z-30 pointer-events-none items-center justify-center hidden">
+        <div id="banner-drag-guide" class="absolute inset-0 z-20 pointer-events-none items-center justify-center hidden">
           <span class="px-3.5 py-1.5 bg-ink text-white brutal-border font-mono font-black text-xs uppercase tracking-wider shadow-brutal flex items-center gap-2">
             <span>↕️</span>
             <span>Tahan & Geser Foto ke Atas / Bawah</span>
@@ -159,7 +159,7 @@
       @endif
 
       <!-- HERO OVERLAYS (INFO & KONTROL MINIMALIS BERSIH UNTUK PWA & DESKTOP) -->
-      <div id="banner-hero-overlays" class="absolute inset-0 flex flex-col justify-between p-2.5 sm:p-3.5 z-20 pointer-events-none transition-opacity duration-300">
+      <div id="banner-hero-overlays" class="absolute inset-0 flex flex-col justify-between p-2.5 sm:p-3.5 z-10 pointer-events-none transition-opacity duration-300">
         
         <!-- TOP BAR: KELUARGA (KIRI) & RETRO CLOCK / LIVE WEATHER / MENU (KANAN) -->
         <div class="flex items-center justify-between gap-2">
@@ -242,7 +242,7 @@
               </button>
 
               <!-- POPOVER DROPDOWN -->
-              <div id="banner-kebab-menu" class="hidden absolute right-0 mt-1.5 w-44 bg-white brutal-border shadow-brutal p-1 z-40 space-y-0.5 font-mono text-xs select-none">
+              <div id="banner-kebab-menu" class="hidden absolute right-0 mt-1.5 w-44 bg-white brutal-border shadow-brutal p-1 z-20 space-y-0.5 font-mono text-xs select-none">
                 @if($bannerMedia && $bannerMedia->isPhoto())
                   <button type="button" 
                           id="btn-open-adjust-banner"
@@ -345,490 +345,667 @@
     </div>
   </div>
 
-  <!-- BARIS 1: 4 KARTU ANGKA UTAMA (2X2 DI MOBILE, 4 DI DESKTOP) -->
-  <div id="overview-stat-cards" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-    
-    <!-- KARTU 1: SALDO KAS -->
-    <div class="bg-white brutal-card p-2.5 sm:p-4 flex flex-col justify-between hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform">
-      <div class="flex items-center justify-between text-[10px] sm:text-xs font-mono font-bold text-ink/70">
-        <span class="truncate">SISA KAS</span>
-        <span class="text-base sm:text-2xl">💰</span>
-      </div>
-      <div class="text-base sm:text-2xl lg:text-3xl font-black font-mono {{ $netBalance >= 0 ? 'text-brand' : 'text-coral' }} truncate my-1 sm:my-1.5" title="Rp {{ number_format($netBalance, 0, ',', '.') }}">
-        Rp {{ number_format($netBalance, 0, ',', '.') }}
-      </div>
-      <div class="text-[9.5px] sm:text-[11px] font-mono text-ink/70 pt-1 sm:pt-1.5 border-t border-ink/10 flex items-center justify-between">
-        <span class="hidden sm:inline">Masuk:</span>
-        <span class="text-brand font-black truncate text-right w-full sm:w-auto" title="Rp {{ number_format($totalIncome, 0, ',', '.') }}">+Rp {{ number_format($totalIncome, 0, ',', '.') }}</span>
-      </div>
-    </div>
+  <!-- UNIFIED DASHBOARD: 4 TOMBOL STICKER NEOBRUTALIS BERWARNA & BERANIMASI -->
+  <div class="space-y-3">
 
-    <!-- KARTU 2: TUGAS HARI INI -->
-    <div id="overview-chore-progress" class="bg-white brutal-card p-2.5 sm:p-4 flex flex-col justify-between hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform">
-      <div class="flex items-center justify-between text-[10px] sm:text-xs font-mono font-bold text-ink/70">
-        <span class="truncate">TUGAS HARI INI</span>
-        <span class="text-base sm:text-2xl">🧹</span>
-      </div>
-      <div class="text-base sm:text-2xl lg:text-3xl font-black font-mono text-ink my-1 sm:my-1.5 flex items-baseline gap-1 sm:gap-2">
-        <span>{{ $choresCompleted }}/{{ $choresTotal }}</span>
-        <span class="text-[10px] sm:text-sm font-sans font-bold text-ink/60">({{ $choreCompletionRate }}%)</span>
-      </div>
-      <div class="pt-1 sm:pt-1.5 border-t border-ink/10">
-        <div class="w-full bg-cream h-1.5 sm:h-2 brutal-border overflow-hidden">
-          <div class="bg-brand h-full transition-all duration-300" style="width: {{ $choreCompletionRate }}%"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- KARTU 3: POIN KELUARGA -->
-    <div class="bg-white brutal-card p-2.5 sm:p-4 flex flex-col justify-between hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform">
-      <div class="flex items-center justify-between text-[10px] sm:text-xs font-mono font-bold text-ink/70">
-        <span class="truncate">POIN KELUARGA</span>
-        <span class="text-base sm:text-2xl">⭐</span>
-      </div>
-      <div class="text-base sm:text-2xl lg:text-3xl font-black font-mono text-ink my-1 sm:my-1.5 flex items-baseline gap-1 truncate">
-        <span>{{ number_format($members->sum('points')) }}</span>
-        <span class="text-[9.5px] sm:text-xs font-mono font-bold text-ink/60 uppercase">Poin</span>
-      </div>
-      <div class="text-[9.5px] sm:text-[11px] font-mono text-ink/70 pt-1 sm:pt-1.5 border-t border-ink/10 truncate flex items-center justify-between">
-        <span class="flex-shrink-0 hidden sm:inline">Rajin:</span>
-        <span class="font-black text-ink truncate w-full sm:w-auto text-left sm:text-right">{{ $members->first() ? $members->first()->name : '-' }}</span>
-      </div>
-    </div>
-
-    <!-- KARTU 4: AGENDA TERDEKAT -->
-    <div class="bg-white brutal-card p-2.5 sm:p-4 flex flex-col justify-between relative overflow-hidden {{ $isPro ? 'bg-accent/25' : '' }}">
-      @if($isPro)
-        <div class="flex items-center justify-between text-[10px] sm:text-xs font-mono font-black text-ink">
-          <span class="truncate">AGENDA</span>
-          <div class="flex items-center gap-1">
-            <span class="px-1 py-0.2 bg-white brutal-border font-mono text-[8px] sm:text-[9px] font-black">👑 PRO</span>
-            <span class="text-base sm:text-2xl">⏰</span>
-          </div>
-        </div>
-        @if($upcomingEvents->count() > 0)
-          @php $nextEv = $upcomingEvents->first(); @endphp
-          <div class="text-xs sm:text-base lg:text-lg font-black font-display text-ink truncate my-1 sm:my-1.5 leading-snug" title="{{ $nextEv->title }}">
-            {{ $nextEv->title }}
-          </div>
-          <div class="text-[9.5px] sm:text-[11px] font-mono font-bold text-ink/80 pt-1 sm:pt-1.5 border-t border-ink/20 truncate">
-            🗓️ {{ \Carbon\Carbon::parse($nextEv->start_time)->locale('id')->isoFormat('D MMM, HH:mm') }}
-          </div>
-        @else
-          <div class="text-xs sm:text-base font-black font-display text-ink/70 my-1 sm:my-1.5">
-            Belum ada jadwal
-          </div>
-          <div class="text-[9.5px] sm:text-[11px] font-mono text-ink/60 pt-1 sm:pt-1.5 border-t border-ink/20">
-            Semua tuntas
-          </div>
-        @endif
-      @else
-        <!-- FREE TIER: OPACITY RENDAH + OVERLAY UPGRADE -->
-        <div class="opacity-30 select-none pointer-events-none">
-          <div class="flex items-center justify-between text-[10px] sm:text-xs font-mono font-bold text-ink/70">
-            <span>AGENDA</span>
-            <span class="text-base sm:text-2xl">⏰</span>
-          </div>
-          <div class="text-xs sm:text-base font-black font-display text-ink my-1 sm:my-1.5 truncate">
-            Kontrol Dokter Anak
-          </div>
-          <div class="text-[9.5px] sm:text-[11px] font-mono text-ink/60 pt-1 sm:pt-1.5 border-t border-ink/20 truncate">
-            🗓️ Besok, 10:00
-          </div>
-        </div>
-
-        <!-- OVERLAY UPGRADE -->
-        <div class="absolute inset-0 bg-cream/80 backdrop-blur-[1px] flex flex-col items-center justify-center p-2 text-center z-10">
-          <span class="text-base mb-0.5">🔒</span>
-          <span class="text-[11px] sm:text-xs font-black font-display text-ink leading-tight">Agenda Kalender</span>
-          <span class="text-[9px] font-mono text-ink/70 mb-1">Paket Pro</span>
-          <button type="button" onclick="openPaywallModal('calendar')" class="px-2 py-0.5 bg-accent hover:bg-brand hover:text-white brutal-btn text-[9px] font-mono font-black uppercase tracking-wider">
-            👑 Pro &rarr;
-          </button>
-        </div>
-      @endif
-    </div>
-
-  </div>
-
-  <!-- PENGALIH SEGMEN TAMPILAN MOBILE (CLEAN & MINIMALIS NEOBRUTALISM) -->
-  <div class="lg:hidden">
-    <div class="bg-white brutal-card p-1 flex items-center gap-1 font-mono text-xs font-black select-none shadow-[2px_2px_0px_#121614]">
-      <button type="button" 
-              onclick="switchMobileDashboardSection('charts')" 
-              id="mob-btn-section-charts" 
-              class="mob-section-btn flex-1 py-1.5 px-2 text-center brutal-border bg-accent text-ink shadow-[1.5px_1.5px_0px_#121614] transition-all">
-        📊 Grafik
+    <!-- BARIS 4 TOMBOL STICKER BERWARNA -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 select-none">
+      
+      <!-- TOMBOL 1: KULKAS (KUNING PASTEL) -->
+      <button type="button"
+              id="btn-unified-kulkas"
+              onclick="toggleUnifiedPanel('kulkas')"
+              class="unified-tab-btn group relative px-3 py-2.5 sm:py-3 bg-[#FFF9A6] hover:bg-[#FFF37A] text-ink brutal-border shadow-brutal hover:shadow-brutal-sm hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none flex items-center justify-center gap-2 font-mono font-black text-xs uppercase tracking-wider transition-all">
+        <span class="text-base sm:text-lg group-hover:rotate-12 group-hover:scale-110 transition-transform duration-200 inline-block">📌</span>
+        <span>Memo Kulkas</span>
+        <span class="active-dot hidden absolute -top-1 -right-1 w-3 h-3 bg-brand rounded-full brutal-border"></span>
       </button>
-      <button type="button" 
-              onclick="switchMobileDashboardSection('activity')" 
-              id="mob-btn-section-activity" 
-              class="mob-section-btn flex-1 py-1.5 px-2 text-center border-2 border-transparent text-ink/70 hover:text-ink transition-all">
-        ⚡ Aktivitas
-      </button>
-      <button type="button" 
-              onclick="switchMobileDashboardSection('notes')" 
-              id="mob-btn-section-notes" 
-              class="mob-section-btn flex-1 py-1.5 px-2 text-center border-2 border-transparent text-ink/70 hover:text-ink transition-all">
-        📌 Kulkas
-      </button>
-    </div>
-  </div>
 
-  <!-- BARIS 2: 3 GRAFIK UTAMA SEJAJAR (TABBED DI MOBILE, 3 KOLOM DI DESKTOP) -->
-  <div class="mob-section-container mob-section-charts lg:grid lg:grid-cols-12 gap-3.5 sm:gap-4 items-stretch">
-    
-    <!-- SUB-TABS GRAFIK KHUSUS MOBILE -->
-    <div class="lg:hidden col-span-12 mb-1 bg-cream brutal-border p-1 flex items-center gap-1 shadow-brutal-sm font-mono text-[11px] font-black select-none">
-      <button type="button" onclick="switchMobileSubChart('cashflow')" id="mob-sub-cashflow" class="mob-subchart-tab flex-1 py-1 text-center brutal-border bg-white text-ink shadow-[1px_1px_0px_#121614] transition-all">
-        Arus Kas
+      <!-- TOMBOL 2: MOMEN (MINT PASTEL) -->
+      <button type="button"
+              id="btn-unified-momen"
+              onclick="toggleUnifiedPanel('momen')"
+              class="unified-tab-btn group relative px-3 py-2.5 sm:py-3 bg-[#D1FAE5] hover:bg-[#A7F3D0] text-ink brutal-border shadow-brutal hover:shadow-brutal-sm hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none flex items-center justify-center gap-2 font-mono font-black text-xs uppercase tracking-wider transition-all">
+        <span class="text-base sm:text-lg group-hover:scale-125 transition-transform duration-200 inline-block">📷</span>
+        <span>Momen</span>
+        <span class="active-dot hidden absolute -top-1 -right-1 w-3 h-3 bg-brand rounded-full brutal-border"></span>
       </button>
-      <button type="button" onclick="switchMobileSubChart('category')" id="mob-sub-category" class="mob-subchart-tab flex-1 py-1 text-center border border-transparent text-ink/70 hover:text-ink transition-all">
-        Pos Biaya
+
+      <!-- TOMBOL 3: TUGAS (LAVENDER PASTEL) -->
+      <button type="button"
+              id="btn-unified-tugas"
+              onclick="toggleUnifiedPanel('tugas')"
+              class="unified-tab-btn group relative px-3 py-2.5 sm:py-3 bg-[#E9D5FF] hover:bg-[#D8B4FE] text-ink brutal-border shadow-brutal hover:shadow-brutal-sm hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none flex items-center justify-center gap-2 font-mono font-black text-xs uppercase tracking-wider transition-all">
+        <span class="text-base sm:text-lg group-hover:-rotate-12 group-hover:scale-110 transition-transform duration-200 inline-block">🧹</span>
+        <span>Tugas & Agenda</span>
+        <span class="active-dot hidden absolute -top-1 -right-1 w-3 h-3 bg-brand rounded-full brutal-border"></span>
       </button>
-      <button type="button" onclick="switchMobileSubChart('points')" id="mob-sub-points" class="mob-subchart-tab flex-1 py-1 text-center border border-transparent text-ink/70 hover:text-ink transition-all">
-        Poin Anggota
+
+      <!-- TOMBOL 4: STATISTIK (ORANGE/CORAL PASTEL) -->
+      <button type="button"
+              id="btn-unified-statistik"
+              onclick="toggleUnifiedPanel('statistik')"
+              class="unified-tab-btn group relative px-3 py-2.5 sm:py-3 bg-[#FED7AA] hover:bg-[#FDBA74] text-ink brutal-border shadow-brutal hover:shadow-brutal-sm hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none flex items-center justify-center gap-2 font-mono font-black text-xs uppercase tracking-wider transition-all">
+        <span class="text-base sm:text-lg group-hover:scale-110 group-hover:rotate-6 transition-transform duration-200 inline-block">📊</span>
+        <span>Kas & Statistik</span>
+        <span class="active-dot hidden absolute -top-1 -right-1 w-3 h-3 bg-brand rounded-full brutal-border"></span>
       </button>
     </div>
 
-    <!-- GRAFIK 1: ARUS KAS (6 KOLOM) -->
-    <div id="chart-card-cashflow" class="mob-chart-item lg:col-span-6 bg-white brutal-card p-3 sm:p-4 flex flex-col justify-between">
-      <div class="flex items-center justify-between pb-2 border-b-2 border-ink">
+    <!-- INLINE PANEL CARD (MEKAR DENGAN EFEK SPRING POP, DEFAULT TERSEMBUNYI) -->
+    <div id="unified-panel-container" class="hidden bg-white brutal-card p-3.5 sm:p-5 shadow-brutal-lg border-2 border-ink transition-all">
+      
+      <!-- PANEL HEADER & TOMBOL TUTUP -->
+      <div class="flex items-center justify-between pb-2.5 border-b-2 border-ink mb-4 select-none">
         <div class="flex items-center gap-2">
-          <span class="text-base sm:text-lg">📈</span>
-          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">
-            Uang Masuk & Keluar
-          </h3>
-          <span class="text-[10px] font-mono text-ink/50 hidden sm:inline">(Aktivitas Terakhir)</span>
-        </div>
-        <div class="flex items-center gap-1 font-mono text-xs font-bold">
-          <button type="button" onclick="setCashflowChartType('bar')" id="btn-chart-bar" class="px-2 py-0.5 bg-accent brutal-border text-ink hover:bg-accent text-xs">Bar</button>
-          <button type="button" onclick="setCashflowChartType('line')" id="btn-chart-line" class="px-2 py-0.5 bg-white brutal-border text-ink hover:bg-cream text-xs">Garis</button>
-        </div>
-      </div>
-      <div class="relative h-44 sm:h-48 w-full mt-2">
-        <canvas id="cashflowChart"></canvas>
-      </div>
-    </div>
-
-    <!-- GRAFIK 2: KATEGORI PENGELUARAN (3 KOLOM) -->
-    <div id="chart-card-category" class="mob-chart-item hidden lg:flex lg:col-span-3 bg-white brutal-card p-3 sm:p-4 flex flex-col justify-between">
-      <div class="flex items-center justify-between pb-2 border-b-2 border-ink">
-        <div class="flex items-center gap-1.5">
-          <span class="text-base sm:text-lg">🍩</span>
-          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">
-            Pos Biaya
+          <span id="unified-panel-icon" class="text-base sm:text-xl p-1 bg-cream brutal-border shadow-[1px_1px_0px_#121614]">📌</span>
+          <h3 id="unified-panel-title" class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">
+            Panel Detail
           </h3>
         </div>
-        <span class="text-[10px] font-mono font-bold text-ink/60">Top Pengeluaran</span>
-      </div>
-      <div class="relative h-44 sm:h-48 w-full flex items-center justify-center mt-2">
-        @if($expensesByCategory->count() > 0)
-          <canvas id="categoryDonutChart"></canvas>
-        @else
-          <div class="p-3 text-center text-xs font-mono text-ink/60 bg-cream brutal-border w-full">
-            Belum ada catatan biaya.
-          </div>
-        @endif
-      </div>
-    </div>
-
-    <!-- GRAFIK 3: POIN & TUGAS ANGGOTA (3 KOLOM) -->
-    <div id="chart-card-points" class="mob-chart-item hidden lg:flex lg:col-span-3 bg-white brutal-card p-3 sm:p-4 flex flex-col justify-between">
-      <div class="flex items-center justify-between pb-2 border-b-2 border-ink">
-        <div class="flex items-center gap-1.5">
-          <span class="text-base sm:text-lg">🏆</span>
-          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">
-            Poin Anggota
-          </h3>
-        </div>
-        <div class="flex items-center gap-1 font-mono text-[10px] font-bold text-ink/60">
-          <span>{{ $members->count() > 5 ? 'Top 5' : $members->count() . ' orang' }}</span>
-          @if($members->count() > 5)
-            <a href="{{ route('members.index') }}" class="text-brand font-black hover:underline" title="Lihat semua anggota">&rarr;</a>
-          @endif
-        </div>
-      </div>
-      <div class="relative h-44 sm:h-48 w-full mt-2">
-        <canvas id="memberPointsChart"></canvas>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- BARIS 3: RINGKASAN DATA RIIL (AKTIVITAS DI MOBILE, 3 KOLOM DI DESKTOP) -->
-  <div class="mob-section-container mob-section-activity hidden lg:grid lg:grid-cols-3 gap-3.5 sm:gap-4">
-    
-    <!-- KOLOM 1: TUGAS HARI INI + DONUT RING -->
-    <div id="overview-chore-widget" class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between h-full">
-      <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-2.5">
-        <div class="flex items-center gap-1.5">
-          <span class="text-base">📋</span>
-          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">Tugas Rumah</h3>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-[11px] font-mono font-bold text-ink/70">{{ $choresTotal }} tugas</span>
-          <a href="{{ route('chores.index') }}" class="text-[10px] font-mono font-black text-brand hover:underline">Semua &rarr;</a>
-        </div>
+        <button type="button" 
+                onclick="closeUnifiedPanel()" 
+                class="px-2.5 py-1 bg-cream hover:bg-coral hover:text-white brutal-border font-mono font-black text-[11px] flex items-center gap-1 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                title="Tutup Panel">
+          <span>✕</span>
+          <span>Tutup</span>
+        </button>
       </div>
 
-      <div class="flex items-center gap-3">
-        <!-- RING DONUT -->
-        <div class="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 flex items-center justify-center">
-          <canvas id="choreRingChart"></canvas>
-          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span class="text-[11px] sm:text-xs font-mono font-black text-ink">{{ $choreCompletionRate }}%</span>
-          </div>
-        </div>
-
-        <!-- LIST TUGAS COMPACT DENGAN SCROLL CONTAINMENT -->
-        <div class="flex-1 min-w-0 space-y-1.5 max-h-[145px] overflow-y-auto custom-scrollbar pr-1">
-          @forelse($allChores->take(5) as $chore)
-            <div class="p-1.5 sm:p-2 {{ $chore->status === 'completed' ? 'bg-cream' : 'bg-white shadow-brutal-sm' }} brutal-border flex items-center justify-between text-xs gap-2">
-              <div class="truncate text-xs font-bold text-ink {{ $chore->status === 'completed' ? 'line-through text-ink/50' : '' }}" title="{{ $chore->title }}">
-                {{ $chore->title }}
-              </div>
-              <span class="px-1.5 py-0.2 {{ $chore->status === 'completed' ? 'bg-brand text-white' : 'bg-accent text-ink' }} brutal-border text-[9px] font-mono font-black flex-shrink-0 uppercase">
-                {{ $chore->status === 'completed' ? 'Beres' : 'Belum' }}
-              </span>
-            </div>
-          @empty
-            <div class="text-xs font-mono text-ink/50 py-2">Belum ada tugas</div>
-          @endforelse
-        </div>
-      </div>
-    </div>
-
-    <!-- KOLOM 2: CATATAN KAS TERBARU -->
-    <div id="overview-finance-widget" class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between h-full">
-      <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-2.5">
-        <div class="flex items-center gap-1.5">
-          <span class="text-base">🧾</span>
-          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">Catatan Kas</h3>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-[11px] font-mono font-bold text-ink/70">Terbaru</span>
-          <a href="{{ route('finances.index') }}" class="text-[10px] font-mono font-black text-brand hover:underline">Semua &rarr;</a>
-        </div>
-      </div>
-
-      <div class="space-y-1.5 max-h-[145px] overflow-y-auto custom-scrollbar pr-1">
-        @php $recentTrx = $finance['recent_transactions'] ?? (isset($finance['transactions']) ? $finance['transactions']->take(4) : collect()); @endphp
-        @forelse($recentTrx->take(4) as $trx)
-          <div class="flex items-center justify-between p-1.5 sm:p-2 bg-cream brutal-border text-xs gap-2">
-            <div class="min-w-0 truncate">
-              <div class="text-xs font-bold text-ink truncate" title="{{ $trx->description }}">{{ $trx->description }}</div>
-              <div class="text-[10px] font-mono text-ink/60 truncate">{{ $trx->category ? $trx->category->name : 'Umum' }} &bull; {{ $trx->user ? $trx->user->name : 'Keluarga' }}</div>
-            </div>
-            <span class="font-mono {{ $trx->type === 'income' ? 'text-brand' : 'text-coral' }} font-black text-xs flex-shrink-0">
-              {{ $trx->type === 'income' ? '+' : '-' }}Rp {{ number_format($trx->amount, 0, ',', '.') }}
-            </span>
-          </div>
-        @empty
-          <div class="text-xs font-mono text-ink/50 py-2">Belum ada transaksi</div>
-        @endforelse
-      </div>
-    </div>
-
-    <!-- KOLOM 3: JADWAL & MOMEN TERAKHIR -->
-    <div id="overview-calendar-widget" class="bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden h-full">
-      <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-2.5">
-        <div class="flex items-center gap-1.5">
-          <span class="text-base">🗓️</span>
-          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">Jadwal & Momen</h3>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span class="px-1.5 py-0.2 {{ $isPro ? 'bg-accent text-ink' : 'bg-coral text-white' }} brutal-border font-mono text-[9px] font-black uppercase">
-            {{ $isPro ? '👑 Pro' : '🔒 Pro' }}
-          </span>
-          @if($isPro)
-            <a href="{{ route('events.index') }}" class="text-[10px] font-mono font-black text-brand hover:underline">Semua &rarr;</a>
-          @endif
-        </div>
-      </div>
-
-      @if($isPro)
-        <div class="space-y-1.5 max-h-[145px] overflow-y-auto custom-scrollbar pr-1">
-          @if($upcomingEvents->count() > 0)
-            @php $ev = $upcomingEvents->first(); @endphp
-            <div class="p-1.5 sm:p-2 bg-accent/25 brutal-border flex items-center justify-between text-xs gap-2">
-              <div class="min-w-0 truncate">
-                <div class="text-xs font-bold text-ink truncate">{{ $ev->title }}</div>
-                <div class="text-[10px] font-mono text-ink/70">📍 {{ $ev->location ?? 'Rumah' }}</div>
-              </div>
-              <span class="px-1.5 py-0.5 bg-white brutal-border font-mono text-[9px] sm:text-[10px] font-bold flex-shrink-0">
-                {{ \Carbon\Carbon::parse($ev->start_time)->locale('id')->isoFormat('D MMM') }}
-              </span>
-            </div>
-          @endif
-
-          @if($latestMoment)
-            <div class="p-1.5 sm:p-2 bg-cream brutal-border flex items-center gap-2 text-xs">
-              @if($latestMoment->image_path)
-                <img src="{{ asset('storage/' . $latestMoment->image_path) }}" alt="{{ $latestMoment->title }}" class="w-8 h-8 sm:w-9 sm:h-9 object-cover brutal-border flex-shrink-0">
-              @else
-                <span class="text-base">📸</span>
-              @endif
-              <div class="min-w-0 truncate">
-                <div class="text-xs font-bold text-ink truncate">{{ $latestMoment->title }}</div>
-                <div class="text-[10px] font-mono text-ink/60 truncate">{{ \Carbon\Carbon::parse($latestMoment->event_date)->locale('id')->isoFormat('D MMMM Y') }}</div>
-              </div>
-            </div>
-          @else
-            <div class="text-xs font-mono text-ink/50 py-1">Belum ada momen foto</div>
-          @endif
-        </div>
-      @else
-        <!-- FREE TIER: OPACITY RENDAH DENGAN OVERLAY UPGRADE -->
-        <div class="opacity-25 select-none pointer-events-none space-y-1.5">
-          <div class="p-2 bg-cream brutal-border flex items-center justify-between text-xs">
-            <div>
-              <div class="font-bold text-ink">Liburan Pantai Bersama</div>
-              <div class="text-[9px] font-mono text-ink/60">Anyer &bull; 4 Foto</div>
-            </div>
-            <span class="px-1.5 py-0.5 bg-white brutal-border text-[9px] font-mono font-bold">15 Okt</span>
-          </div>
-          <div class="p-2 bg-cream brutal-border flex items-center justify-between text-xs">
-            <div>
-              <div class="font-bold text-ink">Jadwal Imunisasi Anak</div>
-              <div class="text-[9px] font-mono text-ink/60">Puskesmas</div>
-            </div>
-            <span class="px-1.5 py-0.5 bg-white brutal-border text-[9px] font-mono font-bold">28 Okt</span>
-          </div>
-        </div>
-
-        <!-- OVERLAY UPGRADE BUTTON -->
-        <div class="absolute inset-0 bg-cream/80 backdrop-blur-[2px] flex flex-col items-center justify-center p-3 text-center z-10">
-          <span class="text-xl mb-0.5">🔒</span>
-          <span class="px-1.5 py-0.2 bg-coral text-white brutal-border font-mono text-[9px] font-black uppercase mb-0.5">Fitur Pro</span>
-          <h4 class="font-black font-display text-xs sm:text-sm text-ink mb-0.5">Kalender & Linimasa</h4>
-          <p class="text-[10px] text-ink/70 font-medium mb-2 max-w-xs leading-tight">
-            Foto liburan & jadwal agenda otomatis aktif di Pro.
-          </p>
-          <button type="button" onclick="openPaywallModal('timeline')" class="px-2.5 py-1 bg-accent hover:bg-brand hover:text-white brutal-btn text-[10px] font-mono font-black uppercase tracking-wider shadow-brutal-sm">
-            👑 Upgrade Pro (Rp 20rb) &rarr;
-          </button>
-        </div>
-      @endif
-    </div>
-
-  </div>
-
-  <!-- BARIS 4 & PANTRY: PAPAN KULKAS & PERINGATAN DAPUR (KULKAS DI MOBILE, BLOK DI DESKTOP) -->
-  <div class="mob-section-container mob-section-notes hidden lg:block space-y-3.5 sm:space-y-4">
-
-    <!-- PAPAN KULKAS KELUARGA -->
-    <div class="bg-white brutal-card p-3.5 sm:p-4 space-y-3">
-      <div class="flex items-center justify-between pb-2 border-b-2 border-ink">
-        <div class="flex items-center gap-2">
-          <span class="text-base sm:text-lg">📌</span>
-          <h3 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">
-            Papan Kulkas Keluarga
-          </h3>
-          <span class="text-[10px] font-mono text-ink/50 hidden sm:inline">(Catatan Disematkan)</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <a href="{{ route('notes.index') }}" class="text-[11px] font-mono font-black text-brand hover:underline flex items-center gap-1">
+      <!-- PANEL 1: MEMO KULKAS KELUARGA (PLAYFUL ROTATING STICKY NOTES DENGAN SELOTIP) -->
+      <div id="panel-view-kulkas" class="unified-panel-view hidden space-y-4">
+        <div class="flex items-center justify-between text-xs font-mono font-bold text-ink/70">
+          <h4 class="font-display font-black text-xs sm:text-sm text-ink uppercase tracking-wide flex items-center gap-1.5">
+            <span>Papan Kulkas Keluarga</span>
+            <span class="text-[10px] font-mono text-ink/50 normal-case hidden sm:inline">(Memo Disematkan)</span>
+          </h4>
+          <a href="{{ route('notes.index') }}" class="text-brand font-black hover:underline flex items-center gap-1">
             <span>Buka Semua Papan</span>
             <span>&rarr;</span>
           </a>
         </div>
+
+        @if(isset($pinnedNotes) && $pinnedNotes->count() > 0)
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+            @php
+              $rotations = ['rotate-[-1.5deg]', 'rotate-[1.2deg]', 'rotate-[-0.8deg]', 'rotate-[1.8deg]'];
+            @endphp
+            @foreach($pinnedNotes->take(4) as $idx => $pNote)
+              @php
+                $pBg = match($pNote->color) {
+                  'mint' => 'bg-[#D1FAE5]',
+                  'blue' => 'bg-[#BAE6FD]',
+                  'pink' => 'bg-[#FCE7F3]',
+                  'orange' => 'bg-[#FED7AA]',
+                  'lavender' => 'bg-[#E9D5FF]',
+                  default => 'bg-[#FFF9A6]',
+                };
+                $rotClass = $rotations[$idx % 4];
+              @endphp
+              <div class="relative group {{ $rotClass }} hover:rotate-0 hover:-translate-y-1.5 hover:z-10 transition-all duration-200">
+                <!-- SELOTIP RETRO / TAPE STRIP -->
+                <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-3.5 bg-ink/15 backdrop-blur-[1px] border border-ink/30 rotate-[-1deg] shadow-sm pointer-events-none z-10"></div>
+                
+                <a href="{{ route('notes.index') }}" class="p-3 brutal-border {{ $pBg }} block shadow-brutal group-hover:shadow-brutal-lg transition-shadow">
+                  <div class="flex items-center justify-between text-[10px] font-mono font-black text-ink mb-1.5">
+                    <span class="truncate font-black">{{ $pNote->user->name ?? 'Keluarga' }}</span>
+                    <span class="text-xs group-hover:rotate-12 transition-transform">📌</span>
+                  </div>
+                  <div class="font-display font-black text-xs text-ink truncate mb-1">
+                    {{ $pNote->title }}
+                  </div>
+                  <div class="font-mono text-[11px] text-ink/80 line-clamp-3 leading-tight">
+                    {{ $pNote->content }}
+                  </div>
+                </a>
+              </div>
+            @endforeach
+          </div>
+        @else
+          <div class="p-6 bg-cream brutal-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-ink/70">
+            <div class="flex items-center gap-2.5">
+              <span class="text-2xl animate-pulse">✨</span>
+              <span>Kulkas keluarga masih bersih. Belum ada memo yang disematkan.</span>
+            </div>
+            <a href="{{ route('notes.index') }}" class="px-3 py-1.5 bg-accent hover:bg-brand hover:text-white brutal-border font-black text-xs uppercase shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] transition-all">
+              + Tempel Memo Baru
+            </a>
+          </div>
+        @endif
       </div>
 
-      @if(isset($pinnedNotes) && $pinnedNotes->count() > 0)
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          @foreach($pinnedNotes as $pNote)
-            @php
-              $pBg = match($pNote->color) {
-                'mint' => 'bg-[#D1FAE5]',
-                'blue' => 'bg-[#BAE6FD]',
-                'pink' => 'bg-[#FCE7F3]',
-                'orange' => 'bg-[#FED7AA]',
-                'lavender' => 'bg-[#E9D5FF]',
-                default => 'bg-[#FFF9A6]',
-              };
-            @endphp
-            <a href="{{ route('notes.index') }}" class="p-3 brutal-border {{ $pBg }} block hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#121614] transition-all">
-              <div class="flex items-center justify-between text-[10px] font-mono font-black text-ink mb-1">
-                <span class="truncate">{{ $pNote->user->name ?? 'Keluarga' }}</span>
-                <span>📌</span>
-              </div>
-              <div class="font-display font-black text-xs text-ink truncate mb-1">
-                {{ $pNote->title }}
-              </div>
-              <div class="font-mono text-[11px] text-ink/80 line-clamp-2 leading-tight">
-                {{ $pNote->content }}
-              </div>
+      <!-- PANEL 2: MOMEN KENANGAN KELUARGA (POLAROID TILT INTERAKTIF) -->
+      <div id="panel-view-momen" class="unified-panel-view hidden space-y-4">
+        <div class="flex items-center justify-between text-xs font-mono font-bold text-ink/70">
+          <span>Kapsul Kenangan & Kilas Balik Bersama</span>
+          @if($isPro)
+            <a href="{{ route('timeline.index') }}" class="text-brand font-black hover:underline flex items-center gap-1">
+              <span>Buka Linimasa Penuh</span>
+              <span>&rarr;</span>
             </a>
-          @endforeach
+          @else
+            <span class="px-1.5 py-0.2 bg-coral text-white brutal-border font-mono text-[9px] font-black uppercase">Fitur Pro</span>
+          @endif
         </div>
-      @else
-        <div class="p-3 bg-cream brutal-border flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono text-ink/70">
-          <div class="flex items-center gap-2">
-            <span>🧲</span>
-            <span>Belum ada catatan kulkas yang disematkan tetap di atas.</span>
+
+        @if($isPro)
+          @if($latestMoment)
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-cream brutal-border p-4 hover:shadow-brutal transition-shadow">
+              <!-- POLAROID FRAME -->
+              <div class="md:col-span-5 bg-white p-2.5 pb-3.5 brutal-border shadow-brutal hover:scale-[1.02] hover:-rotate-1 transition-all duration-300 group">
+                <div class="relative h-44 sm:h-52 overflow-hidden brutal-border bg-ink/10">
+                  @if($latestMoment->image_path)
+                    <img src="{{ asset('storage/' . $latestMoment->image_path) }}" 
+                         alt="{{ $latestMoment->title }}" 
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                  @else
+                    <div class="w-full h-full flex flex-col items-center justify-center text-ink/40">
+                      <span class="text-4xl animate-bounce">📸</span>
+                      <span class="text-[10px] font-mono mt-1">Momen Terabadikan</span>
+                    </div>
+                  @endif
+                  <div class="absolute bottom-2 right-2 px-2 py-0.5 bg-ink text-white font-mono text-[10px] font-bold brutal-border">
+                    {{ \Carbon\Carbon::parse($latestMoment->event_date)->locale('id')->isoFormat('D MMMM Y') }}
+                  </div>
+                </div>
+                <div class="mt-2 text-center text-[10px] font-mono font-bold text-ink/60 truncate">
+                  {{ $latestMoment->title }}
+                </div>
+              </div>
+
+              <!-- CAPTION DETAIL -->
+              <div class="md:col-span-7 space-y-2.5">
+                <div class="inline-block px-2 py-0.5 bg-accent brutal-border text-[9px] font-mono font-black uppercase shadow-[1px_1px_0px_#121614]">
+                  Kenangan Terakhir
+                </div>
+                <h4 class="font-display font-black text-sm sm:text-base text-ink">
+                  {{ $latestMoment->title }}
+                </h4>
+                @if($latestMoment->description)
+                  <p class="font-mono text-xs text-ink/80 leading-relaxed bg-white p-2.5 brutal-border shadow-brutal-sm">
+                    "{{ $latestMoment->description }}"
+                  </p>
+                @endif
+                <div class="pt-1">
+                  <a href="{{ route('timeline.index') }}" class="px-3.5 py-1.5 bg-brand text-white hover:bg-accent hover:text-ink brutal-border font-mono font-black text-xs inline-flex items-center gap-1.5 shadow-brutal-sm hover:translate-x-[-1px] hover:translate-y-[-1px] transition-all">
+                    <span>Jelajahi Linimasa Foto</span>
+                    <span>&rarr;</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          @else
+            <div class="p-6 bg-cream brutal-border text-center space-y-2">
+              <span class="text-3xl block">🖼️</span>
+              <div class="font-display font-black text-sm text-ink">Belum Ada Momen Tersimpan</div>
+              <p class="font-mono text-xs text-ink/60 max-w-sm mx-auto">Abadikan foto-foto hangat dan perjalanan bersama keluarga di Linimasa.</p>
+              <a href="{{ route('timeline.index') }}" class="inline-block px-3 py-1.5 bg-brand text-white brutal-border font-mono font-black text-xs uppercase shadow-brutal-sm">
+                + Tambah Momen Baru
+              </a>
+            </div>
+          @endif
+        @else
+          <div class="bg-cream brutal-border p-6 text-center space-y-2.5 relative overflow-hidden">
+            <span class="text-3xl block animate-bounce">📸</span>
+            <div class="font-display font-black text-sm text-ink">Kapsul Kenangan Keluarga</div>
+            <p class="font-mono text-xs text-ink/70 max-w-md mx-auto">
+              Simpan foto kenangan indah, momen liburan, dan perjalanan keluarga di satu linimasa bersama tanpa batas.
+            </p>
+            <button type="button" onclick="openPaywallModal('timeline')" class="px-3.5 py-1.5 bg-accent hover:bg-brand hover:text-white brutal-btn text-xs font-mono font-black uppercase tracking-wider shadow-brutal-sm">
+              👑 Aktifkan Linimasa Pro &rarr;
+            </button>
           </div>
-          <a href="{{ route('notes.index') }}?action=create" class="px-2.5 py-1 bg-accent hover:bg-brand hover:text-white brutal-btn text-[10px] font-mono font-black uppercase tracking-wider shrink-0">
-            + Tulis Catatan
-          </a>
+        @endif
+      </div>
+
+      <!-- PANEL 3: TUGAS RUMAH & AGENDA KELUARGA (INTERACTIVE HOVER CHECKLIST & EVENT PILLS) -->
+      <div id="panel-view-tugas" class="unified-panel-view hidden space-y-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4 items-stretch">
+          
+          <!-- KIRI: TUGAS RUMAH HARI INI -->
+          <div class="p-3.5 sm:p-4 bg-cream brutal-border flex flex-col justify-between">
+            <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-2.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-base">🧹</span>
+                <h4 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">
+                  Tugas Hari Ini
+                </h4>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-mono font-bold text-ink/70">{{ $choresCompleted }}/{{ $choresTotal }} beres</span>
+                <a href="{{ route('chores.index') }}" class="text-[10px] font-mono font-black text-brand hover:underline">Semua &rarr;</a>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <!-- COMPACT DONUT RING -->
+              <div class="relative w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 flex items-center justify-center">
+                <canvas id="choreRingChart"></canvas>
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span class="text-[10px] sm:text-[11px] font-mono font-black text-ink">{{ $choreCompletionRate }}%</span>
+                </div>
+              </div>
+
+              <!-- CHECKLIST TUGAS INTERAKTIF -->
+              <div class="flex-1 min-w-0 space-y-1.5 max-h-[145px] overflow-y-auto custom-scrollbar pr-1">
+                @forelse($allChores->take(5) as $chore)
+                  <div class="p-1.5 sm:p-2 {{ $chore->status === 'completed' ? 'bg-white opacity-85' : 'bg-white shadow-brutal-sm' }} brutal-border flex items-center justify-between text-xs gap-2 hover:-translate-x-0.5 transition-transform">
+                    <div class="truncate text-xs font-bold text-ink {{ $chore->status === 'completed' ? 'line-through text-ink/50' : '' }}" title="{{ $chore->title }}">
+                      {{ $chore->title }}
+                    </div>
+                    <span class="px-1.5 py-0.2 {{ $chore->status === 'completed' ? 'bg-brand text-white' : 'bg-accent text-ink' }} brutal-border text-[9px] font-mono font-black flex-shrink-0 uppercase shadow-[1px_1px_0px_#121614]">
+                      {{ $chore->status === 'completed' ? '✓ Beres' : 'Belum' }}
+                    </span>
+                  </div>
+                @empty
+                  <div class="text-xs font-mono text-ink/50 py-3 text-center bg-white brutal-border">
+                    Belum ada tugas rumah hari ini. Rumah tenang!
+                  </div>
+                @endforelse
+              </div>
+            </div>
+          </div>
+
+          <!-- KANAN: AGENDA KELUARGA MENDATANG -->
+          <div class="p-3.5 sm:p-4 bg-cream brutal-border flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-2.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-base">📅</span>
+                <h4 class="font-black font-display text-xs sm:text-sm text-ink uppercase tracking-wide">
+                  Agenda Mendatang
+                </h4>
+              </div>
+              @if($isPro)
+                <a href="{{ route('events.index') }}" class="text-[10px] font-mono font-black text-brand hover:underline">Kalender &rarr;</a>
+              @else
+                <span class="px-1.5 py-0.2 bg-coral text-white brutal-border font-mono text-[9px] font-black uppercase">Fitur Pro</span>
+              @endif
+            </div>
+
+            @if($isPro)
+              <div class="space-y-1.5 max-h-[145px] overflow-y-auto custom-scrollbar pr-1">
+                @forelse($upcomingEvents->take(4) as $ev)
+                  <div class="p-1.5 sm:p-2 bg-white brutal-border flex items-center justify-between text-xs gap-2 hover:-translate-x-0.5 transition-transform">
+                    <div class="min-w-0 truncate">
+                      <div class="text-xs font-bold text-ink truncate">{{ $ev->title }}</div>
+                      <div class="text-[10px] font-mono text-ink/70">📍 {{ $ev->location ?? 'Rumah' }}</div>
+                    </div>
+                    <span class="px-1.5 py-0.5 bg-cream brutal-border font-mono text-[9px] sm:text-[10px] font-bold flex-shrink-0 shadow-[1px_1px_0px_#121614]">
+                      {{ \Carbon\Carbon::parse($ev->start_time)->locale('id')->isoFormat('D MMM, HH:mm') }}
+                    </span>
+                  </div>
+                @empty
+                  <div class="text-xs font-mono text-ink/50 py-3 text-center bg-white brutal-border">
+                    Tidak ada agenda mendesak.
+                  </div>
+                @endforelse
+              </div>
+            @else
+              <div class="opacity-25 select-none pointer-events-none space-y-1.5">
+                <div class="p-2 bg-white brutal-border flex items-center justify-between text-xs">
+                  <div class="font-bold text-ink">Liburan Akhir Pekan</div>
+                  <span class="px-1.5 py-0.5 bg-cream brutal-border text-[9px] font-mono font-bold">Minggu</span>
+                </div>
+              </div>
+              <div class="absolute inset-0 bg-cream/80 backdrop-blur-[2px] flex flex-col items-center justify-center p-3 text-center z-10">
+                <span class="text-xl mb-0.5">🗓️</span>
+                <h5 class="font-black font-display text-xs text-ink mb-1">Kalender Keluarga Pro</h5>
+                <button type="button" onclick="openPaywallModal('calendar')" class="px-2.5 py-1 bg-accent hover:bg-brand hover:text-white brutal-btn text-[10px] font-mono font-black uppercase tracking-wider shadow-brutal-sm">
+                  👑 Aktifkan Kalender Pro &rarr;
+                </button>
+              </div>
+            @endif
+          </div>
+
         </div>
-      @endif
+
+        <!-- PANTRY ALERTS (JIKA ADA STOK MENIPIS) -->
+        @if(isset($pantryAlerts) && $pantryAlerts->count() > 0)
+          <div class="p-3 bg-white brutal-border border-coral space-y-2">
+            <div class="flex items-center justify-between text-xs font-mono font-bold text-ink">
+              <span class="flex items-center gap-1.5 text-coral">
+                <span>🥫</span>
+                <span>Peringatan Stok Dapur & Pantry ({{ $pantryAlerts->count() }})</span>
+              </span>
+              <a href="{{ route('pantry.index') }}" class="text-brand font-black hover:underline text-[11px]">Buka Inventaris &rarr;</a>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              @foreach($pantryAlerts->take(3) as $alertItem)
+                @php
+                  $isLow = $alertItem->isLowStock();
+                  $isExp = $alertItem->isExpired();
+                  $isSoon = $alertItem->isExpiringSoon();
+                @endphp
+                <div class="p-2 bg-cream brutal-border flex items-center justify-between text-xs gap-2 hover:-translate-y-0.5 transition-transform">
+                  <div class="min-w-0 truncate">
+                    <div class="font-bold text-ink truncate">{{ $alertItem->name }}</div>
+                    <div class="text-[10px] font-mono text-ink/60">Sisa: {{ rtrim(rtrim(number_format((float) $alertItem->quantity, 2, '.', ''), '0'), '.') }} {{ $alertItem->unit }}</div>
+                  </div>
+                  @if($isExp)
+                    <span class="px-1.5 py-0.5 bg-coral text-white brutal-border text-[8px] font-black uppercase flex-shrink-0">Expired</span>
+                  @elseif($isSoon)
+                    <span class="px-1.5 py-0.5 bg-accent text-ink brutal-border text-[8px] font-black uppercase flex-shrink-0">Exp Segera</span>
+                  @elseif($isLow)
+                    <span class="px-1.5 py-0.5 bg-amber-300 text-ink brutal-border text-[8px] font-black uppercase flex-shrink-0">Stok Tipis</span>
+                  @endif
+                </div>
+              @endforeach
+            </div>
+          </div>
+        @endif
+      </div>
+
+      <!-- PANEL 4: KAS, POIN & STATISTIK (DENGAN MICRO COUNT-UP ANIMATION) -->
+      <div id="panel-view-statistik" class="unified-panel-view hidden space-y-4">
+        
+        <!-- 4 KARTU NOMINAL UTAMA DENGAN COUNT-UP -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+          <!-- SISA KAS -->
+          <div class="p-3 bg-cream brutal-border hover:shadow-brutal-sm hover:-translate-y-0.5 transition-all">
+            <div class="flex items-center justify-between text-[10px] font-mono font-bold text-ink/70">
+              <span>SISA KAS</span>
+              <span>💰</span>
+            </div>
+            <div class="text-lg sm:text-2xl font-black font-mono {{ $netBalance >= 0 ? 'text-brand' : 'text-coral' }} truncate my-1" title="Rp {{ number_format($netBalance, 0, ',', '.') }}">
+              <span class="countup-val" data-target="{{ (int)$netBalance }}" data-is-rp="1">Rp {{ number_format($netBalance, 0, ',', '.') }}</span>
+            </div>
+            <div class="text-[10px] font-mono text-ink/60">Saldo berjalan</div>
+          </div>
+
+          <!-- PEMASUKAN -->
+          <div class="p-3 bg-[#D1FAE5] brutal-border hover:shadow-brutal-sm hover:-translate-y-0.5 transition-all">
+            <div class="flex items-center justify-between text-[10px] font-mono font-bold text-ink/70">
+              <span>MASUK</span>
+              <span>📈</span>
+            </div>
+            <div class="text-base sm:text-xl font-black font-mono text-brand truncate my-1">
+              <span class="countup-val" data-target="{{ (int)$totalIncome }}" data-is-rp="1" data-prefix="+">+Rp {{ number_format($totalIncome, 0, ',', '.') }}</span>
+            </div>
+            <div class="text-[10px] font-mono text-ink/60">Bulan ini</div>
+          </div>
+
+          <!-- PENGELUARAN -->
+          <div class="p-3 bg-[#FCE7F3] brutal-border hover:shadow-brutal-sm hover:-translate-y-0.5 transition-all">
+            <div class="flex items-center justify-between text-[10px] font-mono font-bold text-ink/70">
+              <span>KELUAR</span>
+              <span>📉</span>
+            </div>
+            <div class="text-base sm:text-xl font-black font-mono text-coral truncate my-1">
+              <span class="countup-val" data-target="{{ (int)$totalExpense }}" data-is-rp="1" data-prefix="-">-Rp {{ number_format($totalExpense, 0, ',', '.') }}</span>
+            </div>
+            <div class="text-[10px] font-mono text-ink/60">Bulan ini</div>
+          </div>
+
+          <!-- POIN KELUARGA -->
+          <div class="p-3 bg-white brutal-border hover:shadow-brutal-sm hover:-translate-y-0.5 transition-all">
+            <div class="flex items-center justify-between text-[10px] font-mono font-bold text-ink/70">
+              <span>POIN KELUARGA</span>
+              <span>⭐</span>
+            </div>
+            <div class="text-base sm:text-xl font-black font-mono text-ink truncate my-1">
+              <span class="countup-val" data-target="{{ (int)$members->sum('points') }}">{{ number_format($members->sum('points')) }}</span> Pts
+            </div>
+            <div class="text-[10px] font-mono text-ink/60 truncate">
+              Rajin: <strong>{{ $members->first() ? $members->first()->name : '-' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 GRAFIK UTAMA -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
+          
+          <!-- GRAFIK 1: ARUS KAS (6 KOLOM) -->
+          <div class="lg:col-span-6 p-3 sm:p-3.5 bg-white brutal-card flex flex-col justify-between hover:shadow-brutal transition-shadow">
+            <div class="flex items-center justify-between pb-1.5 border-b border-ink/20 mb-2">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm">📈</span>
+                <span class="font-display font-black text-xs text-ink uppercase">Uang Masuk & Keluar</span>
+              </div>
+              <div class="flex items-center gap-1 font-mono text-[10px] font-bold">
+                <button type="button" onclick="setCashflowChartType('bar')" id="btn-chart-bar" class="px-2 py-0.5 bg-accent brutal-border text-ink hover:bg-accent transition-colors">Bar</button>
+                <button type="button" onclick="setCashflowChartType('line')" id="btn-chart-line" class="px-2 py-0.5 bg-white brutal-border text-ink hover:bg-cream transition-colors">Garis</button>
+              </div>
+            </div>
+            <div class="relative h-44 w-full">
+              <canvas id="cashflowChart"></canvas>
+            </div>
+          </div>
+
+          <!-- GRAFIK 2: KATEGORI PENGELUARAN (3 KOLOM) -->
+          <div class="lg:col-span-3 p-3 sm:p-3.5 bg-white brutal-card flex flex-col justify-between hover:shadow-brutal transition-shadow">
+            <div class="flex items-center justify-between pb-1.5 border-b border-ink/20 mb-2">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm">🥧</span>
+                <span class="font-display font-black text-xs text-ink uppercase">Pos Biaya</span>
+              </div>
+            </div>
+            <div class="relative h-44 w-full flex items-center justify-center">
+              @if($expensesByCategory->count() > 0)
+                <canvas id="categoryDonutChart"></canvas>
+              @else
+                <div class="p-3 text-center text-xs font-mono text-ink/60 bg-cream brutal-border w-full">
+                  Belum ada catatan biaya.
+                </div>
+              @endif
+            </div>
+          </div>
+
+          <!-- GRAFIK 3: POIN ANGGOTA (3 KOLOM) -->
+          <div class="lg:col-span-3 p-3 sm:p-3.5 bg-white brutal-card flex flex-col justify-between hover:shadow-brutal transition-shadow">
+            <div class="flex items-center justify-between pb-1.5 border-b border-ink/20 mb-2">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm">🏆</span>
+                <span class="font-display font-black text-xs text-ink uppercase">Klasemen Poin</span>
+              </div>
+              <a href="{{ route('members.index') }}" class="text-brand font-black hover:underline text-[10px]">&rarr;</a>
+            </div>
+            <div class="relative h-44 w-full">
+              <canvas id="memberPointsChart"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TRANSAKSI TERAKHIR -->
+        <div class="p-3 bg-cream brutal-border space-y-2">
+          <div class="flex items-center justify-between text-xs font-mono font-bold text-ink">
+            <span>Catatan Transaksi Terakhir</span>
+            <a href="{{ route('finances.index') }}" class="text-brand font-black hover:underline text-[11px]">Buka Catatan Kas &rarr;</a>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            @php $recentTrx = $finance['recent_transactions'] ?? (isset($finance['transactions']) ? $finance['transactions']->take(4) : collect()); @endphp
+            @forelse($recentTrx->take(4) as $trx)
+              <div class="p-2 bg-white brutal-border text-xs flex items-center justify-between gap-2 hover:-translate-x-0.5 transition-transform">
+                <div class="min-w-0 truncate">
+                  <div class="text-xs font-bold text-ink truncate" title="{{ $trx->description }}">{{ $trx->description }}</div>
+                  <div class="text-[10px] font-mono text-ink/60 truncate">{{ $trx->category ? $trx->category->name : 'Umum' }}</div>
+                </div>
+                <span class="font-mono {{ $trx->type === 'income' ? 'text-brand' : 'text-coral' }} font-black text-xs flex-shrink-0">
+                  {{ $trx->type === 'income' ? '+' : '-' }}Rp {{ number_format($trx->amount, 0, ',', '.') }}
+                </span>
+              </div>
+            @empty
+              <div class="text-xs font-mono text-ink/50 py-2 col-span-full text-center">Belum ada transaksi kas</div>
+            @endforelse
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
-    <!-- PANTRY & INVENTORY ALERTS (JIKA ADA STOK MENIPIS / EXPIRED) -->
-    @if(isset($pantryAlerts) && $pantryAlerts->count() > 0)
-      <div class="p-4 bg-white brutal-card space-y-3 border-coral">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="text-base sm:text-lg">🥫</span>
-            <h3 class="font-display font-black text-sm sm:text-base text-ink">
-              Peringatan Stok & Pantry
-            </h3>
-            <span class="px-2 py-0.5 bg-coral text-white brutal-border text-[9px] font-mono font-black uppercase">
-              {{ $pantryAlerts->count() }} Perlu Perhatian
-            </span>
+    <!-- FAMILY WELCOME FEED: PAPAN CUPLIKAN HANGAT (DEFAULT TAMPIL DI LAYAR AWAL) -->
+    <div id="family-welcome-feed" class="space-y-3 sm:space-y-4 animate-spring-pop">
+      
+      <!-- GRID 3 KOLOM ASIMETRIS HANGAT -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3.5 sm:gap-4 items-stretch">
+
+        <!-- KOLOM 1 (4 KOLOM DESKTOP): 2 MEMO KULKAS DENGAN SELOTIP -->
+        <div class="lg:col-span-4 bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-3 select-none">
+            <div class="flex items-center gap-1.5">
+              <span class="text-base">📌</span>
+              <h4 class="font-display font-black text-xs sm:text-sm text-ink uppercase tracking-wide">
+                Papan Kulkas Keluarga
+              </h4>
+            </div>
+            <button type="button" onclick="toggleUnifiedPanel('kulkas')" class="text-[11px] font-mono font-black text-brand hover:underline flex items-center gap-0.5">
+              <span>Buka</span>
+              <span>&rarr;</span>
+            </button>
           </div>
-          <a href="{{ route('pantry.index') }}" class="text-[11px] font-mono font-black text-brand hover:underline flex items-center gap-1">
-            <span>Buka Inventaris</span>
-            <span>&rarr;</span>
-          </a>
+
+          @if(isset($pinnedNotes) && $pinnedNotes->count() > 0)
+            <div class="space-y-3 flex-1 flex flex-col justify-center pt-1">
+              @foreach($pinnedNotes->take(2) as $idx => $pNote)
+                @php
+                  $pBg = match($pNote->color) {
+                    'mint' => 'bg-[#D1FAE5]',
+                    'blue' => 'bg-[#BAE6FD]',
+                    'pink' => 'bg-[#FCE7F3]',
+                    'orange' => 'bg-[#FED7AA]',
+                    'lavender' => 'bg-[#E9D5FF]',
+                    default => 'bg-[#FFF9A6]',
+                  };
+                  $rot = $idx === 0 ? 'rotate-[-1.5deg]' : 'rotate-[1.2deg]';
+                @endphp
+                <div class="relative group {{ $rot }} hover:rotate-0 hover:-translate-y-1 transition-all duration-200">
+                  <!-- SELOTIP -->
+                  <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-10 h-3 bg-ink/15 border border-ink/30 rotate-[-1deg] pointer-events-none z-10"></div>
+                  <div onclick="toggleUnifiedPanel('kulkas')" class="p-2.5 brutal-border {{ $pBg }} block shadow-brutal cursor-pointer group-hover:shadow-brutal-sm">
+                    <div class="flex items-center justify-between text-[10px] font-mono font-black text-ink mb-1">
+                      <span class="truncate font-black">{{ $pNote->user->name ?? 'Keluarga' }}</span>
+                      <span>📌</span>
+                    </div>
+                    <div class="font-display font-black text-xs text-ink truncate mb-0.5">
+                      {{ $pNote->title }}
+                    </div>
+                    <div class="font-mono text-[11px] text-ink/80 line-clamp-2 leading-tight">
+                      {{ $pNote->content }}
+                    </div>
+                  </div>
+                </div>
+              @endforeach
+            </div>
+          @else
+            <div class="p-4 bg-cream brutal-border text-center my-auto space-y-1">
+              <span class="text-2xl block animate-pulse">✨</span>
+              <div class="font-display font-black text-xs text-ink">Kulkas Masih Bersih</div>
+              <p class="font-mono text-[11px] text-ink/60">Belum ada catatan yang disematkan.</p>
+              <a href="{{ route('notes.index') }}" class="inline-block mt-1 text-brand font-black hover:underline text-[11px]">
+                + Tempel Memo Baru &rarr;
+              </a>
+            </div>
+          @endif
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          @foreach($pantryAlerts as $alertItem)
-            @php
-              $isLow = $alertItem->isLowStock();
-              $isExp = $alertItem->isExpired();
-              $isSoon = $alertItem->isExpiringSoon();
-            @endphp
-            <a href="{{ route('pantry.index') }}" class="p-3 brutal-border bg-cream hover:bg-accent/40 block transition-all">
-              <div class="flex items-center justify-between text-[10px] font-mono font-bold mb-1">
-                <span class="uppercase text-ink/60">{{ $alertItem->category }}</span>
-                @if($isExp)
-                  <span class="px-1.5 py-0.5 bg-coral text-white brutal-border text-[8px] font-black uppercase">Expired</span>
-                @elseif($isSoon)
-                  <span class="px-1.5 py-0.5 bg-accent text-ink brutal-border text-[8px] font-black uppercase">Exp Segera</span>
-                @elseif($isLow)
-                  <span class="px-1.5 py-0.5 bg-amber-300 text-ink brutal-border text-[8px] font-black uppercase">Stok Tipis</span>
+        <!-- KOLOM 2 (4 KOLOM DESKTOP): POLAROID MOMEN KENANGAN -->
+        <div class="lg:col-span-4 bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-3 select-none">
+            <div class="flex items-center gap-1.5">
+              <span class="text-base">📷</span>
+              <h4 class="font-display font-black text-xs sm:text-sm text-ink uppercase tracking-wide">
+                Kilas Balik Momen
+              </h4>
+            </div>
+            <button type="button" onclick="toggleUnifiedPanel('momen')" class="text-[11px] font-mono font-black text-brand hover:underline flex items-center gap-0.5">
+              <span>Buka</span>
+              <span>&rarr;</span>
+            </button>
+          </div>
+
+          @if($latestMoment)
+            <div onclick="toggleUnifiedPanel('momen')" class="bg-cream brutal-border p-2 cursor-pointer hover:shadow-brutal hover:-translate-y-0.5 transition-all group my-auto">
+              <div class="relative h-32 sm:h-36 overflow-hidden brutal-border bg-ink/10 mb-2">
+                @if($latestMoment->image_path)
+                  <img src="{{ asset('storage/' . $latestMoment->image_path) }}" 
+                       alt="{{ $latestMoment->title }}" 
+                       class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                @else
+                  <div class="w-full h-full flex flex-col items-center justify-center text-ink/40">
+                    <span class="text-2xl">📸</span>
+                    <span class="text-[10px] font-mono mt-1">Momen Terabadikan</span>
+                  </div>
                 @endif
+                <div class="absolute bottom-1.5 right-1.5 px-2 py-0.5 bg-ink text-white font-mono text-[9px] font-bold brutal-border">
+                  {{ \Carbon\Carbon::parse($latestMoment->event_date)->locale('id')->isoFormat('D MMM Y') }}
+                </div>
               </div>
-              <div class="font-display font-black text-xs text-ink truncate">
-                {{ $alertItem->name }}
+              <div class="font-display font-black text-xs text-ink truncate group-hover:text-brand transition-colors">
+                {{ $latestMoment->title }}
               </div>
-              <div class="font-mono text-[11px] text-ink/80 mt-1 flex items-center justify-between">
-                <span>Sisa: <strong>{{ rtrim(rtrim(number_format((float) $alertItem->quantity, 2, '.', ''), '0'), '.') }} {{ $alertItem->unit }}</strong></span>
-                @if($alertItem->expired_at)
-                  <span class="text-[10px] text-ink/60">📅 {{ \Carbon\Carbon::parse($alertItem->expired_at)->isoFormat('D MMM') }}</span>
-                @endif
-              </div>
-            </a>
-          @endforeach
+              @if($latestMoment->description)
+                <p class="font-mono text-[10.5px] text-ink/70 line-clamp-1 mt-0.5">
+                  "{{ $latestMoment->description }}"
+                </p>
+              @endif
+            </div>
+          @else
+            <div class="p-4 bg-cream brutal-border text-center my-auto space-y-1">
+              <span class="text-2xl block">🖼️</span>
+              <div class="font-display font-black text-xs text-ink">Abadikan Kenangan</div>
+              <p class="font-mono text-[11px] text-ink/60">Simpan momen indah kebersamaan keluarga.</p>
+              <a href="{{ route('timeline.index') }}" class="inline-block mt-1 text-brand font-black hover:underline text-[11px]">
+                Buka Linimasa &rarr;
+              </a>
+            </div>
+          @endif
         </div>
+
+        <!-- KOLOM 3 (4 KOLOM DESKTOP): AGENDA HARI INI & APRESIASI KELUARGA -->
+        <div class="lg:col-span-4 bg-white brutal-card p-3.5 sm:p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between pb-2 border-b-2 border-ink mb-3 select-none">
+            <div class="flex items-center gap-1.5">
+              <span class="text-base">📅</span>
+              <h4 class="font-display font-black text-xs sm:text-sm text-ink uppercase tracking-wide">
+                Agenda Santai
+              </h4>
+            </div>
+            <button type="button" onclick="toggleUnifiedPanel('tugas')" class="text-[11px] font-mono font-black text-brand hover:underline flex items-center gap-0.5">
+              <span>Buka</span>
+              <span>&rarr;</span>
+            </button>
+          </div>
+
+          <div class="space-y-2.5 flex-1 flex flex-col justify-between">
+            @php $firstEv = $upcomingEvents->first(); @endphp
+            @if($firstEv)
+              <div onclick="toggleUnifiedPanel('tugas')" class="p-2.5 bg-cream brutal-border cursor-pointer hover:-translate-x-0.5 transition-transform">
+                <div class="flex items-center justify-between text-[10px] font-mono font-bold text-ink/60 mb-0.5">
+                  <span>AGENDA BERIKUTNYA</span>
+                  <span class="font-bold text-ink">{{ \Carbon\Carbon::parse($firstEv->start_time)->locale('id')->isoFormat('D MMM') }}</span>
+                </div>
+                <div class="font-display font-black text-xs text-ink truncate">
+                  {{ $firstEv->title }}
+                </div>
+                <div class="text-[10px] font-mono text-ink/70 mt-0.5">
+                  📍 {{ $firstEv->location ?? 'Rumah' }}
+                </div>
+              </div>
+            @else
+              <div class="p-2.5 bg-cream brutal-border text-center">
+                <div class="text-xs font-mono text-ink/60">Tidak ada agenda padat. Nikmati waktu santai bersama!</div>
+              </div>
+            @endif
+
+            <!-- KUTIPAN KELUARGA / DAILY WARMTH -->
+            <div class="p-2.5 bg-[#FFF9A6] brutal-border flex items-start gap-2">
+              <span class="text-base shrink-0">🌿</span>
+              <div class="min-w-0">
+                <div class="text-[9.5px] font-mono font-black text-ink uppercase">Catatan Kasih Hari Ini</div>
+                <p class="font-mono text-[10.5px] text-ink/80 italic line-clamp-2 leading-tight mt-0.5">
+                  {{ $warmQuote }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-    @endif
+
+    </div>
 
   </div>
-
 </div>
 
 <!-- CHART.JS LOGIC -->
@@ -1374,75 +1551,126 @@
     window.addEventListener('touchend', onPointerUp);
   }
 
-  // KONTROL TAB & SEGMEN MOBILE BERANDA (CLEAN & MINIMALIS)
-  let activeMobileDashboardSection = 'charts';
-  let activeMobileSubChart = 'cashflow';
+  // KONTROL 4 TOMBOL TERPADU (UNIFIED DASHBOARD PANELS DENGAN ANIMASI)
+  let activeUnifiedPanel = null;
 
-  function switchMobileDashboardSection(section) {
-    activeMobileDashboardSection = section;
-    if (window.vibrateDevice) window.vibrateDevice(6);
+  function runCountUpAnimations() {
+    $('.countup-val').each(function() {
+      const el = $(this);
+      const target = parseInt(el.attr('data-target') || '0', 10);
+      const isRp = el.attr('data-is-rp') === '1';
+      const prefix = el.attr('data-prefix') || '';
+      const isNegative = target < 0;
+      const absTarget = Math.abs(target);
+      const duration = 450;
+      const startTime = performance.now();
 
-    // Update styling tombol segmen mobile
-    $('.mob-section-btn').removeClass('bg-accent shadow-[1.5px_1.5px_0px_#121614] border-2 border-ink text-ink').addClass('border-2 border-transparent text-ink/70');
-    $('#mob-btn-section-' + section).removeClass('border-transparent text-ink/70').addClass('bg-accent shadow-[1.5px_1.5px_0px_#121614] border-2 border-ink text-ink');
-
-    if (window.innerWidth < 1024) {
-      $('.mob-section-container').addClass('hidden');
-      $('.mob-section-' + section).removeClass('hidden');
-
-      if (section === 'charts') {
-        setTimeout(function() {
-          if (activeMobileSubChart === 'cashflow' && cashflowChartInstance) cashflowChartInstance.resize();
-          if (activeMobileSubChart === 'category' && categoryDonutInstance) categoryDonutInstance.resize();
-          if (activeMobileSubChart === 'points' && memberPointsInstance) memberPointsInstance.resize();
-        }, 60);
-      } else if (section === 'activity') {
-        setTimeout(function() {
-          if (choreRingInstance) choreRingInstance.resize();
-        }, 60);
+      function updateNumber(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOutQuad = 1 - (1 - progress) * (1 - progress);
+        const current = Math.floor(easeOutQuad * absTarget);
+        const formattedNumber = current.toLocaleString('id-ID');
+        const sign = isNegative ? '-' : '';
+        const display = isRp ? sign + (prefix ? prefix : '') + 'Rp ' + formattedNumber : (prefix ? prefix : '') + sign + formattedNumber;
+        el.text(display);
+        if (progress < 1) {
+          requestAnimationFrame(updateNumber);
+        }
       }
-    }
+      requestAnimationFrame(updateNumber);
+    });
   }
 
-  function switchMobileSubChart(chartKey) {
-    activeMobileSubChart = chartKey;
+  function toggleUnifiedPanel(key) {
+    const container = $('#unified-panel-container');
+    const welcomeFeed = $('#family-welcome-feed');
+    const title = $('#unified-panel-title');
+    const icon = $('#unified-panel-icon');
+
+    // Jika mengklik tombol yang sedang aktif -> tutup panel
+    if (activeUnifiedPanel === key) {
+      closeUnifiedPanel();
+      return;
+    }
+
+    activeUnifiedPanel = key;
     if (window.vibrateDevice) window.vibrateDevice(6);
 
-    $('.mob-subchart-tab').removeClass('bg-white text-ink shadow-[1px_1px_0px_#121614] brutal-border').addClass('border border-transparent text-ink/70');
-    $('#mob-sub-' + chartKey).removeClass('border-transparent text-ink/70').addClass('bg-white text-ink shadow-[1px_1px_0px_#121614] brutal-border');
+    // Reset tombol ke keadaan normal
+    $('.unified-tab-btn')
+      .removeClass('translate-x-[2px] translate-y-[2px] shadow-none ring-2 ring-ink')
+      .addClass('shadow-brutal');
+    $('.active-dot').addClass('hidden');
 
-    if (window.innerWidth < 1024) {
-      $('.mob-chart-item').addClass('hidden');
-      $('#chart-card-' + chartKey).removeClass('hidden');
+    // Beri gaya aktif (tekan ke bawah) pada tombol yang dipilih
+    const activeBtn = $('#btn-unified-' + key);
+    activeBtn
+      .removeClass('shadow-brutal')
+      .addClass('translate-x-[2px] translate-y-[2px] shadow-none ring-2 ring-ink');
+    activeBtn.find('.active-dot').removeClass('hidden');
 
+    // Sembunyikan welcome feed saat panel detail aktif
+    welcomeFeed.addClass('hidden');
+
+    // Ganti panel tampilan
+    $('.unified-panel-view').addClass('hidden');
+    $('#panel-view-' + key).removeClass('hidden');
+
+    const meta = {
+      kulkas: { title: 'Papan Kulkas Keluarga (Memo Disematkan)', icon: '📌' },
+      momen: { title: 'Kilas Balik Momen Kenangan', icon: '📷' },
+      tugas: { title: 'Tugas Rumah & Agenda Mendatang', icon: '🧹' },
+      statistik: { title: 'Ringkasan Finansial, Poin & Grafik', icon: '📊' },
+    };
+
+    if (meta[key]) {
+      title.text(meta[key].title);
+      icon.text(meta[key].icon);
+    }
+
+    // Tampilkan panel dengan animasi spring pop
+    container.removeClass('hidden animate-spring-pop');
+    void container[0].offsetWidth; // trigger reflow
+    container.addClass('animate-spring-pop');
+
+    // Eksekusi animasi khusus per panel
+    if (key === 'statistik') {
+      runCountUpAnimations();
       setTimeout(function() {
-        if (chartKey === 'cashflow' && cashflowChartInstance) cashflowChartInstance.resize();
-        if (chartKey === 'category' && categoryDonutInstance) categoryDonutInstance.resize();
-        if (chartKey === 'points' && memberPointsInstance) memberPointsInstance.resize();
-      }, 60);
+        if (cashflowChartInstance) cashflowChartInstance.resize();
+        if (categoryDonutInstance) categoryDonutInstance.resize();
+        if (memberPointsInstance) memberPointsInstance.resize();
+        window.dispatchEvent(new Event('resize'));
+      }, 50);
+    } else if (key === 'tugas') {
+      setTimeout(function() {
+        if (choreRingInstance) choreRingInstance.resize();
+        window.dispatchEvent(new Event('resize'));
+      }, 50);
     }
   }
 
-  function syncDashboardResponsiveLayout() {
-    if (window.innerWidth >= 1024) {
-      $('.mob-section-charts').removeClass('hidden');
-      $('.mob-section-activity').removeClass('hidden');
-      $('.mob-section-notes').removeClass('hidden');
-      $('.mob-chart-item').removeClass('hidden');
-    } else {
-      switchMobileDashboardSection(activeMobileDashboardSection);
-      switchMobileSubChart(activeMobileSubChart);
-    }
-  }
+  function closeUnifiedPanel() {
+    activeUnifiedPanel = null;
+    $('#unified-panel-container').addClass('hidden').removeClass('animate-spring-pop');
+    $('.unified-panel-view').addClass('hidden');
+    $('.unified-tab-btn')
+      .removeClass('translate-x-[2px] translate-y-[2px] shadow-none ring-2 ring-ink')
+      .addClass('shadow-brutal');
+    $('.active-dot').addClass('hidden');
 
-  $(window).on('resize orientationchange', syncDashboardResponsiveLayout);
+    // Kembalikan welcome feed dengan animasi halus
+    const welcomeFeed = $('#family-welcome-feed');
+    welcomeFeed.removeClass('hidden animate-spring-pop');
+    void welcomeFeed[0].offsetWidth;
+    welcomeFeed.addClass('animate-spring-pop');
+  }
 
   $(document).ready(function() {
     initCashflowChart('bar');
     initCategoryDonutChart();
     initMemberPointsChart();
-    initChoreRingChart();
-    syncDashboardResponsiveLayout();
-  });
+    initChoreRingChart();  });
 </script>
 @endpush

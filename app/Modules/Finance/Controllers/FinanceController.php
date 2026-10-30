@@ -4,6 +4,7 @@ namespace App\Modules\Finance\Controllers;
 
 use App\Events\FinanceEvent;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Modules\Finance\Repositories\FinanceRepository;
 use App\Modules\Finance\Services\FinanceService;
 use Carbon\Carbon;
@@ -24,10 +25,11 @@ class FinanceController extends Controller
         $familyId = $user->family_id;
         $pageNumber = (int) $request->input('page', 1);
         $period = $request->input('period');
+        $cutOffDay = (int) ($user->cut_off_day ?? 1);
         $filterUserId = $user->canViewAllFinances() ? null : $user->id;
-        $overview = $this->financeService->calculateOverview($familyId, 5, 'page', $pageNumber, $period, $filterUserId);
+        $overview = $this->financeService->calculateOverview($familyId, 5, 'page', $pageNumber, $period, $filterUserId, null, $cutOffDay);
         $categories = $this->financeRepo->getCategories($familyId);
-        $report = $this->financeService->getFinancialReport($familyId, 'monthly', $overview['selected_period'] ?? now()->format('Y-m'));
+        $report = $this->financeService->getFinancialReport($familyId, 'monthly', $overview['selected_period'] ?? now()->format('Y-m'), null, null, null, $cutOffDay);
         $members = $user->canViewAllFinances()
             ? ($user->family ? $user->family->users()->orderBy('points', 'desc')->get() : collect([$user]))
             : collect([$user]);
@@ -43,6 +45,7 @@ class FinanceController extends Controller
             'selectedPeriodLabel' => $overview['selected_period_label'] ?? now()->locale('id')->isoFormat('MMMM Y'),
             'availablePeriods' => $overview['available_periods'] ?? [],
             'canViewAllFinances' => $user->canViewAllFinances(),
+            'cutOffDay' => $cutOffDay,
         ]);
     }
 
@@ -51,6 +54,7 @@ class FinanceController extends Controller
         $user = Auth::user();
         $familyId = $user->family_id;
         $filterUserId = $user->canViewAllFinances() ? null : $user->id;
+        $cutOffDay = (int) ($user->cut_off_day ?? 1);
 
         if ($request->has('draw') || $request->has('load_more')) {
             $draw = (int) $request->input('draw', 1);
@@ -98,7 +102,7 @@ class FinanceController extends Controller
 
         $pageNumber = (int) ($page ?? $request->route('page') ?? $request->input('page', 1));
         $perPage = (int) $request->input('per_page', 5);
-        $overview = $this->financeService->calculateOverview($familyId, $perPage, 'page', $pageNumber, null, $filterUserId);
+        $overview = $this->financeService->calculateOverview($familyId, $perPage, 'page', $pageNumber, null, $filterUserId, null, $cutOffDay);
 
         if ($request->expectsJson() || $request->ajax()) {
             $res = $overview['transactions']->toArray();
@@ -120,6 +124,7 @@ class FinanceController extends Controller
         }
 
         $familyId = $user->family_id;
+        $cutOffDay = (int) ($user->cut_off_day ?? 1);
 
         $draw = (int) $request->input('draw', 1);
         $start = (int) $request->input('start', 0);
@@ -133,7 +138,7 @@ class FinanceController extends Controller
 
         $status = (string) $request->input('status', '');
 
-        $dt = $this->financeRepo->getDataTablesBudgets($familyId, $period, $start, $length, $search, $status);
+        $dt = $this->financeRepo->getDataTablesBudgets($familyId, $period, $start, $length, $search, $status, $cutOffDay);
 
         return response()->json([
             'draw' => $draw,
@@ -175,8 +180,9 @@ class FinanceController extends Controller
         $user = Auth::user();
         $familyId = $user->family_id;
         $period = $request->input('period');
+        $cutOffDay = (int) ($user->cut_off_day ?? 1);
         $filterUserId = $user->canViewAllFinances() ? null : $user->id;
-        $overview = $this->financeService->calculateOverview($familyId, 5, 'page', 1, $period, $filterUserId);
+        $overview = $this->financeService->calculateOverview($familyId, 5, 'page', 1, $period, $filterUserId, null, $cutOffDay);
         $categories = $this->financeRepo->getCategories($familyId);
 
         return response()->json([
@@ -191,6 +197,9 @@ class FinanceController extends Controller
             'formatted_saving' => 'Rp '.number_format($overview['saving'] ?? 0, 0, ',', '.'),
             'goals' => $overview['goals'] ?? [],
             'category_budgets' => $overview['category_budgets'] ?? [],
+            'selected_period' => $overview['selected_period'],
+            'selected_period_label' => $overview['selected_period_label'],
+            'cut_off_day' => $cutOffDay,
             'categories' => $categories->map(function ($cat) {
                 return [
                     'id' => $cat->id,
@@ -208,6 +217,7 @@ class FinanceController extends Controller
     {
         $user = Auth::user();
         $familyId = $user->family_id;
+        $cutOffDay = (int) ($user->cut_off_day ?? 1);
 
         $mode = (string) $request->input('mode', 'monthly');
         $period = $request->input('period');
@@ -215,12 +225,38 @@ class FinanceController extends Controller
         $startMonth = $request->input('start_month');
         $endMonth = $request->input('end_month');
 
-        $report = $this->financeService->getFinancialReport($familyId, $mode, $period, $year, $startMonth, $endMonth);
+        $report = $this->financeService->getFinancialReport($familyId, $mode, $period, $year, $startMonth, $endMonth, $cutOffDay);
 
         return response()->json([
             'success' => true,
             'report' => $report,
         ]);
+    }
+
+    public function updateCutOff(Request $request)
+    {
+        $validated = $request->validate([
+            'cut_off_day' => 'required|integer|min:1|max:31',
+        ], [
+            'cut_off_day.required' => 'Tanggal cut off wajib ditentukan.',
+            'cut_off_day.min' => 'Tanggal cut off minimal 1.',
+            'cut_off_day.max' => 'Tanggal cut off maksimal 31.',
+        ]);
+
+        /** @var User $user */
+        $user = Auth::user();
+        $user->cut_off_day = (int) $validated['cut_off_day'];
+        $user->save();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tanggal cut off berhasil diubah ke tanggal '.$user->cut_off_day.'!',
+                'cut_off_day' => $user->cut_off_day,
+            ]);
+        }
+
+        return redirect()->route('finances.index')->with('success', 'Tanggal cut off berhasil diubah!');
     }
 
     public function store(Request $request)
